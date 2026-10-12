@@ -518,10 +518,10 @@
 
       <div class="dpanel" id="upStep1" style="margin-bottom:14px;">
         <div style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:var(--ink-soft);" for="upSource">Where does this data come from? <span style="color:var(--red);">*</span></label>
+          <label style="font-size:12px; font-weight:700; color:var(--ink-soft);" for="upSource">Default source (for rows without a Source value) <span style="color:var(--red);">*</span></label>
           <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. ACRA-SG, Apollo export, Expo 2026 visitors, Google Maps scrape" style="width:100%; margin-top:6px;" oninput="lsSet('oright_last_source', this.value)">
           <datalist id="upSourceList"></datalist>
-          <div style="font-size:11px; color:var(--ink-faint); margin-top:5px;">Used to compare which sources give the best leads. Rows that already have a Source column (for example ACRA-SG exports) keep their own.</div>
+          <div style="font-size:11px; color:var(--ink-faint); margin-top:5px;">Used to compare which sources give the best leads. If your file has a <b>Source</b> column, each row keeps its own value (for example OSM for Canada, Business Registry for the rest). This box only fills rows whose Source is empty. Use the exact same spelling every time, because the source comparison groups by exact text.</div>
         </div>
         <input type="file" id="upFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="upOnFile(this.files[0])">
         <div class="up-drop" id="upDrop" onclick="document.getElementById('upFile').click()">
@@ -1227,9 +1227,48 @@ async function upReadFile(file){
 function upDetect(cols){
   const has = c => cols.includes(c);
   if(has('uen') && has('CompanyName')) return 'acra';
-  if(has('Name') && has('Channel')) return 'inbox';
-  return null;
+  return 'inbox';
 }
+const UP_SYN = {
+  Name:['name','companyname','company','businessname','entityname','leadname','accountname','organisation','organization','公司','公司名稱','公司名称'],
+  Country:['country','nation','countryname','國家','国家'],
+  City:['city','town','城市'],
+  Address:['address','streetaddress','fulladdress','location','地址'],
+  Phone:['phone','tel','telephone','mobile','phonenumber','contactnumber','電話','电话'],
+  Website:['website','websiteurl','url','web','site','domain','homepage','weburl','網站','网站'],
+  General_Email:['generalemail','email','emailaddress','mail','foundemail','companyemail','infoemail'],
+  Registry_Email:['registryemail'],
+  Industry:['industry','category','sector','businesstype','leadcategory','產業','行业'],
+  Channel:['channel','leadchannel','segment','channeltype','type','通路','渠道'],
+  Source:['source','datasource','origin','來源','来源'],
+  Registry_ID:['registryid','uen','regno','registrationnumber','companynumber'],
+  C1_Name:['c1name','contact1name','contactname','contactperson','personname','fullname','contact'],
+  C1_Title:['c1title','contact1title','contacttitle','jobtitle','title','position','role'],
+  C1_Email:['c1email','contact1email','contactemail','personalemail','personemail'],
+  C2_Name:['c2name','contact2name'], C2_Title:['c2title','contact2title'], C2_Email:['c2email','contact2email'],
+  C3_Name:['c3name','contact3name'], C3_Title:['c3title','contact3title'], C3_Email:['c3email','contact3email']
+};
+const UP_MAP_FIELDS = ['Name','Channel','Country','City','Website','General_Email','Industry','Address','Phone','Source','C1_Name','C1_Title','C1_Email','C2_Name','C2_Title','C2_Email','C3_Name','C3_Title','C3_Email'];
+const upNorm = h => String(h == null ? '' : h).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
+function upAutoMap(headers){
+  const map = {}, used = new Set();
+  UP_MAP_FIELDS.concat(['Registry_ID','Registry_Email']).forEach(f => {
+    const hit = headers.find(h => h && !used.has(h) && (UP_SYN[f] || []).includes(upNorm(h)));
+    if(hit){ map[f] = hit; used.add(hit); }
+  });
+  return map;
+}
+function upMapKey(headers){ return 'oright_up_map_' + headers.map(upNorm).filter(Boolean).sort().join('|').slice(0, 300); }
+function upLoadMap(headers){
+  const auto = upAutoMap(headers);
+  try { const saved = JSON.parse(lsGet(upMapKey(headers)) || 'null'); if(saved) Object.keys(saved).forEach(f => { if(saved[f] === '' ) delete auto[f]; else if(headers.includes(saved[f])) auto[f] = saved[f]; }); } catch(e){}
+  return auto;
+}
+function upSaveMap(){ try { lsSet(upMapKey(upState.headers), JSON.stringify(upState.map)); } catch(e){} }
+function upSetMap(f, h){ if(h) upState.map[f] = h; else upState.map[f] = ''; if(!h) delete upState.map[f]; upState.mapTouched = (upState.mapTouched || {}); upState.mapTouched[f] = true;
+  try { const k = upMapKey(upState.headers); const cur = JSON.parse(lsGet(k) || '{}'); cur[f] = h || ''; lsSet(k, JSON.stringify(cur)); } catch(e){}
+  upState.mapOpen = true; upRenderPreview(); }
+function upSetDefChan(v){ upState.defChan = v; try { lsSet('oright_up_defchan', v); } catch(e){} upState.mapOpen = true; upRenderPreview(); }
 function upMapAcra(r){
   const cat = upNA(r.LeadCategory); const ch = ACRA_CHANNEL_MAP[cat.toLowerCase()];
   if(!ch) return { skip:'Channel out of scope', detail:cat || '(blank category)' };
@@ -1240,13 +1279,20 @@ function upMapAcra(r){
     Website:upNA(r['Website URL']), General_Email:upNA(r['Found Email']), Industry:upNA(r.primary_ssic_description) || cat, Channel:ch } };
 }
 function upMapInbox(r){
-  const row = {}; INBOX_COLS.forEach(c => { row[c] = upNA(r[c]); });
-  const ch = OFFICIAL_CHANNELS.find(x => x.toLowerCase() === String(row.Channel).toLowerCase());
+  const row = {}; const mp = upState.map || {};
+  INBOX_COLS.forEach(c => { row[c] = mp[c] ? upNA(r[mp[c]]) : ''; });
+  const offi = v => OFFICIAL_CHANNELS.find(x => x.toLowerCase() === String(v).trim().toLowerCase());
+  let ch = offi(row.Channel);
+  if(!ch){ // channel word sitting in another column (e.g. Industry)
+    const found = Object.keys(r).map(k => offi(r[k])).find(Boolean);
+    if(found){ ch = found; upState.rescued = (upState.rescued || 0) + 1; }
+  }
+  if(!ch && upState.defChan) { ch = upState.defChan; upState.defaulted = (upState.defaulted || 0) + 1; }
   if(!ch) return { skip:'Channel out of scope', detail: row.Channel || '(blank channel)' };
   row.Channel = ch; return { row };
 }
 function upBuild(raw, fmt, skipNoContact){
-  const skipped = {}, details = {}; const rows = []; const seen = new Set();
+  const skipped = {}, details = {}; const rows = []; const seen = new Set(); upState.rescued = 0; upState.defaulted = 0;
   const bump = (reason, detail) => { skipped[reason] = (skipped[reason] || 0) + 1; if(detail){ details[detail] = (details[detail] || 0) + 1; } };
   raw.forEach(r => {
     const m = fmt === 'acra' ? upMapAcra(r) : upMapInbox(r);
@@ -1273,9 +1319,11 @@ async function upOnFile(file){
   try {
     const raw = await upReadFile(file);
     if(!raw.length) throw new Error('The file has no data rows.');
-    const fmt = upDetect(Object.keys(raw[0]));
-    if(!fmt) throw new Error('Unrecognized columns. Expected Leads_Inbox columns (Name, Country, Website, Email, Channel…) or a company-registry export (CompanyName, uen, LeadCategory…). Found: ' + Object.keys(raw[0]).slice(0,12).join(', '));
-    upState = { fileName:file.name, raw, fmt, running:false };
+    const headers = Object.keys(raw[0]).filter(h => String(h).trim());
+    const fmt = upDetect(headers);
+    const map = fmt === 'inbox' ? upLoadMap(headers) : {};
+    let defChan = ''; try { defChan = lsGet('oright_up_defchan') || ''; } catch(e){}
+    upState = { fileName:file.name, raw, fmt, headers, map, defChan: OFFICIAL_CHANNELS.includes(defChan) ? defChan : '', mapOpen: fmt === 'inbox' && !map.Name, running:false };
     upRenderPreview();
   } catch(err){
     upState = { fileName:'', raw:null, fmt:null, running:false };
@@ -1295,9 +1343,21 @@ function upRenderPreview(){
   const skipRows = Object.entries(b.skipped).map(([k,v]) => '<tr><td>' + escH(k) + '</td><td style="text-align:right">' + v + '</td></tr>').join('');
   const catRows = Object.entries(b.details).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v]) => escH(k) + ' (' + v + ')').join(', ');
   const sample = b.rows.slice(0,6).map(r => '<tr><td>' + escH(r.Name) + '</td><td>' + escH(r.Channel) + '</td><td>' + escH(r.Website || '—') + '</td><td>' + escH(r.General_Email || r.Registry_Email || r.C1_Email || '—') + '</td></tr>').join('');
+  const mapUI = upState.fmt !== 'inbox' ? '' : (function(){
+    const hs = upState.headers, mp = upState.map;
+    const usedH = new Set(Object.values(mp)); const ignored = hs.filter(h => !usedH.has(h));
+    const sel = f => '<label style="font-size:12px; display:flex; flex-direction:column; gap:3px;"><span style="color:var(--ink-soft); font-weight:600;">' + f.replace(/_/g,' ') + (f==='Name'||f==='Channel' ? ' *' : '') + '</span><select onchange="upSetMap(\'' + f + '\', this.value)" style="padding:5px; border:1px solid var(--line,#ddd); border-radius:6px; background:var(--bg,#fff); color:inherit;"><option value="">— none —</option>' + hs.map(h => '<option value="' + escH(h) + '"' + (mp[f] === h ? ' selected' : '') + '>' + escH(h) + '</option>').join('') + '</select></label>';
+    const chanSel = '<label style="font-size:12px; display:flex; flex-direction:column; gap:3px;"><span style="color:var(--ink-soft); font-weight:600;">Channel for rows without one</span><select onchange="upSetDefChan(this.value)" style="padding:5px; border:1px solid var(--line,#ddd); border-radius:6px; background:var(--bg,#fff); color:inherit;"><option value="">— none (skip those rows) —</option>' + OFFICIAL_CHANNELS.map(c => '<option' + (upState.defChan === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>';
+    const extra = (upState.rescued ? ' · ' + upState.rescued + ' channel(s) found in another column' : '') + (upState.defaulted ? ' · ' + upState.defaulted + ' set to default channel' : '');
+    return '<details ' + (upState.mapOpen ? 'open' : '') + ' ontoggle="upState.mapOpen=this.open" style="font-size:12px; margin:10px 0;"><summary style="cursor:pointer; color:var(--ink-soft);">Column mapping: ' + Object.keys(mp).length + ' of your columns matched' + (ignored.length ? ', ' + ignored.length + ' ignored' : '') + escH(extra) + ' (click to check or change)</summary>' +
+      '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px; margin-top:8px;">' + UP_MAP_FIELDS.map(sel).join('') + chanSel + '</div>' +
+      (ignored.length ? '<div style="margin-top:6px; color:var(--ink-faint);">Ignored columns: ' + ignored.map(escH).join(', ') + '</div>' : '') +
+      (mp.Name ? '' : '<div class="up-note err" style="margin-top:6px;">Pick which column holds the company name.</div>') + '</details>';
+  })();
   box.innerHTML =
     '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;"><div style="font-weight:700; font-size:13px;">' + escH(upState.fileName) + ' <span style="font-weight:500; color:var(--ink-faint);">· ' + (upState.fmt === 'acra' ? 'Company-registry format' : 'Leads_Inbox format') + ' · ' + upState.raw.length + ' rows</span></div>' +
     '<label style="font-size:12px; color:var(--ink-soft); display:flex; gap:6px; align-items:center; cursor:pointer;"><input type="checkbox" id="upSkipNo" ' + (skipNo ? 'checked' : '') + ' onchange="upRenderPreview()"> Skip rows with no website and no email</label></div>' +
+    mapUI +
     '<div class="up-tiles"><div class="up-tile"><div class="l">Will upload</div><div class="v">' + n + '</div></div><div class="up-tile"><div class="l">With website</div><div class="v">' + withWeb + '</div></div><div class="up-tile"><div class="l">With email</div><div class="v">' + withMail + '</div></div><div class="up-tile"><div class="l">Filtered out</div><div class="v">' + skippedTotal + '</div></div></div>' +
     notes +
     '<div style="font-size:12px; color:var(--ink-soft); margin:4px 0 8px;">Channels: ' + (Object.entries(ch).map(([k,v]) => escH(k) + ' ' + v).join(' · ') || '—') + '</div>' +
