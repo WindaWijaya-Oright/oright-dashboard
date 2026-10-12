@@ -367,7 +367,23 @@
   .ld-contact .nm{font-weight:700; font-size:13px;}
   .ld-contact .em{font-size:12.5px; color:var(--ink-soft); word-break:break-all;}
   .ld-contact .wn{grid-column:1/-1; font-size:11px; color:var(--amber);}
-  .ld-add{display:grid; grid-template-columns:1fr 1fr 1.3fr auto; gap:8px; margin-top:10px;}
+  .ld-add{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;}
+  .ld-add .full{grid-column:1/-1;}
+  .ld-chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .ld-chip{display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; font-weight:600; color:var(--brand); text-decoration:none; background:#fff;}
+  .ld-chip:hover{background:#f4f6fa;}
+  .ld-esg{display:flex; flex-direction:column; gap:7px;}
+  .ld-esg .it{display:flex; gap:8px; align-items:flex-start; line-height:1.45;}
+  .ld-esg .tg{flex:none; font-size:10px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; padding:2px 7px; border-radius:999px; background:#eef1f6; color:var(--ink-soft); margin-top:1px;}
+  .ld-esg .tg.lead{background:#e6f4ea; color:#1e6b3a;} .ld-esg .tg.prod{background:#e8eefc; color:#2a4fb5;}
+  .ld-esg .more{font-size:12px; color:var(--brand); cursor:pointer; font-weight:600; margin-top:2px;}
+  .ld-cap{display:inline-block; font-size:11px; font-weight:600; color:var(--amber); background:#fff6e5; border-radius:6px; padding:2px 8px; margin-top:6px;}
+  .ld-code{font-size:11px; color:var(--ink-faint); margin-top:6px;}
+  .ld-find{display:flex; align-items:center; gap:10px; margin:10px 0 2px; font-size:12px; color:var(--ink-faint);}
+  .ld-find button{flex:none; padding:8px 14px; font-size:12px;}
+  .ld-find button[disabled]{opacity:.55; cursor:not-allowed;}
+  .ld-contact .nm.mail{word-break:break-all;}
+  .ld-src{font-size:11.5px; color:var(--ink-faint); margin-top:4px;}
   .ld-add .btn-primary{flex:none; padding:8px 14px; font-size:12px;}
   .vpill{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; display:inline-block;}
   .vpill.ok{background:var(--green-soft); color:var(--green);}
@@ -1415,7 +1431,7 @@ function renderLeads(){
     '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + '</div><div class="co-sub">' + escH(l.Upload_Batch || '') + ' · ' + escH(l.Match_Key) + '</div></div>' +
     '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
-    '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">none</span>') + '</div></div>').join('');
+    '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">' + (l.Data_Status !== 'Verified' ? '—' : (l.Apify_Status ? 'none found' : 'not searched yet')) + '</span>') + '</div></div>').join('');
 }
 document.addEventListener('click', e => { const row = e.target.closest && e.target.closest('#leadsListBody .lead-row[data-mk]'); if(row) openLeadDrawer(row.dataset.mk); });
 
@@ -1435,6 +1451,40 @@ async function openLeadDrawer(mk){
 }
 function ldKV(rows){ const r = rows.filter(([k,v]) => v !== undefined && v !== null && String(v).trim() !== '').map(([k,v]) => '<div class="k">' + escH(k) + '</div><div class="v">' + v + '</div>').join(''); return r ? '<div class="ld-kv">' + r + '</div>' : '<div style="font-size:12px; color:var(--ink-faint);">No information yet.</div>'; }
 function ldLink(u){ u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? '<a href="' + escH(u) + '" target="_blank" rel="noopener noreferrer" style="color:var(--brand);">' + escH(u) + '</a>' : escH(u); }
+/* membersihkan nilai dari sheet: kosongkan N/A, buang rujukan sumber [S1] dan bullet */
+function ldClean(v){ v = String(v == null ? '' : v).replace(/\s*\[S\d+\]/g, '').replace(/\s*•\s*/g, ' ').replace(/\s+/g, ' ').trim(); return /^(n\/a|na|null|undefined|unknown|none|-|—)$/i.test(v) ? '' : v; }
+function ldT(v){ return escH(ldClean(v)); }
+const LD_SOCIAL_NAMES = { linkedin:'LinkedIn', facebook:'Facebook', instagram:'Instagram', twitter:'X / Twitter', x:'X / Twitter', youtube:'YouTube', tiktok:'TikTok', pinterest:'Pinterest', whatsapp:'WhatsApp' };
+function ldSocials(raw){
+  raw = String(raw || '').trim(); if(!raw) return '';
+  const links = [];
+  try {
+    const o = JSON.parse(raw);
+    Object.keys(o || {}).forEach(k => { const key = k.toLowerCase().replace(/s$/, ''); const name = LD_SOCIAL_NAMES[key] || (k.charAt(0).toUpperCase() + k.slice(1)); [].concat(o[k] || []).forEach((u, i, a) => links.push([a.length > 1 ? name + ' ' + (i + 1) : name, String(u)])); });
+  } catch(e){ (raw.match(/https?:\/\/[^\s"',\]]+/g) || []).forEach(u => links.push([u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0], u])); }
+  const ok = links.filter(([n, u]) => /^https?:\/\//i.test(u));
+  return ok.length ? '<div class="ld-chips">' + ok.map(([n, u]) => '<a class="ld-chip" href="' + escH(u) + '" target="_blank" rel="noopener noreferrer">' + escH(n) + ' ↗</a>').join('') + '</div>' : '';
+}
+function ldEsg(raw){
+  raw = String(raw || '').trim(); if(!raw) return '';
+  const parts = raw.split(/\[(LEAD|BRAND\/PRODUCT|UNCLASSIFIED)\]/); const items = [];
+  if(parts.length === 1){ const t = ldClean(raw); return t ? '<div>' + escH(t) + '</div>' : ''; }
+  for(let i = 1; i < parts.length; i += 2){ const t = ldClean(parts[i + 1] || ''); if(t) items.push([parts[i], t]); }
+  if(!items.length) return '';
+  const label = { 'LEAD':'Lead', 'BRAND/PRODUCT':'Brand / product', 'UNCLASSIFIED':'Unclassified' }, cls = { 'LEAD':'lead', 'BRAND/PRODUCT':'prod', 'UNCLASSIFIED':'' };
+  const one = it => '<div class="it"><span class="tg ' + cls[it[0]] + '">' + label[it[0]] + '</span><span>' + escH(it[1]) + '</span></div>';
+  const id = 'esg' + Math.random().toString(36).slice(2, 7);
+  return '<div class="ld-esg">' + items.slice(0, 2).map(one).join('') + (items.length > 2 ? '<div id="' + id + '" style="display:none; flex-direction:column; gap:7px;">' + items.slice(2).map(one).join('') + '</div><div class="more" onclick="var e=document.getElementById(\'' + id + '\'); var open=e.style.display===\'none\'; e.style.display=open?\'flex\':\'none\'; this.textContent=open?\'Show less\':\'Show ' + (items.length - 2) + ' more\';">Show ' + (items.length - 2) + ' more</div>' : '') + '</div>';
+}
+/* alasan skor: pisahkan catatan "capped" dan kode teknis [A32:clear B18 ...] dari kalimat utamanya */
+function ldReason(raw){
+  let t = String(raw || '').trim(); if(!t) return '';
+  let cap = '', code = '';
+  t = t.replace(/\(capped:\s*((?:[^()]|\([^()]*\))*)\)/i, (m, c) => { cap = c.trim(); return ''; });
+  t = t.replace(/\[([A-D]\d+[^\]]*)\]\s*$/, (m, c) => { code = c.trim(); return ''; });
+  t = t.replace(/\s+/g, ' ').trim();
+  return '<div class="r">' + escH(t) + '</div>' + (cap ? '<div class="ld-cap">Capped: ' + escH(cap) + '</div>' : '') + (code ? '<div class="ld-code" title="Internal score breakdown">Breakdown: ' + escH(code) + '</div>' : '');
+}
 function renderLeadDrawer(){
   const L = ldCurrent.lead, status = L.Data_Status || '';
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
@@ -1449,14 +1499,16 @@ function renderLeadDrawer(){
       (status === 'Needs_Review' ? '<select class="ld-input" id="ldRejReason"><option>Not a real match for this company</option><option>Not relevant to O\'right</option><option>Too small for our volumes</option><option>Bad or missing data</option><option>Other</option></select><button class="btn-danger" onclick="ldReview(\'reject\')">Reject</button>' : '') +
       '</div><div class="row"><input class="ld-input" id="ldNewSite" placeholder="Correct website, https://…" style="flex:1;" value="' + escH(L.Suggested_Website || '') + '"><button class="btn-secondary" onclick="ldReview(\'reverify\')">Save website &amp; re-verify</button></div></div>';
   }
-  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', escH(L.Address)], ['Phone', escH(L.Phone)], ['Industry', escH(L.Industry)], ['Registry ID', escH(L.Registry_ID)], ['Batch', escH(L.Upload_Batch)], ['Notes', escH(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', escH(L.Apify_Socials)]]) + '</div>';
+  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Batch', ldT(L.Upload_Batch)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
   const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
   h += '<div class="ld-sec"><h4>Scores</h4>' +
-    '<div class="ld-score"><div class="h">Fit ' + (hasScore(L.Fit_Score) ? '<span class="fit-tag ' + fitClass(L.Fit_Score) + '" style="margin-left:0;">' + escH(L.Fit_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + (L.Score_Category ? ' <span class="badge reg">' + escH(L.Score_Category) + '</span>' : '') + '</div>' + (L.Fit_Score_Reason ? '<div class="r">' + escH(L.Fit_Score_Reason) + '</div>' : '') + '</div>' +
-    '<div class="ld-score"><div class="h">ESG ' + (hasScore(L.ESG_Score) ? '<span class="fit-tag ' + fitClass(L.ESG_Score) + '" style="margin-left:0;">' + escH(L.ESG_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + '</div>' + (L.ESG_Score_Reason ? '<div class="r">' + escH(L.ESG_Score_Reason) + '</div>' : '') + '</div></div>';
-  h += '<div class="ld-sec"><h4>Business information</h4>' + ldKV([['Description', escH(L.Business_Description)], ['Founded', escH(L.Business_Founded_Year)], ['Employees', escH(L.Business_Employee_Count)], ['Target markets', escH(L.Business_Target_Markets)], ['Brands carried', escH(L.Business_Brands_Carried)], ['Countries served', escH(L.Business_Countries_Served)], ['Rooms', escH(L.Room_Count)], ['Stores', escH(L.Store_Count)], ['Online channels', escH(L.Online_Channels)], ['Sub-segment', escH(L.Sub_Segment)], ['ESG signals', escH(L.ESG_Signals)], ['Risk signals', escH(L.Risk_Signals)]]) + '</div>';
+    '<div class="ld-score"><div class="h">Fit ' + (hasScore(L.Fit_Score) ? '<span class="fit-tag ' + fitClass(L.Fit_Score) + '" style="margin-left:0;">' + escH(L.Fit_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + (L.Score_Category ? ' <span class="badge reg">' + escH(L.Score_Category) + '</span>' : '') + '</div>' + ldReason(L.Fit_Score_Reason) + '</div>' +
+    '<div class="ld-score"><div class="h">ESG ' + (hasScore(L.ESG_Score) ? '<span class="fit-tag ' + fitClass(L.ESG_Score) + '" style="margin-left:0;">' + escH(L.ESG_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + '</div>' + ldReason(L.ESG_Score_Reason) + '</div></div>';
+  h += '<div class="ld-sec"><h4>Business information</h4>' + ldKV([['Description', ldT(L.Business_Description)], ['Founded', ldT(L.Business_Founded_Year)], ['Employees', ldT(L.Business_Employee_Count)], ['Target markets', ldT(L.Business_Target_Markets)], ['Brands carried', ldT(L.Business_Brands_Carried)], ['Countries served', ldT(L.Business_Countries_Served)], ['Rooms', ldT(L.Room_Count)], ['Stores', ldT(L.Store_Count)], ['Online channels', ldT(L.Online_Channels)], ['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')], ['ESG signals', ldEsg(L.ESG_Signals)], ['Risk signals', ldEsg(L.Risk_Signals)]]) + '</div>';
   h += '<div class="ld-sec"><h4>Contacts (' + ldCurrent.contacts.length + ')</h4><div id="ldContacts">' + ldContactsHTML() + '</div>' +
-    '<div class="ld-add"><input class="ld-input" id="ldcName" placeholder="Name (optional)"><input class="ld-input" id="ldcTitle" placeholder="Title (optional)"><input class="ld-input" id="ldcEmail" placeholder="Email address"><button class="btn-primary" onclick="ldAddContact()">Add contact</button></div></div>';
+    '<div class="ld-find"><button class="btn-secondary" disabled title="Coming soon: will search for people and emails at this company">🔎 Find contacts <span class="tag" style="margin-left:4px;">SOON</span></button><span>Automatic search, coming soon</span></div>' +
+    '<div style="font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-top:14px;">Add a contact manually</div>' +
+    '<div class="ld-add"><input class="ld-input" id="ldcName" placeholder="Name (optional)"><input class="ld-input" id="ldcTitle" placeholder="Title (optional)"><input class="ld-input full" id="ldcEmail" placeholder="Email address"><input class="ld-input full" id="ldcSrc" placeholder="Where did you get it? e.g. LinkedIn, referred by …, met at expo"><button class="btn-primary full" onclick="ldAddContact()">Add contact</button></div></div>';
   document.getElementById('ldBody').innerHTML = h;
 }
 function ldContactsHTML(){
@@ -1464,7 +1516,7 @@ function ldContactsHTML(){
   return ldCurrent.contacts.map(c => {
     const v = c.email_valid || 'Unchecked'; const vc = v === 'MX_OK' ? 'ok' : ((v === 'NO_MX' || v === 'NO_DOMAIN' || v === 'BOUNCED') ? 'bad' : 'unk');
     const kind = c.kind === 'named' ? 'Named contact' : (c.kind === 'role' ? 'Role mailbox' : 'Generic mailbox');
-    return '<div class="ld-contact"><div><div class="nm">' + (c.name ? escH(c.name) + (c.title ? ' <span style="font-weight:500; color:var(--ink-faint);">· ' + escH(c.title) + '</span>' : '') : '<span style="color:var(--ink-soft);">' + kind + '</span>') + '</div><div class="em">' + escH(c.email) + '</div>' +
+    return '<div class="ld-contact"><div>' + (c.name ? '<div class="nm">' + escH(c.name) + (c.title ? ' <span style="font-weight:500; color:var(--ink-faint);">· ' + escH(c.title) + '</span>' : '') + '</div><div class="em">' + escH(c.email) + '</div>' : '<div class="nm mail">' + escH(c.email) + '</div>') + (c.notes ? '<div class="ld-src">' + escH(String(c.notes).replace(/^Manual\s*\|\s*/, 'Added manually · ').replace(/^Manual$/, 'Added manually')) + '</div>' : '') +
       '<div style="margin-top:5px; display:flex; gap:6px; flex-wrap:wrap;"><span class="badge reg">' + kind + '</span><span class="vpill ' + vc + '">' + escH(v.replace(/_/g,' ')) + '</span></div></div>' +
       '<button class="btn-secondary" onclick="showToast(\'The email screen is the next thing we build\')">Email this contact</button>' +
       (c.warnings && c.warnings.length ? '<div class="wn">⚠ ' + c.warnings.map(escH).join(' · ') + '</div>' : '') + '</div>';
@@ -1474,7 +1526,7 @@ async function ldAddContact(){
   const email = document.getElementById('ldcEmail').value.trim();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(email)){ showToast('Enter a valid email address'); return; }
   try {
-    await n8nPost('/contact-save', { match_key:ldCurrent.mk, name:document.getElementById('ldcName').value.trim(), title:document.getElementById('ldcTitle').value.trim(), email, note:'Added from dashboard' });
+    await n8nPost('/contact-save', { match_key:ldCurrent.mk, name:document.getElementById('ldcName').value.trim(), title:document.getElementById('ldcTitle').value.trim(), email, note:(document.getElementById('ldcSrc').value.trim() || 'Added from dashboard') });
     showToast('Contact saved'); const mk = ldCurrent.mk; const d = await n8nGet('/lead-detail?match_key=' + encodeURIComponent(mk));
     if(ldCurrent && ldCurrent.mk === mk){ ldCurrent.contacts = d.contacts || []; renderLeadDrawer(); }
     const l = poolLeads.find(x => x.Match_Key === mk); if(l){ l.contacts_count = ldCurrent.contacts.length; l.contacts_named = ldCurrent.contacts.filter(c => c.name).length; renderLeads(); }
