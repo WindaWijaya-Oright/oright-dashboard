@@ -487,7 +487,7 @@
         <div class="up-drop" id="upDrop" onclick="document.getElementById('upFile').click()">
           <div class="big">📄</div>
           <div class="t">Drop a CSV or Excel file here, or click to choose</div>
-          <div class="s">Supported: the Singapore registry export (CompanyName, uen, LeadCategory…) or Leads_Inbox columns (Name, Channel…)</div>
+          <div class="s">Any country. Use columns like Name, Country, Website, Email, Channel (Leads_Inbox format). Company-registry exports (CompanyName, uen, LeadCategory) are also recognized.</div>
         </div>
         <div id="upPreview" style="display:none;"></div>
       </div>
@@ -1117,14 +1117,14 @@ let lcCurrentTab = 'personal';
 
 /* =====================================================================
    UPLOAD LEADS + LEADS & COMPANIES (v2)  — talks to n8n webhooks:
-   POST /upload-leads   POST /lead-detail   POST /lead-review   POST /contact-save
-   GET  /batch-status?batch=   GET /pool-leads
+   POST /upload-leads   POST /lead-review   POST /contact-save   (body JSON dikirim sbg text/plain = tanpa preflight CORS)
+   GET  /batch-status?batch=   GET /pool-leads   GET /lead-detail?match_key=
    ===================================================================== */
 const escH = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let _toastT = null;
 function showToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(_toastT); _toastT = setTimeout(()=>t.classList.remove('show'), 3200); }
 async function n8nPost(path, body){
-  const res = await fetch(N8N_BASE + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const res = await fetch(N8N_BASE + path, { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body) });
   let data = null; try { data = await res.json(); } catch(e){}
   if(!res.ok) throw new Error((data && (data.message || data.error)) || ('HTTP ' + res.status));
   if(data && data.ok === false) throw new Error(data.error || 'Request failed');
@@ -1222,7 +1222,7 @@ async function upOnFile(file){
     const raw = await upReadFile(file);
     if(!raw.length) throw new Error('The file has no data rows.');
     const fmt = upDetect(Object.keys(raw[0]));
-    if(!fmt) throw new Error('Unrecognized columns. Expected the Singapore registry export (CompanyName, uen, LeadCategory…) or Leads_Inbox columns (Name, Channel…). Found: ' + Object.keys(raw[0]).slice(0,12).join(', '));
+    if(!fmt) throw new Error('Unrecognized columns. Expected Leads_Inbox columns (Name, Country, Website, Email, Channel…) or a company-registry export (CompanyName, uen, LeadCategory…). Found: ' + Object.keys(raw[0]).slice(0,12).join(', '));
     upState = { fileName:file.name, raw, fmt, running:false };
     upRenderPreview();
   } catch(err){
@@ -1244,7 +1244,7 @@ function upRenderPreview(){
   const catRows = Object.entries(b.details).sort((a,c)=>c[1]-a[1]).slice(0,6).map(([k,v]) => escH(k) + ' (' + v + ')').join(', ');
   const sample = b.rows.slice(0,6).map(r => '<tr><td>' + escH(r.Name) + '</td><td>' + escH(r.Channel) + '</td><td>' + escH(r.Website || '—') + '</td><td>' + escH(r.General_Email || r.Registry_Email || r.C1_Email || '—') + '</td></tr>').join('');
   box.innerHTML =
-    '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;"><div style="font-weight:700; font-size:13px;">' + escH(upState.fileName) + ' <span style="font-weight:500; color:var(--ink-faint);">· ' + (upState.fmt === 'acra' ? 'Singapore registry format' : 'Leads_Inbox format') + ' · ' + upState.raw.length + ' rows</span></div>' +
+    '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;"><div style="font-weight:700; font-size:13px;">' + escH(upState.fileName) + ' <span style="font-weight:500; color:var(--ink-faint);">· ' + (upState.fmt === 'acra' ? 'Company-registry format' : 'Leads_Inbox format') + ' · ' + upState.raw.length + ' rows</span></div>' +
     '<label style="font-size:12px; color:var(--ink-soft); display:flex; gap:6px; align-items:center; cursor:pointer;"><input type="checkbox" id="upSkipNo" ' + (skipNo ? 'checked' : '') + ' onchange="upRenderPreview()"> Skip rows with no website and no email</label></div>' +
     '<div class="up-tiles"><div class="up-tile"><div class="l">Will upload</div><div class="v">' + n + '</div></div><div class="up-tile"><div class="l">With website</div><div class="v">' + withWeb + '</div></div><div class="up-tile"><div class="l">With email</div><div class="v">' + withMail + '</div></div><div class="up-tile"><div class="l">Filtered out</div><div class="v">' + skippedTotal + '</div></div></div>' +
     notes +
@@ -1428,7 +1428,7 @@ async function openLeadDrawer(mk){
   document.getElementById('ldNext').style.display = (lcTab === 'review') ? '' : 'none';
   document.getElementById('ldBody').innerHTML = '<div style="color:var(--ink-faint); font-size:13px;">Loading…</div>';
   try {
-    const d = await n8nPost('/lead-detail', { match_key:mk });
+    const d = await n8nGet('/lead-detail?match_key=' + encodeURIComponent(mk));
     if(!ldCurrent || ldCurrent.mk !== mk) return;
     ldCurrent.lead = d.lead || {}; ldCurrent.contacts = d.contacts || []; renderLeadDrawer();
   } catch(err){ document.getElementById('ldBody').innerHTML = '<div class="up-note err">Could not load this lead: ' + escH(err.message) + '</div>'; }
@@ -1475,7 +1475,7 @@ async function ldAddContact(){
   if(!/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(email)){ showToast('Enter a valid email address'); return; }
   try {
     await n8nPost('/contact-save', { match_key:ldCurrent.mk, name:document.getElementById('ldcName').value.trim(), title:document.getElementById('ldcTitle').value.trim(), email, note:'Added from dashboard' });
-    showToast('Contact saved'); const mk = ldCurrent.mk; const d = await n8nPost('/lead-detail', { match_key:mk });
+    showToast('Contact saved'); const mk = ldCurrent.mk; const d = await n8nGet('/lead-detail?match_key=' + encodeURIComponent(mk));
     if(ldCurrent && ldCurrent.mk === mk){ ldCurrent.contacts = d.contacts || []; renderLeadDrawer(); }
     const l = poolLeads.find(x => x.Match_Key === mk); if(l){ l.contacts_count = ldCurrent.contacts.length; l.contacts_named = ldCurrent.contacts.filter(c => c.name).length; renderLeads(); }
   } catch(err){ showToast('Could not save contact: ' + err.message); }
