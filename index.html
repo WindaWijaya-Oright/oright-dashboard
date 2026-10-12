@@ -244,8 +244,12 @@
   .ai-toggle{border:1px solid var(--border); background:#fff; border-radius:20px; padding:7px 14px; font-size:12px; font-weight:700; color:var(--ink-soft); cursor:pointer; display:flex; align-items:center; gap:6px;}
   .ai-toggle:hover{border-color:var(--brand); color:var(--brand);}
 
-  .ai-panel{width:290px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; height:100vh; position:sticky; top:0;}
-  .ai-panel.hidden{display:none;}
+  .ai-panel{position:fixed; top:0; right:0; bottom:0; width:340px; z-index:70; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; transform:translateX(105%); visibility:hidden; transition:transform .22s ease, visibility 0s .22s; box-shadow:-14px 0 34px rgba(16,24,43,.16);}
+  .ai-panel.open{transform:none; visibility:visible; transition:transform .22s ease;}
+  .ai-fab{position:fixed; right:22px; bottom:22px; z-index:65; border:none; background:#10182B; color:#fff; border-radius:999px; padding:11px 18px; font-size:12.5px; font-weight:700; cursor:pointer; box-shadow:0 8px 24px rgba(16,24,43,.28); display:flex; gap:8px; align-items:center; font-family:'Inter',sans-serif;}
+  .ai-fab .n{background:var(--amber); color:#fff; border-radius:999px; font-size:11px; padding:1px 8px;}
+  .ai-panel.open + .ai-fab{display:none;}
+  .ai-close{position:absolute; top:14px; right:14px; background:rgba(255,255,255,.12); border:none; color:#fff; width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:14px;}
   .ai-panel-head{padding:20px 17px 15px; border-bottom:1px solid var(--border); background:linear-gradient(135deg,#10182B,#2A3552); color:#fff;}
   .ai-panel-head .title{display:flex; align-items:center; gap:8px; font-family:'Manrope',sans-serif; font-weight:800; font-size:14px;}
   .ai-panel-head .pulse-dot{width:7px;height:7px;border-radius:50%; background:#4ADE80; animation:pulse 1.6s infinite;}
@@ -265,6 +269,48 @@
 
   /* DASHBOARD */
   .kpi-row6{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px;}
+  @media (max-width:1100px){ .kpi-row6{grid-template-columns:repeat(2,1fr);} }
+  .hm-grid2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin-bottom:14px;}
+  .hm-grid2 .dpanel{overflow-x:auto; min-width:0;}
+  @media (max-width:1100px){ .hm-grid2{grid-template-columns:1fr;} }
+  .hm-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .hm-table th{text-align:left; font-size:10px; letter-spacing:.5px; color:var(--ink-faint); text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border); font-weight:700; white-space:nowrap;}
+  .hm-table th.r,.hm-table td.r{text-align:right;}
+  .hm-table td{padding:8px; border-bottom:1px solid var(--border);}
+  .hm-table tr.click{cursor:pointer;} .hm-table tr.click:hover{background:#FAFBFC;}
+  .hm-mute{color:var(--ink-faint);}
+  .hm-best{background:var(--green-soft); color:var(--green); font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; margin-left:6px;}
+  .hm-sm{font-size:10px; color:var(--ink-faint); margin-left:6px;}
+  .hm-todo{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; font-size:13px;}
+  .hm-todo:last-child{border-bottom:none;}
+  .hm-todo .n{min-width:38px; text-align:center; font-weight:800; font-family:'Manrope',sans-serif; font-size:16px; background:var(--amber-soft); color:var(--amber); border-radius:9px; padding:4px 0;}
+  .hm-todo.off{cursor:default; opacity:.6;} .hm-todo.off .n{background:#F2F4F7; color:var(--ink-faint);}
+  .hm-fn{display:grid; grid-template-columns:170px 1fr 56px 46px; gap:10px; align-items:center; padding:5px 0; font-size:12.5px;}
+  .hm-fn .v{text-align:right; font-weight:700;} .hm-fn .c{text-align:right; font-size:11px; color:var(--ink-faint);}
+  .hm-fn.off{opacity:.5;}
+  .hm-bar{height:9px; background:#EDEFF3; border-radius:6px; overflow:hidden;} .hm-bar i{display:block; height:100%; background:var(--brand); border-radius:6px;}
+  .hm-note{font-size:11px; color:var(--ink-faint); line-height:1.55; margin-top:10px;}
+  .hm-chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .hm-chip{border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:12px;} .hm-chip b{font-family:'Manrope',sans-serif; font-size:15px; margin-right:6px;}
+  .hm-pill{font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap;}
+  .hm-pill.run{background:var(--green-soft); color:var(--green);} .hm-pill.ready{background:var(--brand-soft); color:var(--brand);} .hm-pill.need{background:var(--amber-soft); color:var(--amber);} .hm-pill.none{background:#F2F4F7; color:var(--ink-faint);}
+  .ld-ev{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0;}
+  .ld-ev .col{background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px; min-width:0;}
+  .ld-ev h5{margin:0 0 8px; font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-faint);}
+  .ld-ev .ld-kv{grid-template-columns:78px 1fr; font-size:12px;}
+  .ld-ev .why{font-size:12px; color:var(--ink-soft); margin-top:8px; line-height:1.5;}
+  .ld-warn{font-size:12px; color:var(--amber); background:var(--amber-soft); border-radius:8px; padding:8px 11px; margin:8px 0;}
+  .ld-dw{font-size:10px; font-weight:700; color:var(--amber); background:var(--amber-soft); border-radius:20px; padding:1px 7px; margin-left:6px;}
+  .co-why{font-size:11.5px; color:var(--amber); margin-top:3px; line-height:1.35;}
+  .ld-acts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .ld-acts button{flex:none; text-align:left; padding:11px 14px; font-size:12.5px;}
+  .ld-acts .sub{font-size:11px; font-weight:500; opacity:.85; display:block; margin-top:2px;}
+  .ld-acts button[disabled]{opacity:.5; cursor:not-allowed;}
+  .ld-foot{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:1px dashed var(--border); font-size:12px; color:var(--ink-faint);}
+  .ld-foot button{flex:none; padding:7px 12px; font-size:12px;}
+  .ld-spin{border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px; background:#fff;}
+  .ld-spin .g{display:grid; grid-template-columns:1fr 1fr; gap:8px;} .ld-spin .g .full{grid-column:1/-1;}
+  details.ld-ev-d summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--ink-soft);}
   .row-2{display:grid; grid-template-columns:1.1fr 1fr; gap:14px; margin-bottom:14px;}
   .dpanel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px;}
   .dpanel h3{font-size:12px; margin:0 0 14px; letter-spacing:.5px; color:var(--ink-soft); text-transform:uppercase; font-weight:700;}
@@ -394,6 +440,12 @@
   .qa-btn.soon{opacity:.55; cursor:not-allowed;}
   .qa-btn.soon:hover{border-color:var(--border); background:var(--panel);}
   .qa-btn .tag{display:inline-block; font-size:9px; font-weight:800; letter-spacing:.5px; background:#EDEFF3; color:var(--ink-faint); border-radius:5px; padding:1px 6px; margin-left:5px; vertical-align:middle;}
+  .hm-kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:14px;}
+  @media (max-width:1100px){ .hm-kpis{grid-template-columns:repeat(2,1fr);} }
+  .hm-k{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px;}
+  .hm-k .l{font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-faint); font-weight:700;}
+  .hm-k .v{font-family:'Manrope',sans-serif; font-size:28px; font-weight:800; margin:4px 0 2px;}
+  .hm-k .s{font-size:11.5px; color:var(--ink-soft);}
 </style>
 </head>
 <body>
@@ -443,49 +495,15 @@
     <div class="page active" id="page-dashboard">
       <div class="topbar">
         <div>
-          <h1 data-i18n="dash_title">Good morning, Winda 👋</h1>
-          <p class="desc">Here's the health of your pipeline at a glance.</p>
+          <h1 id="dashGreeting">Good morning, Winda 👋</h1>
+          <p class="desc">Where your leads and outreach stand today.</p>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <span class="live-dot"><span class="d"></span> Live · updated 2 min ago</span>
-        </div>
-      </div>
-
-      <div class="kpi-row6" id="dashKpiRow">
-        <div class="kpi"><div class="label">TOTAL LEADS</div><div class="value" id="kpiTotalLeads">–</div><div class="foot">loading...</div></div>
-        <div class="kpi"><div class="label">NEW THIS WEEK</div><div class="value">—</div><div class="foot">not tracked yet</div></div>
-        <div class="kpi"><div class="label">EMAIL SENT (MONTH)</div><div class="value" id="kpiSentMonth">–</div><div class="foot">limit 1,000/mo</div></div>
-        <div class="kpi ok"><div class="label">REPLY RATE</div><div class="value" id="kpiReplyRate">–</div><div class="foot">all-time</div></div>
-        <div class="kpi ok"><div class="label">BOUNCE RATE</div><div class="value" id="kpiBounceRate">–</div><div class="foot" id="kpiBounceFoot">loading...</div></div>
-      </div>
-
-      <div class="row-2">
-        <div class="dpanel">
-          <h3>Pipeline Overview (deal stage)</h3>
-          <p style="font-size:12px; color:var(--ink-faint); margin:0;">⚠️ Not tracked yet — needs a <code>Deal_Stage</code> column + kanban logic (see Pipeline page). No data to show honestly.</p>
-        </div>
-        <div class="dpanel">
-          <h3>Outreach Channel Performance</h3>
-          <div class="country-row2"><span>📧 Email (Personal)</span><b id="kpiPersonalSent">–</b></div>
-          <div class="country-row2"><span>📢 Email (Generic)</span><b style="color:var(--ink-faint);">Not connected yet — waiting on IT domain</b></div>
-          <div class="country-row2"><span>🔗 LinkedIn</span><b style="color:var(--ink-faint);">— coming later</b></div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span class="live-dot" id="dashUpdated"><span class="d"></span> Loading…</span>
+          <button class="btn-secondary" style="flex:none; padding:9px 16px;" onclick="loadDashboard(true)">↻ Refresh</button>
         </div>
       </div>
-
-      <div class="dpanel" style="margin-bottom:14px;">
-        <h3>Recent Activity</h3>
-        <div id="recentActivityBody"><div style="padding:10px 0;color:var(--ink-faint);font-size:12.5px;">Loading...</div></div>
-      </div>
-
-      <div class="dpanel" style="margin-bottom:14px;">
-        <h3>Leads by Country</h3>
-        <div id="worldMap" style="height:420px; border-radius:10px; overflow:hidden;"></div>
-      </div>
-
-      <div class="qa-row" style="grid-template-columns:repeat(2,1fr);">
-        <div class="qa-btn soon" onclick="showToast('Scan New Market is coming soon')" title="Coming soon"><div class="ic">🌐</div><div class="lbl">Scan New Market<span class="tag">SOON</span></div></div>
-        <div class="qa-btn" onclick="showPage('outreach')"><div class="ic">✉️</div><div class="lbl">Generate Email</div></div>
-      </div>
+      <div id="dashBody"><div class="dpanel" style="color:var(--ink-faint); font-size:13px;">Loading…</div></div>
     </div>
 
     <!-- ============ PAGE : LEADS (individual contacts) ============ -->
@@ -499,6 +517,12 @@
       </div>
 
       <div class="dpanel" id="upStep1" style="margin-bottom:14px;">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:var(--ink-soft);" for="upSource">Where does this data come from? <span style="color:var(--red);">*</span></label>
+          <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. ACRA-SG, Apollo export, Expo 2026 visitors, Google Maps scrape" style="width:100%; margin-top:6px;" oninput="lsSet('oright_last_source', this.value)">
+          <datalist id="upSourceList"></datalist>
+          <div style="font-size:11px; color:var(--ink-faint); margin-top:5px;">Used to compare which sources give the best leads. Rows that already have a Source column (for example ACRA-SG exports) keep their own.</div>
+        </div>
         <input type="file" id="upFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="upOnFile(this.files[0])">
         <div class="up-drop" id="upDrop" onclick="document.getElementById('upFile').click()">
           <div class="big">📄</div>
@@ -538,6 +562,7 @@
       <div class="oh-subtabs" style="margin-bottom:14px;" id="lcTabs">
         <div class="oh-subtab active" data-lctab="review" onclick="setLcTab('review')">🔎 Review<span class="lc-tab-n alert" id="lcN_review">0</span></div>
         <div class="oh-subtab" data-lctab="all" onclick="setLcTab('all')">📋 All<span class="lc-tab-n" id="lcN_all">0</span></div>
+        <div class="oh-subtab" data-lctab="parked" onclick="setLcTab('parked')">📌 Parked<span class="lc-tab-n" id="lcN_parked">0</span></div>
         <div class="oh-subtab" data-lctab="rejected" onclick="setLcTab('rejected')">🚫 Rejected<span class="lc-tab-n" id="lcN_rejected">0</span></div>
       </div>
 
@@ -816,6 +841,7 @@
         <div class="mi-tab" data-set="keywords" onclick="showSetTab('keywords')">🔑 Search Keywords</div>
         <div class="mi-tab" data-set="countries" onclick="showSetTab('countries')">🌍 Countries &amp; Cities</div>
         <div class="mi-tab" data-set="limits" onclick="showSetTab('limits')">📊 Sending Limits</div>
+        <div class="mi-tab" data-set="tools" onclick="showSetTab('tools')">🧰 Tools</div>
       </div>
 
       <!-- PROMPT MANAGER -->
@@ -950,6 +976,14 @@ Write the email now.</textarea>
       </div>
 
       <!-- SENDING LIMITS -->
+      <div class="set-page" id="set-tools" style="display:none;">
+        <div class="dpanel" style="max-width:520px;">
+          <h3>Scan New Market</h3>
+          <p style="font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 12px;">Automatic discovery of new leads in a market. It is built but switched off for now: new leads come in through Upload Leads.</p>
+          <div class="qa-btn soon" style="display:inline-block; padding:12px 18px;" onclick="showToast('Scan New Market is switched off for now')"><div class="lbl">🌐 Scan New Market <span class="tag">SOON</span></div></div>
+        </div>
+      </div>
+
       <div class="set-page" id="set-limits" style="display:none;">
         <div class="row-2">
           <div class="dpanel">
@@ -969,24 +1003,19 @@ Write the email now.</textarea>
   </div><!-- /.main -->
 
   <div class="ai-panel" id="aiPanel">
-    <div class="ai-panel-head">
+    <div class="ai-panel-head" style="position:relative;">
+      <button class="ai-close" onclick="toggleAiPanel()" title="Close">✕</button>
       <div class="title"><span class="pulse-dot"></span> AI Advisor</div>
-      <div class="role">Watching your pipeline, 24/7</div>
+      <div class="role">Calculated from your lead data</div>
     </div>
     <div class="ai-body">
       <div class="ai-section-label">TODAY'S TOP ACTIONS</div>
       <div id="aiTopActions"><div class="ai-action"><div class="txt" style="color:var(--ink-faint);">Loading real data...</div></div></div>
-
-      <div class="ai-insight" id="aiProactiveInsight">
-        <p style="color:var(--ink-faint);">Loading insight...</p>
-      </div>
-      <div class="ai-insight" id="aiAdvisorAnswer" style="display:none;"></div>
+      <div class="ai-insight" id="aiProactiveInsight"><p style="color:var(--ink-faint);">Loading insight...</p></div>
     </div>
-    <div class="ai-input-row">
-      <input type="text" id="aiAdvisorInput" placeholder="Ask anything… e.g. 'who hasn't replied in 2 weeks?'" onkeydown="if(event.key==='Enter') askAiAdvisor()">
-      <button onclick="askAiAdvisor()">→</button>
-    </div>
+    <div style="padding:12px 16px; border-top:1px solid var(--border); font-size:11px; color:var(--ink-faint); line-height:1.5;">Ask-anything chat is coming later. These notes are counted from your sheets, not written by AI.</div>
   </div>
+  <button class="ai-fab" id="aiFab" onclick="toggleAiPanel()">🤖 AI Advisor <span class="n" id="aiFabN" style="display:none;"></span></button>
 
   </div><!-- /.content-row -->
 </div><!-- /.shell -->
@@ -1065,7 +1094,6 @@ Write the email now.</textarea>
 </div>
 
 <script>
-const AI_PANEL_DEFAULT_OPEN = { dashboard:true, pipeline:true, outreach:false, market:false, executive:true, settings:false, leads:false, companies:false, upload:false };
 let mapInitialized = false;
 
 const I18N = {
@@ -1111,18 +1139,22 @@ function setLang(lang){
   localStorage.setItem('oright_lang', lang);
 }
 
+function upFillSources(){
+  const dl = document.getElementById('upSourceList'), si = document.getElementById('upSource'); if(!dl) return;
+  const set = new Set(['ACRA-SG']); poolLeads.forEach(l => { if(l.Source) set.add(l.Source); });
+  dl.innerHTML = [...set].sort().map(s => '<option value="' + escH(s) + '">').join('');
+  if(si && !si.value){ const last = lsGet('oright_last_source'); if(last) si.value = last; }
+}
 function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.nav-item[data-page]').forEach(el=>el.classList.remove('active'));
   document.querySelector('.nav-item[data-page="'+name+'"]').classList.add('active');
-  const panel = document.getElementById('aiPanel');
-  if(AI_PANEL_DEFAULT_OPEN[name]){ panel.classList.remove('hidden'); loadAiPanelContent(); }
-  else panel.classList.add('hidden');
-  if(name==='dashboard') { loadDashboardStats(); }
+  document.getElementById('aiPanel').classList.remove('open');
+  if(name==='dashboard') loadDashboard();
   if(name==='outreach') loadDueToday();
   if(name==='leads') loadLeads();
-  if(name==='upload') upResume();
+  if(name==='upload'){ upResume(); upFillSources(); }
   if(name==='executive') loadTeamOverview();
   if(name==='pipeline') loadPipeline();
   if(name==='market') loadMarketNews();
@@ -1273,6 +1305,9 @@ function upReset(){ upState = { fileName:'', raw:null, fmt:null, running:false }
 
 async function upStart(){
   if(upState.running || !upState.built || !upState.built.rows.length) return;
+  const srcIn = document.getElementById('upSource'), src = srcIn ? srcIn.value.trim() : '';
+  if(upState.built.rows.some(r => !r.Source) && !src){ showToast('Fill in where this data comes from first'); if(srcIn){ srcIn.focus(); srcIn.scrollIntoView({ block:'center' }); } return; }
+  upState.built.rows.forEach(r => { if(!r.Source) r.Source = src; });
   upState.running = true;
   const rows = upState.built.rows, batch = upMakeBatchId();
   const btn = document.getElementById('upStart'); if(btn){ btn.disabled = true; btn.textContent = 'Uploading…'; }
@@ -1378,10 +1413,23 @@ function upViewBatch(review){
 /* ---------------- LEADS & COMPANIES ---------------- */
 let poolLeads = [], lcTab = 'review', lcPendingBatch = null, lcVisible = [], ldCurrent = null;
 const REJECTED_SET = ['Rejected','Not_Matching','Duplicate'];
-function lcStatusPill(s){
+function lcStatusPill(s, l){
+  if(l && s === 'Needs_Search' && /search/i.test(l.Human_Verdict || '')) return '<span class="status-pill wait">Searching again</span>';
   const cls = s === 'Verified' ? 'replied' : (s === 'Needs_Review' ? 'review' : (REJECTED_SET.includes(s) ? 'bounced' : 'wait'));
   return '<span class="status-pill ' + cls + '">' + escH((s || '—').replace(/_/g,' ')) + '</span>';
 }
+/* ccTLD vs country: warning only, never blocks */
+const LD_CC = { uk:'united kingdom', sg:'singapore', jp:'japan', th:'thailand', de:'germany', fr:'france', au:'australia', nz:'new zealand', ca:'canada', my:'malaysia', id:'indonesia', in:'india', cn:'china', tw:'taiwan', hk:'hong kong', kr:'south korea', vn:'vietnam', ph:'philippines', it:'italy', es:'spain', nl:'netherlands', ae:'united arab emirates', br:'brazil', mx:'mexico', za:'south africa', se:'sweden', no:'norway', dk:'denmark', fi:'finland', ch:'switzerland', at:'austria', be:'belgium', pt:'portugal', ie:'ireland', pl:'poland', tr:'turkey', sa:'saudi arabia', us:'united states' };
+const LD_ALIAS = { 'uk':'united kingdom', 'gb':'united kingdom', 'great britain':'united kingdom', 'england':'united kingdom', 'scotland':'united kingdom', 'usa':'united states', 'us':'united states', 'united states of america':'united states', 'america':'united states', 'korea':'south korea', 'republic of korea':'south korea', 'korea, republic of':'south korea', 'uae':'united arab emirates', 'hong kong sar':'hong kong', 'viet nam':'vietnam', 'holland':'netherlands', 'the netherlands':'netherlands' };
+function ldNormCountry(c){ c = String(c || '').trim().toLowerCase(); return LD_ALIAS[c] || c; }
+function ldHost(u){ try { return new URL(/^https?:\/\//i.test(u) ? u : 'https://' + u).hostname.toLowerCase().replace(/^www\./, ''); } catch(e){ return ''; } }
+function ldDomainWarn(l){
+  const h = ldHost(l.Website || ''); if(!h || !l.Country) return '';
+  const tld = h.split('.').pop(), exp = LD_CC[tld]; if(!exp) return '';
+  return ldNormCountry(l.Country) === exp ? '' : 'Website ends in .' + tld + ' (' + exp.replace(/\b\w/g, c => c.toUpperCase()) + ') but this lead is listed in ' + l.Country + '. Check that it is the right company.';
+}
+function ldNotFound(l){ return !String(l.Website || '').trim() && !String(l.Suggested_Website || '').trim() && !String(l.Verify_Judge_Quote || '').trim(); }
+
 async function loadLeads(force){
   const body = document.getElementById('leadsListBody');
   if(force || !poolLeads.length) body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:13px;">Loading...</div>';
@@ -1391,6 +1439,7 @@ async function loadLeads(force){
     lcFillFilters();
     if(lcPendingBatch){ const bs = document.getElementById('lcFilterBatch'); if([...bs.options].some(o => o.value === lcPendingBatch)) bs.value = lcPendingBatch; lcPendingBatch = null; }
     lcSyncTabs(); renderLeads();
+    if(lcPendingOpen){ const mk = lcPendingOpen; lcPendingOpen = null; openLeadDrawer(mk); }
   } catch(err){ body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red);font-size:13px;">Failed to load leads: ' + escH(err.message) + ' — check the webhook URL, CORS (Allowed Origins) and that the workflow is Active.</div>'; }
 }
 function lcFillFilters(){
@@ -1403,11 +1452,12 @@ function lcFillFilters(){
 function lcInTab(l, tab){
   const rej = REJECTED_SET.includes(l.Data_Status);
   if(tab === 'review') return l.Data_Status === 'Needs_Review';
+  if(tab === 'parked') return l.Data_Status === 'Parked';
   if(tab === 'rejected') return rej;
   return !rej;
 }
 function lcSyncTabs(){
-  ['review','all','rejected'].forEach(t => { const el = document.getElementById('lcN_' + t); if(el) el.textContent = poolLeads.filter(l => lcInTab(l, t)).length; });
+  ['review','all','parked','rejected'].forEach(t => { const el = document.getElementById('lcN_' + t); if(el) el.textContent = poolLeads.filter(l => lcInTab(l, t)).length; });
   document.querySelectorAll('#lcTabs .oh-subtab').forEach(t => t.classList.toggle('active', t.dataset.lctab === lcTab));
   const n = poolLeads.filter(l => l.Data_Status === 'Needs_Review').length; const nav = document.getElementById('navReviewCnt');
   if(nav){ nav.textContent = n; nav.style.display = n ? '' : 'none'; }
@@ -1427,11 +1477,16 @@ function renderLeads(){
   lcVisible = rows.map(l => l.Match_Key);
   if(!rows.length){ body.innerHTML = '<div style="padding:26px;text-align:center;color:var(--ink-faint);font-size:13px;">' + (lcTab === 'review' ? 'Nothing waiting for review 🎉' : 'No leads match these filters.') + '</div>'; return; }
   const sc = v => (v === '' || v == null || isNaN(Number(v))) ? '<span style="color:var(--ink-faint);">—</span>' : '<span class="fit-tag ' + fitClass(v) + '" style="margin-left:0;">' + escH(v) + '</span>';
-  body.innerHTML = rows.map(l => '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
-    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + '</div><div class="co-sub">' + escH(l.Upload_Batch || '') + ' · ' + escH(l.Match_Key) + '</div></div>' +
-    '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status) + '</div>' +
+  const why = l => {
+    if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Needs your decision.' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
+    if(lcTab === 'parked' || lcTab === 'rejected') return l.Reject_Reason ? '<div class="co-why" style="color:var(--ink-faint);">' + escH(String(l.Reject_Reason).slice(0, 120)) + '</div>' : '';
+    return '';
+  };
+  body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : ''; return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
+    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
+    '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status, l) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
-    '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">' + (l.Data_Status !== 'Verified' ? '—' : (l.Apify_Status ? 'none found' : 'not searched yet')) + '</span>') + '</div></div>').join('');
+    '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">' + (l.Data_Status !== 'Verified' ? '—' : (l.Apify_Status ? 'none found' : 'not searched yet')) + '</span>') + '</div></div>'; }).join('');
 }
 document.addEventListener('click', e => { const row = e.target.closest && e.target.closest('#leadsListBody .lead-row[data-mk]'); if(row) openLeadDrawer(row.dataset.mk); });
 
@@ -1485,21 +1540,69 @@ function ldReason(raw){
   t = t.replace(/\s+/g, ' ').trim();
   return '<div class="r">' + escH(t) + '</div>' + (cap ? '<div class="ld-cap">Capped: ' + escH(cap) + '</div>' : '') + (code ? '<div class="ld-code" title="Internal score breakdown">Breakdown: ' + escH(code) + '</div>' : '');
 }
+function ldEvidenceHTML(L){
+  const mine = ldKV([['Name', escH(L.Name || '')], ['Country', escH(L.Country || '')], ['City', ldT(L.City)], ['Address', ldT(L.Address)], ['Industry', ldT(L.Industry)], ['Website', L.Website ? ldLink(L.Website) : ''], ['Source', ldT(L.Source)]]);
+  const sug = L.Suggested_Website && L.Suggested_Website !== L.Website ? ldLink(L.Suggested_Website) : '';
+  let found = '';
+  if(ldNotFound(L)) found = '<div style="font-size:12.5px; color:var(--amber);">No matching website was found for this company.</div>';
+  else found = ldKV([['Website', sug || (L.Website ? ldLink(L.Website) : '')]]) + (L.Verify_Judge_Quote ? '<div class="ld-quote">“' + escH(L.Verify_Judge_Quote) + '”</div>' : '') + (L.Verify_Judge_Reason || L.Reject_Reason ? '<div class="why">' + escH(L.Verify_Judge_Reason || L.Reject_Reason) + '</div>' : '');
+  return '<div class="ld-ev"><div class="col"><h5>What your file says</h5>' + mine + '</div><div class="col"><h5>What we found</h5>' + found + '</div></div>';
+}
+function ldReasonSelect(opts){ return '<select class="ld-input" id="ldRejReason">' + opts.map(o => '<option>' + escH(o) + '</option>').join('') + '</select>'; }
+function ldSiteRow(prefill, btnLabel, action){
+  return '<div class="row" style="display:flex; gap:8px; margin-top:10px;"><input class="ld-input" id="ldNewSite" placeholder="Correct website, https://…" style="flex:1;" value="' + escH(prefill || '') + '"><button class="btn-secondary" onclick="ldReview(\'' + action + '\')">' + btnLabel + '</button></div>';
+}
+function ldDecisionHTML(L, status){
+  const warn = ldDomainWarn(L); let h = '';
+  if(status === 'Needs_Review'){
+    const nf = ldNotFound(L), hasSite = !!String(L.Website || '').trim();
+    h += '<div class="ld-sec"><h4>' + (nf ? 'We could not find this company online' : 'Is this the right company?') + '</h4>' + ldEvidenceHTML(L) + (warn ? '<div class="ld-warn">⚠ ' + escH(warn) + '</div>' : '');
+    if(nf){
+      h += '<div style="font-size:12.5px; color:var(--ink-soft); margin-top:6px;">If you found the website yourself, paste it. Otherwise search again, or keep the lead for later.</div>' + ldSiteRow('', 'Save website &amp; verify', 'reverify') +
+        '<div class="ld-acts"><button class="btn-secondary" onclick="ldReview(\'search_again\')">🔎 Search again<span class="sub">Run the website search one more time</span></button></div>';
+    } else {
+      h += '<div class="ld-acts">' +
+        '<button class="btn-primary" ' + (hasSite ? '' : 'disabled title="No website on record. Paste one below."') + ' onclick="ldReview(\'approve\')">✓ Yes, this is the right company<span class="sub">' + (hasSite ? 'Keep ' + escH(ldHost(L.Website)) + ' and continue to enrichment and scoring' : 'No website on record yet. Paste one below.') + '</span></button>' +
+        '<button class="btn-secondary" onclick="ldReview(\'search_again\')">✗ Wrong company, search again<span class="sub">Never uses ' + escH(ldHost(L.Website || L.Suggested_Website) || 'this website') + ' again, and looks for another one</span></button>' +
+        '<button class="btn-secondary" onclick="ldToggleSpin()">↗ This is a different company, add it as a new lead<span class="sub">The website belongs to another company. It joins the queue as its own lead.</span></button></div>' +
+        ldSpinHTML(L) + ldSiteRow(L.Suggested_Website && !hasSite ? L.Suggested_Website : '', 'Use this website instead', 'reverify');
+    }
+    h += '<div class="ld-foot"><span>Not worth pursuing?</span>' + ldReasonSelect(['Not relevant to O\'right', 'Too small for our volumes', 'Bad or missing data', 'Other']) + '<button class="btn-secondary" onclick="ldReview(\'park\')" title="Keep it without a verified website. You can add the website later.">📌 Park it</button><button class="btn-danger" onclick="ldReview(\'delete\')" title="Hidden from the lists. The row stays so the same company is not added again.">Delete</button></div></div>';
+  } else if(status === 'Rejected' || status === 'Not_Matching' || status === 'Duplicate'){
+    h += '<div class="ld-sec"><h4>This lead was ' + (L.Human_Verdict === 'Deleted' ? 'deleted' : 'rejected') + '</h4>' + ldEvidenceHTML(L) +
+      '<div class="ld-acts"><button class="btn-secondary" onclick="ldReview(\'search_again\')">🔎 Search for the website again</button>' +
+      (String(L.Suggested_Website || L.Website || '').trim() ? '<button class="btn-secondary" onclick="ldToggleSpin()">↗ Add the company we found as a new lead</button>' : '') +
+      '<button class="btn-secondary" onclick="ldReview(\'reopen\')">↺ Re-open for review</button></div>' + ldSpinHTML(L) + ldSiteRow('', 'Save website &amp; verify', 'reverify') + '</div>';
+  } else if(status === 'Parked'){
+    h += '<div class="ld-sec"><h4>Parked: kept without a verified website</h4>' + ldEvidenceHTML(L) +
+      '<div style="font-size:12.5px; color:var(--ink-soft); margin-top:6px;">If you find the website later (for example on LinkedIn), paste it here and the lead goes back through verification.</div>' + ldSiteRow('', 'Save website &amp; verify', 'reverify') +
+      '<div class="ld-acts"><button class="btn-secondary" onclick="ldReview(\'search_again\')">🔎 Search again</button></div>' +
+      '<div class="ld-foot"><button class="btn-danger" onclick="ldReview(\'delete\')">Delete</button></div></div>';
+  } else if(status === 'Needs_Search'){
+    h += '<div class="ld-sec"><h4>🔎 Searching again…</h4><div style="font-size:12.5px; color:var(--ink-soft); line-height:1.6;">The website search is queued and the result will show up in Review, normally within a few minutes. You can close this and come back.</div><div class="ld-acts"><button class="btn-secondary" onclick="ldRefresh()">Check now</button></div></div>';
+  } else if(status === 'Verified'){
+    h += (warn ? '<div class="ld-warn">⚠ ' + escH(warn) + '</div>' : '') +
+      '<details class="ld-ev-d" style="margin-bottom:6px;"><summary>Why was this verified?</summary>' + ldEvidenceHTML(L) + '</details>' +
+      '<div class="ld-foot" style="margin-top:6px; border-top:none; padding-top:0;"><span>Website looks wrong?</span><button class="btn-secondary" onclick="ldToggleRecheck()">Re-check website</button></div><div id="ldRecheck" style="display:none;">' + ldSiteRow('', 'Re-verify', 'recheck') + '</div>';
+  }
+  return h;
+}
+function ldSpCountry(L){ const h = ldHost(L.Suggested_Website || ''); const c = LD_CC[h.split('.').pop()]; return c ? c.replace(/\b\w/g, x => x.toUpperCase()) : ''; }
+function ldSpinHTML(L){
+  const chs = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === String(L.Channel || '').toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
+  return '<div class="ld-spin" id="ldSpin" style="display:none;"><div style="font-size:12px; font-weight:700; margin-bottom:8px;">New lead from what we found</div><div class="g">' +
+    '<input class="ld-input full" id="ldSpName" placeholder="Company name">' +
+    '<input class="ld-input full" id="ldSpSite" placeholder="Website, https://…" value="' + escH(L.Suggested_Website || (L.Data_Status === 'Needs_Review' ? '' : L.Website) || '') + '">' +
+    '<input class="ld-input" id="ldSpCountry" placeholder="Country of the new company" value="' + escH(ldSpCountry(L)) + '"><select class="ld-input" id="ldSpChannel">' + chs + '</select>' +
+    (L.Data_Status === 'Needs_Review' ? '<label class="full" style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="ldSpAgain" checked> Also search again for the original company (' + escH(L.Name || '') + ')</label>' : '') +
+    '<button class="btn-primary full" onclick="ldSpinSubmit()">Add as new lead</button></div></div>';
+}
 function renderLeadDrawer(){
   const L = ldCurrent.lead, status = L.Data_Status || '';
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
-  document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status);
-  let h = '';
-  if(status === 'Needs_Review' || REJECTED_SET.includes(status)){
-    h += '<div class="ld-review"><div style="font-weight:700; font-size:13px;">' + (status === 'Needs_Review' ? 'This lead needs your decision' : 'This lead was rejected') + '</div>' +
-      '<div style="font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.5;">' + escH(L.Verify_Judge_Reason || L.Reject_Reason || 'No reason recorded.') + '</div>' +
-      (L.Verify_Judge_Quote ? '<div class="ld-quote">“' + escH(L.Verify_Judge_Quote) + '”</div>' : '') +
-      (L.Suggested_Website ? '<div style="font-size:12px; margin-top:8px;">Suggested website: ' + ldLink(L.Suggested_Website) + '</div>' : '') +
-      '<div class="row"><button class="btn-primary" onclick="ldReview(\'approve\')">✓ Approve</button>' +
-      (status === 'Needs_Review' ? '<select class="ld-input" id="ldRejReason"><option>Not a real match for this company</option><option>Not relevant to O\'right</option><option>Too small for our volumes</option><option>Bad or missing data</option><option>Other</option></select><button class="btn-danger" onclick="ldReview(\'reject\')">Reject</button>' : '') +
-      '</div><div class="row"><input class="ld-input" id="ldNewSite" placeholder="Correct website, https://…" style="flex:1;" value="' + escH(L.Suggested_Website || '') + '"><button class="btn-secondary" onclick="ldReview(\'reverify\')">Save website &amp; re-verify</button></div></div>';
-  }
-  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Batch', ldT(L.Upload_Batch)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
+  document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status, L);
+  let h = ldDecisionHTML(L, status);
+  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
   const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
   h += '<div class="ld-sec"><h4>Scores</h4>' +
     '<div class="ld-score"><div class="h">Fit ' + (hasScore(L.Fit_Score) ? '<span class="fit-tag ' + fitClass(L.Fit_Score) + '" style="margin-left:0;">' + escH(L.Fit_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + (L.Score_Category ? ' <span class="badge reg">' + escH(L.Score_Category) + '</span>' : '') + '</div>' + ldReason(L.Fit_Score_Reason) + '</div>' +
@@ -1532,23 +1635,68 @@ async function ldAddContact(){
     const l = poolLeads.find(x => x.Match_Key === mk); if(l){ l.contacts_count = ldCurrent.contacts.length; l.contacts_named = ldCurrent.contacts.filter(c => c.name).length; renderLeads(); }
   } catch(err){ showToast('Could not save contact: ' + err.message); }
 }
+function ldToggleSpin(){ const e = document.getElementById('ldSpin'); if(e) e.style.display = e.style.display === 'none' ? 'block' : 'none'; }
+function ldToggleRecheck(){ const e = document.getElementById('ldRecheck'); if(e) e.style.display = e.style.display === 'none' ? 'block' : 'none'; }
+async function ldRefresh(){
+  if(!ldCurrent) return; const mk = ldCurrent.mk;
+  try {
+    const all = await n8nGet('/pool-leads'); poolLeads = all.leads || []; lcSyncTabs(); renderLeads();
+    const d = await n8nGet('/lead-detail?match_key=' + encodeURIComponent(mk));
+    if(ldCurrent && ldCurrent.mk === mk){ ldCurrent.lead = d.lead || {}; ldCurrent.contacts = d.contacts || []; renderLeadDrawer(); }
+  } catch(err){ showToast('Could not refresh: ' + err.message); }
+}
+const LD_NEWSTATUS = { approve:'Verified', reject:'Rejected', delete:'Rejected', park:'Parked', reopen:'Needs_Review', reverify:'Needs_Search', recheck:'Needs_Search', search_again:'Needs_Search' };
+const LD_TOAST = { approve:'Confirmed. It continues to enrichment and scoring.', reject:'Rejected', delete:'Deleted. It will not be added again.', park:'Parked. You can find it in the Parked tab.', reopen:'Back in Review', reverify:'Saved. The website will be verified again.', recheck:'Re-checking the website', search_again:'Searching again. The result will show up in Review.' };
 async function ldReview(action){
   const mk = ldCurrent && ldCurrent.mk; if(!mk) return;
-  const body = { match_key:mk, action };
-  if(action === 'reject') body.reason = document.getElementById('ldRejReason').value;
-  if(action === 'reverify'){ body.website = document.getElementById('ldNewSite').value.trim(); if(!body.website){ showToast('Enter the website first'); return; } }
+  const L = ldCurrent.lead || {}, body = { match_key:mk, action };
+  const rs = document.getElementById('ldRejReason'); if(rs && (action === 'reject' || action === 'delete' || action === 'park')) body.reason = rs.value;
+  const ns = document.getElementById('ldNewSite'), site = ns ? ns.value.trim() : '';
+  if(action === 'reverify'){ if(!site){ showToast('Enter the website first'); return; } body.website = site; }
+  if(action === 'recheck' && site) body.website = site;
+  if(action === 'search_again'){
+    body.old_website = L.Website || '';
+    body.excluded = [L.Excluded_Domains || '', ldHost(L.Suggested_Website || '')].filter(Boolean).join(',');
+  }
   try {
     await n8nPost('/lead-review', body);
     const l = poolLeads.find(x => x.Match_Key === mk);
-    if(l){ l.Data_Status = action === 'approve' ? 'Verified' : (action === 'reject' ? 'Rejected' : 'Needs_Search'); if(action === 'reverify') l.Website = body.website; if(action === 'reject') l.Reject_Reason = body.reason; }
-    showToast(action === 'approve' ? 'Approved — it will continue to enrichment and scoring' : (action === 'reject' ? 'Rejected' : 'Saved — it will be verified again'));
+    const upd = o => { if(l) Object.assign(l, o); if(ldCurrent && ldCurrent.lead) Object.assign(ldCurrent.lead, o); };
+    upd({ Data_Status:LD_NEWSTATUS[action] });
+    if(action === 'delete') upd({ Human_Verdict:'Deleted' });
+    if(action === 'search_again') upd({ Human_Verdict:'SearchAgain', Website:'', Suggested_Website:'' });
+    if(body.website) upd({ Website:body.website });
+    if(body.reason) upd({ Reject_Reason:body.reason });
+    showToast(LD_TOAST[action] || 'Saved');
     const idx = lcVisible.indexOf(mk); lcSyncTabs(); renderLeads();
-    if(lcTab === 'review'){ const next = lcVisible[Math.min(idx, lcVisible.length - 1)]; if(next && next !== mk) openLeadDrawer(next); else closeLeadDrawer(); }
-    else if(ldCurrent && ldCurrent.lead){ ldCurrent.lead.Data_Status = l ? l.Data_Status : ldCurrent.lead.Data_Status; renderLeadDrawer(); }
+    const stillHere = l ? lcInTab(l, lcTab) : true;
+    if(!stillHere){ const next = lcVisible[Math.min(idx, lcVisible.length - 1)]; if(lcTab === 'review' && next && next !== mk) openLeadDrawer(next); else closeLeadDrawer(); }
+    else if(ldCurrent && ldCurrent.lead) renderLeadDrawer();
+    sumCache = null;
   } catch(err){ showToast('Could not save: ' + err.message); }
 }
+async function ldSpinSubmit(){
+  const g = id => (document.getElementById(id) || {}).value || '';
+  const name = g('ldSpName').trim(), site = g('ldSpSite').trim();
+  if(!name){ showToast('Enter the company name'); return; }
+  if(!g('ldSpCountry').trim()){ showToast('Enter the country of the new company'); return; }
+  if(site && !/^https?:\/\/\S+\.\S+/i.test(site)){ showToast('Website must start with https://'); return; }
+  const row = {}; INBOX_COLS.forEach(c => { row[c] = ''; });
+  const L = ldCurrent.lead || {};
+  Object.assign(row, { Source:'Review spin-off', Name:name, Website:site, Country:g('ldSpCountry').trim(), Channel:g('ldSpChannel') || L.Channel || '', Searched:'' });
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  const batch = 'UP-' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + '-S' + Math.floor(Math.random()*90 + 10);
+  try {
+    await n8nPost('/upload-leads', { batch_id:batch, rows:[row] });
+    showToast('Added “' + name + '” as a new lead. It goes through cleaning and verification.');
+    const again = document.getElementById('ldSpAgain');
+    if(again && again.checked) await ldReview('search_again');
+    else { const s = document.getElementById('ldSpin'); if(s) s.style.display = 'none'; }
+    sumCache = null;
+  } catch(err){ showToast('Could not add the lead: ' + err.message); }
+}
 function ldNextReview(){ const i = lcVisible.indexOf(ldCurrent && ldCurrent.mk); const n = lcVisible[i + 1]; if(n) openLeadDrawer(n); else showToast('That was the last one in this list'); }
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLeadDrawer(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape'){ closeLeadDrawer(); const p = document.getElementById('aiPanel'); if(p) p.classList.remove('open'); } });
 
 async function loadTeamOverview(){
   try {
@@ -1610,32 +1758,139 @@ async function loadPipeline(){
   } catch(err){ kanban.innerHTML = '<div style="padding:20px;color:var(--red);font-size:13px;">Failed: '+err.message+'</div>'; }
 }
 
-async function loadDashboardStats(){
+/* ---------------- HOME DASHBOARD (GM view) ---------------- */
+let sumCache = null, sumAt = 0, sumBusy = null, lcPendingOpen = null;
+async function loadSummary(force){
+  if(!force && sumCache && Date.now() - sumAt < 60000) return sumCache;
+  if(sumBusy) return sumBusy;
+  sumBusy = n8nGet('/dashboard-summary').then(d => { sumCache = d; sumAt = Date.now(); return d; }).finally(() => { sumBusy = null; });
+  return sumBusy;
+}
+function hmPct(v){ return v == null ? '—' : v + '%'; }
+function hmNum(v){ return v == null ? '—' : v; }
+function hmState(r){ if(r.contacted > 0) return 'run'; if(r.with_contact > 0) return 'ready'; if(r.qualified > 0) return 'need'; return 'none'; }
+function hmPill(st){ const m = { run:'Running', ready:'Ready', need:'Needs contacts', none:'None qualified' }; return '<span class="hm-pill ' + st + '">' + m[st] + '</span>'; }
+function hmGo(tab, mk){ lcTab = tab; if(mk) lcPendingOpen = mk; showPage('leads'); }
+function dashSetGreeting(){
+  const h = new Date().getHours();
+  document.getElementById('dashGreeting').textContent = (h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening')) + ', Winda 👋';
+}
+async function loadDashboard(force){
+  dashSetGreeting();
+  const body = document.getElementById('dashBody');
+  if(!sumCache) body.innerHTML = '<div class="dpanel" style="color:var(--ink-faint); font-size:13px;">Loading…</div>';
   try {
-    const res = await fetch(N8N_BASE + '/dashboard-stats', {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const s = await res.json();
-
-    document.getElementById('kpiTotalLeads').textContent = s.total_leads ?? '—';
-    document.getElementById('kpiSentMonth').textContent = s.email_sent_this_month ?? '0';
-    document.getElementById('kpiReplyRate').textContent = s.reply_rate !== null ? s.reply_rate + '%' : '—';
-    document.getElementById('kpiBounceRate').textContent = s.bounce_rate !== null ? s.bounce_rate + '%' : '0%';
-    document.getElementById('kpiBounceFoot').textContent = s.bounce_rate === null ? 'no emails sent yet' :
-      (parseFloat(s.bounce_rate) < 2 ? '🟢 healthy domain' : '🟡 watch closely');
-    document.getElementById('kpiPersonalSent').textContent = (s.email_sent_total ?? 0) + ' sent';
-
-    const activityBody = document.getElementById('recentActivityBody');
-    if(!s.recent_activity || s.recent_activity.length === 0){
-      activityBody.innerHTML = '<div style="padding:10px 0;color:var(--ink-faint);font-size:12.5px;">No emails sent yet — nothing to show here until the first one goes out.</div>';
-    } else {
-      activityBody.innerHTML = s.recent_activity.map(a => `
-        <div class="activity-row"><div class="activity-ic">📧</div><div><div class="activity-txt"><b>Follow-up ${a.sequence}</b> sent to ${a.match_key} (${a.type})</div><div class="activity-time">${a.sent_date}</div></div></div>`).join('');
-    }
-    setTimeout(() => initWorldMap(s.by_country), 50);
-  } catch(err) {
-    document.getElementById('kpiTotalLeads').textContent = 'err';
-    console.error('Dashboard stats failed:', err);
+    const S = await loadSummary(!!force);
+    renderDashboard(S); aiUpdateFab(S);
+    const t = new Date(S.generated_at || Date.now());
+    document.getElementById('dashUpdated').innerHTML = '<span class="d"></span> Updated ' + t.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  } catch(err){
+    document.getElementById('dashUpdated').innerHTML = '<span class="d" style="background:var(--red);"></span> Not updated';
+    body.innerHTML = '<div class="dpanel" style="color:var(--red); font-size:13px;">Could not load the dashboard: ' + escH(err.message) + '. Check that the workflow “dashboard-summary” is Active and its Allowed Origins is set. <button class="btn-secondary" style="margin-left:8px;" onclick="loadDashboard(true)">Try again</button></div>';
   }
+}
+function renderDashboard(S){
+  const F = S.funnel || {}, H = S.health || {}, O = S.outreach || { available:false }, T = S.tracking || { available:false };
+  const real = a => (a || []).filter(r => !/^\(/.test(r.key));
+  const countries = real(S.by_country), channels = S.by_channel || [], sources = S.by_source || [];
+  const nav = document.getElementById('navReviewCnt'); if(nav){ nav.textContent = H.needs_review || 0; nav.style.display = H.needs_review ? '' : 'none'; }
+  let h = '';
+  if(!O.available) h += '<div class="up-note info" style="margin-bottom:14px;">Email sending is not tracked yet. Emails sent, replies, meetings and per-source reply quality appear here once the Email Log is live. Everything below comes from your lead pool.</div>';
+
+  /* 1. GM headline numbers */
+  const runC = O.available ? countries.filter(r => r.contacted > 0).length : null, runCh = O.available ? channels.filter(r => r.contacted > 0).length : null;
+  const tile = (l, v, sub) => '<div class="hm-k"><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="s">' + sub + '</div></div>';
+  h += '<div class="hm-kpis">' +
+    tile('Leads in pool', hmNum(F.pool), hmNum(F.verified) + ' verified · ' + hmNum(F.qualified) + ' qualified') +
+    tile('Emails sent', O.available ? O.sent_total : '—', O.available ? O.sent_7d + ' in the last 7 days' : 'Email Log not connected yet') +
+    tile('Meetings', T.available ? hmNum(F.meeting) : '—', T.available ? 'booked' : 'tracking not live yet') +
+    tile('Countries running', runC == null ? '—' : runC, countries.length + ' countries in the pool') +
+    tile('Channels running', runCh == null ? '—' : runCh, 'of ' + OFFICIAL_CHANNELS.length + ' channels') + '</div>';
+
+  /* 2. what needs doing + funnel */
+  const todo = (n, txt, tab, off) => '<div class="hm-todo' + (off ? ' off' : '') + '"' + (off ? '' : ' onclick="hmGo(\'' + tab + '\')"') + '><div class="n">' + n + '</div><div>' + txt + '</div></div>';
+  let t = '';
+  if(H.needs_review) t += todo(H.needs_review, 'leads waiting for your decision' + (H.oldest_review_days ? ' <span class="hm-mute">(oldest ' + H.oldest_review_days + ' days)</span>' : ''), 'review');
+  const noC = (H.verified_no_contact_found || 0);
+  if(noC) t += todo(noC, 'verified leads where no contact was found, add one by hand', 'all');
+  if(H.parked) t += todo(H.parked, 'parked leads (kept without a verified website)', 'parked');
+  const prob = (H.score_errors || 0) + (H.enrich_failed || 0) + (H.verified_not_scored || 0);
+  if(prob) t += todo(prob, 'verified leads stuck in enrichment or scoring <span class="hm-mute">(' + (H.enrich_failed || 0) + ' enrich failed · ' + (H.score_errors || 0) + ' score errors · ' + (H.verified_not_scored || 0) + ' not scored yet)</span>', 'all');
+  if(!t) t = '<div style="font-size:13px; color:var(--ink-faint); padding:8px 0;">Nothing is waiting for you right now 🎉</div>';
+  t += todo('—', 'replies to answer · bounces to fix <span class="hm-mute">(available once the Email Log is live)</span>', '', true);
+  h += '<div class="hm-grid2"><div class="dpanel"><h3>What needs you today</h3>' + t + '</div>';
+
+  const stages = [['In pool', F.pool], ['Verified', F.verified], ['Scored', F.scored], ['Qualified (Fit ≥ ' + S.fit_min + ')', F.qualified], ['With a contact', F.with_contact], ['Contacted', F.contacted], ['Replied', F.replied], ['Meeting', F.meeting], ['Sample', F.sample], ['Quotation', F.quotation], ['Won', F.won]];
+  let prev = null, fn = '';
+  stages.forEach(([l, n]) => {
+    const w = (n != null && F.pool) ? Math.max(2, Math.round(n / F.pool * 100)) : 0;
+    const conv = (n != null && prev) ? Math.round(n / prev * 100) + '%' : '';
+    fn += '<div class="hm-fn' + (n == null ? ' off' : '') + '"><div>' + l + '</div><div class="hm-bar">' + (n == null ? '' : '<i style="width:' + w + '%"></i>') + '</div><div class="v">' + hmNum(n) + '</div><div class="c">' + conv + '</div></div>';
+    if(n != null && n > 0) prev = n;
+  });
+  h += '<div class="dpanel"><h3>Pipeline: from pool to deal</h3>' + fn + '<div class="hm-note">Greyed steps start counting once emails and replies are tracked. The percentage is the share of the previous step.</div></div></div>';
+
+  /* 3. channels + countries */
+  const chRows = OFFICIAL_CHANNELS.map(name => { const r = channels.find(x => x.key.toLowerCase() === name.toLowerCase()) || { key:name, leads:0, verified:0, qualified:0, with_contact:0, contacted:O.available ? 0 : null }; return r; });
+  const tbl = (head, rows) => '<table class="hm-table"><thead><tr>' + head.map((x, i) => '<th' + (i > 0 && i < head.length - 1 ? ' class="r"' : '') + '>' + x + '</th>').join('') + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  const rowC = r => '<tr><td>' + escH(r.key) + '</td><td class="r">' + r.leads + '</td><td class="r">' + r.verified + '</td><td class="r">' + r.qualified + '</td><td class="r">' + r.with_contact + '</td><td class="r">' + hmNum(r.contacted) + '</td><td>' + hmPill(hmState(r)) + '</td></tr>';
+  const cHead = ['', 'Leads', 'Verified', 'Qualified', 'Contact', 'Sent', 'Status'];
+  h += '<div class="hm-grid2"><div class="dpanel"><h3>Channels</h3>' + tbl(['Channel'].concat(cHead.slice(1)), chRows.map(rowC).join('')) + '<div class="hm-note"><b>Running</b> = emails already sent. <b>Ready</b> = qualified leads with a contact, nothing sent yet. <b>Needs contacts</b> = qualified leads but no email found. <b>None qualified</b> = no verified lead with Fit ≥ ' + S.fit_min + ' yet.</div></div>' +
+    '<div class="dpanel"><h3>Countries</h3>' + tbl(['Country'].concat(cHead.slice(1)), countries.slice(0, 12).map(rowC).join('') || '<tr><td colspan="7" class="hm-mute">No leads yet.</td></tr>') + (countries.length > 12 ? '<div class="hm-note">+ ' + (countries.length - 12) + ' more countries</div>' : '') + '</div></div>';
+
+  /* 4. which lead source is best */
+  const comparable = sources.filter(r => !r.small_sample && r.scored > 0);
+  let best = null;
+  if(comparable.length >= 2) best = comparable.slice().sort((a, b) => ((b.qualified_rate || 0) - (a.qualified_rate || 0)) || ((b.avg_fit || 0) - (a.avg_fit || 0)))[0].key;
+  const srcRows = sources.map(r => '<tr><td>' + escH(r.key) + (r.key === best ? '<span class="hm-best">Best so far</span>' : '') + (r.small_sample ? '<span class="hm-sm">small sample</span>' : '') + '</td><td class="r">' + r.leads + '</td><td class="r">' + hmPct(r.match_rate) + '</td><td class="r">' + hmNum(r.avg_fit) + '</td><td class="r">' + r.qualified + ' <span class="hm-mute">(' + hmPct(r.qualified_rate) + ')</span></td><td class="r">' + hmPct(r.contact_coverage) + '</td><td class="r hm-mute">—</td></tr>').join('');
+  h += '<div class="dpanel" style="margin-bottom:14px;"><h3>Which lead source works best</h3>' + tbl(['Source', 'Leads', 'Match rate', 'Avg Fit', 'Qualified', 'Contact coverage', 'Replies'], srcRows || '<tr><td colspan="7" class="hm-mute">No source data yet.</td></tr>') +
+    '<div class="hm-note"><b>Match rate</b> = share of processed leads whose website was confirmed. <b>Qualified</b> = verified and Fit ≥ ' + S.fit_min + ', as a share of scored leads. <b>Contact coverage</b> = qualified leads that have at least one email. Sources with fewer than 10 leads are tagged “small sample” and are not ranked. The real measure of quality is replies and meetings per source, which appears here once tracking is live.</div></div>';
+
+  /* 5. best leads + recent uploads */
+  const bl = (S.best_leads || []).map(r => '<tr class="click" onclick="hmGo(\'all\',\'' + escH(r.Match_Key).replace(/'/g, '') + '\')"><td>' + escH(r.Name) + '</td><td>' + escH(r.Country) + '</td><td>' + escH(r.Channel) + '</td><td class="r"><span class="fit-tag ' + fitClass(r.Fit_Score) + '" style="margin-left:0;">' + r.Fit_Score + '</span></td><td class="r">' + r.contacts + (r.named ? ' <span class="hm-mute">(' + r.named + ' named)</span>' : '') + '</td></tr>').join('');
+  const ru = (S.recent_uploads || []).map(r => '<tr><td>' + escH(r.batch) + '</td><td class="r">' + r.leads + '</td><td class="r">' + r.verified + '</td><td class="r">' + r.needs_review + '</td><td class="r">' + r.rejected + '</td></tr>').join('');
+  h += '<div class="hm-grid2"><div class="dpanel"><h3>Best leads ready to contact</h3>' + tbl(['Company', 'Country', 'Channel', 'Fit', 'Contacts'], bl || '<tr><td colspan="5" class="hm-mute">No qualified lead with a contact yet.</td></tr>') + '</div>' +
+    '<div class="dpanel"><h3>Recent uploads</h3>' + tbl(['Batch', 'Leads', 'Verified', 'In review', 'Rejected'], ru || '<tr><td colspan="5" class="hm-mute">No uploads yet.</td></tr>') + '</div></div>';
+  document.getElementById('dashBody').innerHTML = h;
+}
+
+/* ---------------- AI ADVISOR (slide-over, rule-based from real numbers) ---------------- */
+function aiUpdateFab(S){
+  const H = (S && S.health) || {}, n = (H.needs_review || 0);
+  const el = document.getElementById('aiFabN'); if(!el) return;
+  el.textContent = n; el.style.display = n ? '' : 'none';
+}
+function aiBuild(S){
+  const H = S.health || {}, F = S.funnel || {}, acts = [];
+  if(H.needs_review) acts.push('Decide on ' + H.needs_review + ' lead' + (H.needs_review > 1 ? 's' : '') + ' in Review' + (H.oldest_review_days ? ' (the oldest has waited ' + H.oldest_review_days + ' days)' : '') + '. Wrong leads mean wrong outreach.');
+  if(H.verified_no_contact_found) acts.push(H.verified_no_contact_found + ' verified lead' + (H.verified_no_contact_found > 1 ? 's have' : ' has') + ' no contact yet. Add one by hand from LinkedIn or the website.');
+  if(H.parked) acts.push(H.parked + ' parked lead' + (H.parked > 1 ? 's are' : ' is') + ' still without a verified website. Try again with a manual search.');
+  const prob = (H.score_errors || 0) + (H.enrich_failed || 0);
+  if(prob) acts.push(prob + ' verified lead' + (prob > 1 ? 's' : '') + ' had a problem in enrichment or scoring and need a re-run.');
+  let insight = '';
+  const steps = [['verified', 'In pool', 'Verified', F.pool, F.verified, 'Most of the rest are in review or were rejected.'], ['scored', 'Verified', 'Scored', F.verified, F.scored, 'Scoring has not run on the rest yet.'], ['qualified', 'Scored', 'Qualified', F.scored, F.qualified, 'Many scored leads fall below Fit ' + S.fit_min + ', so source and channel targeting matter.'], ['with contact', 'Qualified', 'With a contact', F.qualified, F.with_contact, 'Finding contacts is the bottleneck.']];
+  let worst = null;
+  steps.forEach(s => { if(s[3] >= 5 && s[4] != null){ const r = s[4] / s[3]; if(!worst || r < worst.r) worst = { r, s }; } });
+  if(worst) insight = 'Biggest drop-off: only ' + Math.round(worst.r * 100) + '% (' + worst.s[4] + ' of ' + worst.s[3] + ') of ' + worst.s[1].toLowerCase() + ' leads reach “' + worst.s[2].toLowerCase() + '”. ' + worst.s[5];
+  const cmp = (S.by_source || []).filter(r => !r.small_sample && r.scored > 0);
+  if(cmp.length >= 2){ const b = cmp.slice().sort((a, c) => ((c.qualified_rate || 0) - (a.qualified_rate || 0)))[0]; insight += (insight ? ' ' : '') + 'Source “' + b.key + '” has the highest qualified rate so far (' + hmPct(b.qualified_rate) + ' of scored leads).'; }
+  return { acts, insight };
+}
+async function loadAiPanelContent(force){
+  const actionsBox = document.getElementById('aiTopActions'), insightBox = document.getElementById('aiProactiveInsight');
+  try {
+    const S = await loadSummary(!!force), r = aiBuild(S);
+    actionsBox.innerHTML = r.acts.length ? r.acts.slice(0, 4).map((txt, i) => '<div class="ai-action"><div class="num">' + (i + 1) + '</div><div class="txt">' + escH(txt) + '</div></div>').join('') : '<div class="ai-action"><div class="txt" style="color:var(--ink-faint);">Nothing urgent right now.</div></div>';
+    insightBox.innerHTML = '<p>' + (r.insight ? escH(r.insight) : 'Not enough data yet to point out a bottleneck.') + '</p>';
+    aiUpdateFab(S);
+  } catch(err){
+    actionsBox.innerHTML = '<div class="ai-action"><div class="txt" style="color:var(--red);">Could not load: ' + escH(err.message) + '</div></div>';
+    insightBox.innerHTML = '';
+  }
+}
+function toggleAiPanel(){
+  const p = document.getElementById('aiPanel'); const open = p.classList.toggle('open');
+  if(open) loadAiPanelContent();
 }
 
 async function triggerScan(){
@@ -2079,60 +2334,6 @@ async function askAiAdvisor(){
   } catch(err){ answerBox.innerHTML = '<p style="color:var(--red);">Failed: ' + err.message + '</p>'; }
 }
 
-let aiPanelLoaded = false;
-async function loadAiPanelContent(){
-  const actionsBox = document.getElementById('aiTopActions');
-  const insightBox = document.getElementById('aiProactiveInsight');
-  try {
-    const res = await fetch(N8N_BASE + '/get-leads', {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const leads = data.leads || [];
-
-    const needsReview = leads.filter(l => String(l.Reply_Status||'').startsWith('Pending Review'));
-    const bounced = leads.filter(l => l.Email_Status === 'Bounced' || String(l.Bounced).toLowerCase()==='true');
-
-    let dueCount = 0;
-    try {
-      const r2 = await fetch(N8N_BASE + '/get-due-today', {cache:'no-store'});
-      const d2 = await r2.json();
-      dueCount = (d2.personal||[]).length + (d2.generic||[]).length;
-    } catch(e){}
-
-    const actions = [];
-    if(dueCount > 0) actions.push(`${dueCount} follow-up(s) are due today — check the Outreach Hub.`);
-    needsReview.slice(0,3).forEach(l => actions.push(`${l.Name||l.Match_Key}'s reply needs your review before their sequence can continue.`));
-    bounced.slice(0,2).forEach(l => actions.push(`${l.Name||l.Match_Key} bounced — worth checking if the email address is still valid.`));
-
-    if(actions.length === 0){
-      actionsBox.innerHTML = '<div class="ai-action"><div class="txt" style="color:var(--ink-faint);">Nothing urgent right now.</div></div>';
-    } else {
-      actionsBox.innerHTML = actions.slice(0,4).map((txt,i) => `<div class="ai-action"><div class="num">${i+1}</div><div class="txt">${txt}</div></div>`).join('');
-    }
-  } catch(err){
-    actionsBox.innerHTML = '<div class="ai-action"><div class="txt" style="color:var(--red);">Failed to load: ' + err.message + '</div></div>';
-  }
-
-  try {
-    const res = await fetch(N8N_BASE + '/ai-advisor', {cache:'no-store', 
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ question: 'Give me the single most useful proactive insight or recommendation right now, based on the current pipeline. Keep it to 1-2 sentences.' })
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    insightBox.innerHTML = '<p>' + (data.answer || 'No insight available.') + '</p>';
-  } catch(err){
-    insightBox.innerHTML = '<p style="color:var(--red);">Insight failed to load: ' + err.message + '</p>';
-  }
-}
-
-function toggleAiPanel(){
-  const panel = document.getElementById('aiPanel');
-  const wasHidden = panel.classList.contains('hidden');
-  panel.classList.toggle('hidden');
-  if(wasHidden) loadAiPanelContent();
-}
-
 async function doReassign(){
   const matchKey = document.getElementById('reassignSearch').value.trim();
   const target = document.getElementById('reassignTarget').value;
@@ -2280,7 +2481,7 @@ function restartProgress(){
   tickerTimer = setTimeout(()=> tickerNav(1), TICKER_INTERVAL);
 }
 
-setTimeout(loadDashboardStats, 300);
+setTimeout(loadDashboard, 300);
 document.querySelector('.ticker-wrap')?.addEventListener('mouseenter', ()=>{ clearTimeout(tickerTimer); document.getElementById('tcProgress').style.transition='none';});
 document.querySelector('.ticker-wrap')?.addEventListener('mouseleave', ()=> restartProgress());
 
