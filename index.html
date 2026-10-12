@@ -587,6 +587,10 @@
             </select>
           </div>
           <div>
+            <div class="field-label" style="margin-top:0;">Channel check</div>
+            <select class="assign-select" id="lcFilterFlag" onchange="renderLeads()"><option value="">All leads</option><option value="flag">Channel may be wrong</option></select>
+          </div>
+          <div>
             <div class="field-label" style="margin-top:0;">Search</div>
             <input class="ld-input assign-select" style="width:100%" id="lcSearch" placeholder="Company name…" oninput="renderLeads()">
           </div>
@@ -1428,6 +1432,7 @@ function ldDomainWarn(l){
   const tld = h.split('.').pop(), exp = LD_CC[tld]; if(!exp) return '';
   return ldNormCountry(l.Country) === exp ? '' : 'Website ends in .' + tld + ' (' + exp.replace(/\b\w/g, c => c.toUpperCase()) + ') but this lead is listed in ' + l.Country + '. Check that it is the right company.';
 }
+function ldChanFlag(l){ return l.Data_Status === 'Verified' && (l.Type_Match === 'none' || (String(l.Alt_Channel || '').trim() && String(l.Alt_Channel).trim().toLowerCase() !== String(l.Channel || '').trim().toLowerCase())); }
 function ldNotFound(l){ return !String(l.Website || '').trim() && !String(l.Suggested_Website || '').trim() && !String(l.Verify_Judge_Quote || '').trim(); }
 
 async function loadLeads(force){
@@ -1439,6 +1444,7 @@ async function loadLeads(force){
     lcFillFilters();
     if(lcPendingBatch){ const bs = document.getElementById('lcFilterBatch'); if([...bs.options].some(o => o.value === lcPendingBatch)) bs.value = lcPendingBatch; lcPendingBatch = null; }
     lcSyncTabs(); renderLeads();
+    { const fs = document.getElementById('lcFilterFlag'); if(fs){ fs.value = lcPendingFlag ? 'flag' : fs.value; lcPendingFlag = false; renderLeads(); } }
     if(lcPendingOpen){ const mk = lcPendingOpen; lcPendingOpen = null; openLeadDrawer(mk); }
   } catch(err){ body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--red);font-size:13px;">Failed to load leads: ' + escH(err.message) + ' — check the webhook URL, CORS (Allowed Origins) and that the workflow is Active.</div>'; }
 }
@@ -1463,7 +1469,7 @@ function lcSyncTabs(){
   if(nav){ nav.textContent = n; nav.style.display = n ? '' : 'none'; }
 }
 function setLcTab(t){ lcTab = t; lcSyncTabs(); renderLeads(); }
-function resetLcFilters(){ ['lcFilterBatch','lcFilterCountry','lcFilterChannel'].forEach(id => document.getElementById(id).value = ''); document.getElementById('lcFilterFit').value = '0'; document.getElementById('lcSearch').value = ''; renderLeads(); }
+function resetLcFilters(){ ['lcFilterBatch','lcFilterCountry','lcFilterChannel'].forEach(id => document.getElementById(id).value = ''); document.getElementById('lcFilterFit').value = '0'; document.getElementById('lcFilterFlag').value = ''; document.getElementById('lcSearch').value = ''; renderLeads(); }
 function renderLeads(){
   const body = document.getElementById('leadsListBody');
   const batch = document.getElementById('lcFilterBatch').value, country = document.getElementById('lcFilterCountry').value, channel = document.getElementById('lcFilterChannel').value;
@@ -1472,6 +1478,7 @@ function renderLeads(){
   if(batch) rows = rows.filter(l => l.Upload_Batch === batch);
   if(country) rows = rows.filter(l => l.Country === country);
   if(channel) rows = rows.filter(l => l.Channel === channel);
+  if(document.getElementById('lcFilterFlag').value === 'flag') rows = rows.filter(ldChanFlag);
   if(minFit) rows = rows.filter(l => (parseInt(l.Fit_Score) || 0) >= minFit);
   if(q) rows = rows.filter(l => String(l.Name || '').toLowerCase().includes(q));
   lcVisible = rows.map(l => l.Match_Key);
@@ -1482,8 +1489,8 @@ function renderLeads(){
     if(lcTab === 'parked' || lcTab === 'rejected') return l.Reject_Reason ? '<div class="co-why" style="color:var(--ink-faint);">' + escH(String(l.Reject_Reason).slice(0, 120)) + '</div>' : '';
     return '';
   };
-  body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : ''; return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
-    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
+  body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : '', cf = ldChanFlag(l); return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
+    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : '') + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
     '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status, l) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
     '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">' + (l.Data_Status !== 'Verified' ? '—' : (l.Apify_Status ? 'none found' : 'not searched yet')) + '</span>') + '</div></div>'; }).join('');
@@ -1583,7 +1590,7 @@ function ldDecisionHTML(L, status){
   } else if(status === 'Verified'){
     h += (warn ? '<div class="ld-warn">⚠ ' + escH(warn) + '</div>' : '') +
       '<details class="ld-ev-d" style="margin-bottom:6px;"><summary>Why was this verified?</summary>' + ldEvidenceHTML(L) + '</details>' +
-      '<div class="ld-foot" style="margin-top:6px; border-top:none; padding-top:0;"><span>Website looks wrong?</span><button class="btn-secondary" onclick="ldToggleRecheck()">Re-check website</button></div><div id="ldRecheck" style="display:none;">' + ldSiteRow('', 'Re-verify', 'recheck') + '</div>';
+      '<div class="ld-foot" style="margin-top:6px; margin-bottom:16px; border-top:none; padding-top:0;"><span>Website looks wrong?</span><button class="btn-secondary" onclick="ldToggleRecheck()">Re-check website</button></div><div id="ldRecheck" style="display:none;">' + ldSiteRow('', 'Re-verify', 'recheck') + '</div>';
   }
   return h;
 }
@@ -1597,11 +1604,26 @@ function ldSpinHTML(L){
     (L.Data_Status === 'Needs_Review' ? '<label class="full" style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="ldSpAgain" checked> Also search again for the original company (' + escH(L.Name || '') + ')</label>' : '') +
     '<button class="btn-primary full" onclick="ldSpinSubmit()">Add as new lead</button></div></div>';
 }
+function ldChannelHTML(L){
+  const tm = String(L.Type_Match || (/\bA\d+:(clear|partial|none)\b/i.exec(String(L.Fit_Score_Reason || '')) || [])[1] || '').toLowerCase();
+  const alt = String(L.Alt_Channel || '').trim(), cur = String(L.Channel || '').trim();
+  const flag = L.Data_Status === 'Verified' && (tm === 'none' || (alt && alt.toLowerCase() !== cur.toLowerCase()));
+  const tmTxt = { clear:'Clear match', partial:'Partial match', none:'No match' }[tm] || '';
+  let rows = [['Current channel', '<b>' + escH(cur || '—') + '</b>']];
+  if(tmTxt) rows.push(['Business type fit', escH(tmTxt) + ' <span style="color:var(--ink-faint);">(from scoring)</span>']);
+  if(ldClean(L.Sub_Segment)) rows.push(['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')]);
+  if(alt) rows.push(['Website suggests', '<b>' + escH(alt) + '</b>' + (ldClean(L.Alt_Channel_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Alt_Channel_Evidence) + '”</div>' : '')]);
+  const opts = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === (alt || cur).toLowerCase() && c.toLowerCase() !== cur.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
+  return '<div class="ld-sec"><h4>Channel' + (flag ? ' <span class="ld-dw">⚠ worth checking</span>' : '') + '</h4>' + ldKV(rows) +
+    '<div class="row" style="display:flex; gap:8px; margin-top:10px;"><select class="ld-input" id="ldChSel" style="flex:1;">' + opts + '</select><button class="btn-secondary" onclick="ldChangeChannel()">Change channel</button></div>' +
+    '<div style="font-size:11px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">Changing the channel clears the Fit and ESG scores and queues the lead for scoring again with that channel’s rubric. Emails already sent keep the channel they were sent under.</div></div>';
+}
 function renderLeadDrawer(){
   const L = ldCurrent.lead, status = L.Data_Status || '';
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
   document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status, L);
   let h = ldDecisionHTML(L, status);
+  if(status !== 'Needs_Search') h += ldChannelHTML(L);
   h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
   const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
   h += '<div class="ld-sec"><h4>Scores</h4>' +
@@ -1674,6 +1696,21 @@ async function ldReview(action){
     else if(ldCurrent && ldCurrent.lead) renderLeadDrawer();
     sumCache = null;
   } catch(err){ showToast('Could not save: ' + err.message); }
+}
+async function ldChangeChannel(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return;
+  const L = ldCurrent.lead || {}, sel = document.getElementById('ldChSel'), ch = sel ? sel.value : '';
+  const old = String(L.Channel || '').trim();
+  if(!ch || ch.toLowerCase() === old.toLowerCase()){ showToast('Pick a different channel first'); return; }
+  const reenrich = old.toLowerCase() === 'amenities' || ch.toLowerCase() === 'amenities';
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'set_channel', channel:ch, old_channel:old, reenrich });
+    const clr = { Channel:ch, Fit_Score:'', Fit_Score_Reason:'', ESG_Score:'', ESG_Score_Reason:'', Type_Match:'', Score_Status:'', Alt_Channel:'', Alt_Channel_Evidence:'' };
+    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, clr);
+    Object.assign(L, clr);
+    showToast('Channel changed to ' + ch + '. The lead will be scored again' + (reenrich ? ' after a fresh enrichment.' : '.'));
+    lcSyncTabs(); renderLeads(); renderLeadDrawer(); sumCache = null;
+  } catch(err){ showToast('Could not change channel: ' + err.message); }
 }
 async function ldSpinSubmit(){
   const g = id => (document.getElementById(id) || {}).value || '';
@@ -1759,7 +1796,7 @@ async function loadPipeline(){
 }
 
 /* ---------------- HOME DASHBOARD (GM view) ---------------- */
-let sumCache = null, sumAt = 0, sumBusy = null, lcPendingOpen = null;
+let sumCache = null, sumAt = 0, sumBusy = null, lcPendingOpen = null, lcPendingFlag = false;
 async function loadSummary(force){
   if(!force && sumCache && Date.now() - sumAt < 60000) return sumCache;
   if(sumBusy) return sumBusy;
@@ -1770,7 +1807,7 @@ function hmPct(v){ return v == null ? '—' : v + '%'; }
 function hmNum(v){ return v == null ? '—' : v; }
 function hmState(r){ if(r.contacted > 0) return 'run'; if(r.with_contact > 0) return 'ready'; if(r.qualified > 0) return 'need'; return 'none'; }
 function hmPill(st){ const m = { run:'Running', ready:'Ready', need:'Needs contacts', none:'None qualified' }; return '<span class="hm-pill ' + st + '">' + m[st] + '</span>'; }
-function hmGo(tab, mk){ lcTab = tab; if(mk) lcPendingOpen = mk; showPage('leads'); }
+function hmGo(tab, mk, flag){ lcTab = tab; if(mk) lcPendingOpen = mk; lcPendingFlag = !!flag; showPage('leads'); }
 function dashSetGreeting(){
   const h = new Date().getHours();
   document.getElementById('dashGreeting').textContent = (h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening')) + ', Winda 👋';
@@ -1808,11 +1845,12 @@ function renderDashboard(S){
     tile('Channels running', runCh == null ? '—' : runCh, 'of ' + OFFICIAL_CHANNELS.length + ' channels') + '</div>';
 
   /* 2. what needs doing + funnel */
-  const todo = (n, txt, tab, off) => '<div class="hm-todo' + (off ? ' off' : '') + '"' + (off ? '' : ' onclick="hmGo(\'' + tab + '\')"') + '><div class="n">' + n + '</div><div>' + txt + '</div></div>';
+  const todo = (n, txt, tab, off, flag) => '<div class="hm-todo' + (off ? ' off' : '') + '"' + (off ? '' : ' onclick="hmGo(\'' + tab + '\'' + (flag ? ',null,true' : '') + ')"') + '><div class="n">' + n + '</div><div>' + txt + '</div></div>';
   let t = '';
   if(H.needs_review) t += todo(H.needs_review, 'leads waiting for your decision' + (H.oldest_review_days ? ' <span class="hm-mute">(oldest ' + H.oldest_review_days + ' days)</span>' : ''), 'review');
   const noC = (H.verified_no_contact_found || 0);
   if(noC) t += todo(noC, 'verified leads where no contact was found, add one by hand', 'all');
+  if(H.channel_flagged) t += todo(H.channel_flagged, 'verified leads where the channel may be wrong, check before outreach', 'all', false, true);
   if(H.parked) t += todo(H.parked, 'parked leads (kept without a verified website)', 'parked');
   const prob = (H.score_errors || 0) + (H.enrich_failed || 0) + (H.verified_not_scored || 0);
   if(prob) t += todo(prob, 'verified leads stuck in enrichment or scoring <span class="hm-mute">(' + (H.enrich_failed || 0) + ' enrich failed · ' + (H.score_errors || 0) + ' score errors · ' + (H.verified_not_scored || 0) + ' not scored yet)</span>', 'all');
@@ -1842,9 +1880,9 @@ function renderDashboard(S){
   const comparable = sources.filter(r => !r.small_sample && r.scored > 0);
   let best = null;
   if(comparable.length >= 2) best = comparable.slice().sort((a, b) => ((b.qualified_rate || 0) - (a.qualified_rate || 0)) || ((b.avg_fit || 0) - (a.avg_fit || 0)))[0].key;
-  const srcRows = sources.map(r => '<tr><td>' + escH(r.key) + (r.key === best ? '<span class="hm-best">Best so far</span>' : '') + (r.small_sample ? '<span class="hm-sm">small sample</span>' : '') + '</td><td class="r">' + r.leads + '</td><td class="r">' + hmPct(r.match_rate) + '</td><td class="r">' + hmNum(r.avg_fit) + '</td><td class="r">' + r.qualified + ' <span class="hm-mute">(' + hmPct(r.qualified_rate) + ')</span></td><td class="r">' + hmPct(r.contact_coverage) + '</td><td class="r hm-mute">—</td></tr>').join('');
-  h += '<div class="dpanel" style="margin-bottom:14px;"><h3>Which lead source works best</h3>' + tbl(['Source', 'Leads', 'Match rate', 'Avg Fit', 'Qualified', 'Contact coverage', 'Replies'], srcRows || '<tr><td colspan="7" class="hm-mute">No source data yet.</td></tr>') +
-    '<div class="hm-note"><b>Match rate</b> = share of processed leads whose website was confirmed. <b>Qualified</b> = verified and Fit ≥ ' + S.fit_min + ', as a share of scored leads. <b>Contact coverage</b> = qualified leads that have at least one email. Sources with fewer than 10 leads are tagged “small sample” and are not ranked. The real measure of quality is replies and meetings per source, which appears here once tracking is live.</div></div>';
+  const srcRows = sources.map(r => '<tr><td>' + escH(r.key) + (r.key === best ? '<span class="hm-best">Best so far</span>' : '') + (r.small_sample ? '<span class="hm-sm">small sample</span>' : '') + '</td><td class="r">' + r.leads + '</td><td class="r">' + hmPct(r.match_rate) + '</td><td class="r">' + hmNum(r.avg_fit) + '</td><td class="r">' + r.qualified + ' <span class="hm-mute">(' + hmPct(r.qualified_rate) + ')</span></td><td class="r">' + hmPct(r.contact_coverage) + '</td><td class="r">' + hmPct(r.channel_flag_rate) + '</td><td class="r hm-mute">—</td></tr>').join('');
+  h += '<div class="dpanel" style="margin-bottom:14px;"><h3>Which lead source works best</h3>' + tbl(['Source', 'Leads', 'Match rate', 'Avg Fit', 'Qualified', 'Contact coverage', 'Channel flagged', 'Replies'], srcRows || '<tr><td colspan="8" class="hm-mute">No source data yet.</td></tr>') +
+    '<div class="hm-note"><b>Match rate</b> = share of processed leads whose website was confirmed. <b>Qualified</b> = verified and Fit ≥ ' + S.fit_min + ', as a share of scored leads. <b>Contact coverage</b> = qualified leads that have at least one email. <b>Channel flagged</b> = scored leads whose business type does not match their channel, or whose website suggests another channel; a high value means the source (or the channel classifier) is mislabeling. Sources with fewer than 10 leads are tagged “small sample” and are not ranked. The real measure of quality is replies and meetings per source, which appears here once tracking is live.</div></div>';
 
   /* 5. best leads + recent uploads */
   const bl = (S.best_leads || []).map(r => '<tr class="click" onclick="hmGo(\'all\',\'' + escH(r.Match_Key).replace(/'/g, '') + '\')"><td>' + escH(r.Name) + '</td><td>' + escH(r.Country) + '</td><td>' + escH(r.Channel) + '</td><td class="r"><span class="fit-tag ' + fitClass(r.Fit_Score) + '" style="margin-left:0;">' + r.Fit_Score + '</span></td><td class="r">' + r.contacts + (r.named ? ' <span class="hm-mute">(' + r.named + ' named)</span>' : '') + '</td></tr>').join('');
@@ -1864,6 +1902,7 @@ function aiBuild(S){
   const H = S.health || {}, F = S.funnel || {}, acts = [];
   if(H.needs_review) acts.push('Decide on ' + H.needs_review + ' lead' + (H.needs_review > 1 ? 's' : '') + ' in Review' + (H.oldest_review_days ? ' (the oldest has waited ' + H.oldest_review_days + ' days)' : '') + '. Wrong leads mean wrong outreach.');
   if(H.verified_no_contact_found) acts.push(H.verified_no_contact_found + ' verified lead' + (H.verified_no_contact_found > 1 ? 's have' : ' has') + ' no contact yet. Add one by hand from LinkedIn or the website.');
+  if(H.channel_flagged) acts.push(H.channel_flagged + ' verified lead' + (H.channel_flagged > 1 ? 's' : '') + ' may sit in the wrong channel. Check them before outreach, because the Fit score depends on the channel.');
   if(H.parked) acts.push(H.parked + ' parked lead' + (H.parked > 1 ? 's are' : ' is') + ' still without a verified website. Try again with a manual search.');
   const prob = (H.score_errors || 0) + (H.enrich_failed || 0);
   if(prob) acts.push(prob + ' verified lead' + (prob > 1 ? 's' : '') + ' had a problem in enrichment or scoring and need a re-run.');
