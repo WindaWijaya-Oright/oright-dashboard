@@ -1103,12 +1103,15 @@ Write the email now.</textarea>
     <label class="f">Body <span id="dWc" style="text-transform:none;letter-spacing:0"></span></label><textarea id="dBody" class="big" oninput="dCount()"></textarea>
     <label class="f">Signature (added automatically, not editable by AI)</label>
     <iframe class="x-sig" id="dSig" sandbox="" title="Signature preview"></iframe>
-    <label class="f">When</label>
-    <div class="x-two"><select id="dWhen" onchange="dWhenCh()"><option value="now">Send now</option><option value="later">Schedule</option></select><input id="dAt" type="datetime-local" style="display:none"></div>
-    <div id="dAtHint" style="color:var(--ink-faint);font-size:12px;margin-top:4px"></div>
+    <div id="dSched" style="display:none;margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#FAFBFC">
+      <div style="display:flex;justify-content:space-between;align-items:center"><label class="f" style="margin:0">Schedule (recipient's local time)</label><a href="#" onclick="dSchedClose();return false" style="font-size:12px">Cancel schedule</a></div>
+      <div class="x-two"><div><label class="f">Date</label><input id="dDate" type="date" onchange="dAtHint()"></div><div><label class="f">Time</label><select id="dTime" onchange="dAtHint()"></select></div></div>
+      <label class="f">Recipient time zone</label><select id="dTz" onchange="dAtHint()"></select>
+      <div id="dAtHint" style="font-size:12.5px;margin-top:8px"></div>
+    </div>
     <label class="x-chk" id="dAckWrap" style="display:none"><input type="checkbox" id="dAck" onchange="dCount()"> I checked the flagged items above</label>
   </div>
-  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Rewrite with AI</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn p" id="dSend" onclick="dSend()">Send</button></div>
+  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Rewrite with AI</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn" id="dSchedBtn" onclick="dSchedClick()">Schedule…</button><button class="x-btn p" id="dSend" onclick="dSend('now')">Send now</button></div>
 </div>
 
 <!-- Lead slide-over -->
@@ -2056,7 +2059,7 @@ function renderDashboard(S){
 
   /* 5. best leads + recent uploads (kept) */
   const th = (head) => '<thead><tr>' + head.map((x, i) => '<th' + (i > 0 && i < head.length - 1 ? ' class="r"' : '') + '>' + x + '</th>').join('') + '</tr></thead>';
-  const bl = (S.best_leads || []).map(r => '<tr class="row" onclick="hmGo(\'all\',\'' + escH(r.Match_Key).replace(/'/g, '') + '\')"><td>' + escH(r.Name) + '</td><td>' + escH(r.Country) + '</td><td>' + escH(r.Channel) + '</td><td class="r"><b>' + escH(r.Fit) + '</b></td><td class="r">' + escH(r.Contacts == null ? '' : r.Contacts) + '</td></tr>').join('');
+  const bl = (S.best_leads || []).map(r => '<tr class="row" onclick="hmGo(\'all\',\'' + escH(r.Match_Key).replace(/'/g, '') + '\')"><td>' + escH(r.Name) + '</td><td>' + escH(r.Country) + '</td><td>' + escH(r.Channel) + '</td><td class="r"><b>' + escH(r.Fit_Score) + '</b></td><td class="r">' + escH(r.contacts == null ? '' : r.contacts) + '</td></tr>').join('');
   const ru = (S.recent_uploads || []).map(r => '<tr><td>' + escH(r.batch) + '</td><td class="r">' + r.leads + '</td><td class="r">' + r.verified + '</td><td class="r">' + r.needs_review + '</td><td class="r">' + r.rejected + '</td></tr>').join('');
   h += '<div class="x-grid x-g2e"><div class="x-panel"><h3>Best leads ready to contact</h3><table class="x-tbl">' + th(['Company', 'Country', 'Channel', 'Fit', 'Contacts']) + '<tbody>' + (bl || '<tr><td colspan="5" class="x-empty">No qualified lead with a contact yet.</td></tr>') + '</tbody></table></div>' +
     '<div class="x-panel"><h3>Recent uploads</h3><table class="x-tbl">' + th(['Batch', 'Leads', 'Verified', 'In review', 'Rejected']) + '<tbody>' + (ru || '<tr><td colspan="5" class="x-empty">No uploads yet.</td></tr>') + '</tbody></table></div></div>';
@@ -2774,6 +2777,68 @@ function renderDraftInSlideover(draft){
   }
 }
 
+/* ---------- RECIPIENT TIME ZONES (pure functions, no DOM) ---------- */
+/* 'code|name|alias': [default IANA zone, other zones of that country...]. Big countries have several zones: the first is the business centre. */
+const TZ_TABLE = {
+  'us|usa|u.s.|united states|united states of america': ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu'],
+  'ca|canada': ['America/Toronto', 'America/Vancouver', 'America/Edmonton', 'America/Winnipeg', 'America/Halifax', 'America/St_Johns'],
+  'mx|mexico|méxico': ['America/Mexico_City', 'America/Cancun', 'America/Tijuana', 'America/Chihuahua', 'America/Hermosillo'],
+  'br|brazil|brasil': ['America/Sao_Paulo', 'America/Manaus', 'America/Recife'],
+  'au|australia': ['Australia/Sydney', 'Australia/Brisbane', 'Australia/Adelaide', 'Australia/Darwin', 'Australia/Perth'],
+  'id|indonesia': ['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'],
+  'ru|russia': ['Europe/Moscow', 'Asia/Yekaterinburg', 'Asia/Novosibirsk', 'Asia/Vladivostok'],
+  'cn|china': ['Asia/Shanghai'], 'hk|hong kong': ['Asia/Hong_Kong'], 'tw|taiwan': ['Asia/Taipei'], 'mo|macau|macao': ['Asia/Macau'],
+  'jp|japan': ['Asia/Tokyo'], 'kr|korea|south korea|republic of korea': ['Asia/Seoul'], 'sg|singapore': ['Asia/Singapore'],
+  'my|malaysia': ['Asia/Kuala_Lumpur'], 'th|thailand': ['Asia/Bangkok'], 'vn|vietnam|viet nam': ['Asia/Ho_Chi_Minh'],
+  'ph|philippines': ['Asia/Manila'], 'in|india': ['Asia/Kolkata'], 'pk|pakistan': ['Asia/Karachi'], 'bd|bangladesh': ['Asia/Dhaka'],
+  'lk|sri lanka': ['Asia/Colombo'], 'kh|cambodia': ['Asia/Phnom_Penh'], 'mm|myanmar': ['Asia/Yangon'], 'np|nepal': ['Asia/Kathmandu'],
+  'kz|kazakhstan': ['Asia/Almaty'], 'uz|uzbekistan': ['Asia/Tashkent'], 'mn|mongolia': ['Asia/Ulaanbaatar'],
+  'ae|uae|united arab emirates': ['Asia/Dubai'], 'sa|saudi arabia': ['Asia/Riyadh'], 'qa|qatar': ['Asia/Qatar'], 'kw|kuwait': ['Asia/Kuwait'],
+  'bh|bahrain': ['Asia/Bahrain'], 'om|oman': ['Asia/Muscat'], 'jo|jordan': ['Asia/Amman'], 'lb|lebanon': ['Asia/Beirut'],
+  'il|israel': ['Asia/Jerusalem'], 'iq|iraq': ['Asia/Baghdad'], 'ir|iran': ['Asia/Tehran'], 'tr|turkey|türkiye|turkiye': ['Europe/Istanbul'],
+  'gb|uk|united kingdom|great britain|england|scotland|wales': ['Europe/London'], 'ie|ireland': ['Europe/Dublin'], 'pt|portugal': ['Europe/Lisbon'],
+  'fr|france': ['Europe/Paris'], 'de|germany': ['Europe/Berlin'], 'nl|netherlands|the netherlands': ['Europe/Amsterdam'], 'be|belgium': ['Europe/Brussels'],
+  'lu|luxembourg': ['Europe/Luxembourg'], 'ch|switzerland': ['Europe/Zurich'], 'at|austria': ['Europe/Vienna'], 'es|spain': ['Europe/Madrid', 'Atlantic/Canary'],
+  'it|italy': ['Europe/Rome'], 'gr|greece': ['Europe/Athens'], 'cy|cyprus': ['Asia/Nicosia'], 'mt|malta': ['Europe/Malta'],
+  'se|sweden': ['Europe/Stockholm'], 'no|norway': ['Europe/Oslo'], 'dk|denmark': ['Europe/Copenhagen'], 'fi|finland': ['Europe/Helsinki'], 'is|iceland': ['Atlantic/Reykjavik'],
+  'pl|poland': ['Europe/Warsaw'], 'cz|czech republic|czechia': ['Europe/Prague'], 'sk|slovakia': ['Europe/Bratislava'], 'hu|hungary': ['Europe/Budapest'],
+  'ro|romania': ['Europe/Bucharest'], 'bg|bulgaria': ['Europe/Sofia'], 'hr|croatia': ['Europe/Zagreb'], 'rs|serbia': ['Europe/Belgrade'], 'si|slovenia': ['Europe/Ljubljana'],
+  'ua|ukraine': ['Europe/Kyiv'], 'ee|estonia': ['Europe/Tallinn'], 'lv|latvia': ['Europe/Riga'], 'lt|lithuania': ['Europe/Vilnius'],
+  'nz|new zealand': ['Pacific/Auckland'], 'za|south africa': ['Africa/Johannesburg'], 'eg|egypt': ['Africa/Cairo'], 'ma|morocco': ['Africa/Casablanca'],
+  'ng|nigeria': ['Africa/Lagos'], 'ke|kenya': ['Africa/Nairobi'], 'gh|ghana': ['Africa/Accra'], 'tz|tanzania': ['Africa/Dar_es_Salaam'],
+  'ar|argentina': ['America/Argentina/Buenos_Aires'], 'cl|chile': ['America/Santiago'], 'co|colombia': ['America/Bogota'], 'pe|peru': ['America/Lima'],
+  'pa|panama': ['America/Panama'], 'cr|costa rica': ['America/Costa_Rica'], 'do|dominican republic': ['America/Santo_Domingo'], 'uy|uruguay': ['America/Montevideo']
+};
+const TZ_BY_KEY = {}; Object.keys(TZ_TABLE).forEach(k => k.split('|').forEach(n => { TZ_BY_KEY[n] = TZ_TABLE[k]; }));
+const WEEKEND_FRI_SAT = ['sa', 'kw', 'qa', 'bh', 'il', 'eg', 'jo', 'iq', 'ir'];      // weekend on Friday-Saturday (heuristic warning only)
+function tzNormCountry(c){ return String(c == null ? '' : c).toLowerCase().replace(/\s+/g, ' ').trim(); }
+function tzZonesFor(country){ return TZ_BY_KEY[tzNormCountry(country)] || null; }
+function tzAllZones(){ const o = {}; Object.keys(TZ_TABLE).forEach(k => TZ_TABLE[k].forEach(z => { o[z] = 1; })); return Object.keys(o).sort(); }
+function tzIsFriSat(country){ const k = tzNormCountry(country); return Object.keys(TZ_TABLE).some(key => key.split('|').includes(k) && WEEKEND_FRI_SAT.includes(key.split('|')[0])); }
+function tzOffsetMin(utcMs, tz){
+  const f = new Intl.DateTimeFormat('en-US', { timeZone:tz, hourCycle:'h23', year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric', second:'numeric' }), p = {};
+  f.formatToParts(new Date(utcMs)).forEach(x => { p[x.type] = x.value; });
+  return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(utcMs / 1000) * 1000) / 60000;
+}
+/* wall-clock date 'YYYY-MM-DD' + time 'HH:MM' in zone tz -> UTC ms, or null if that local time does not exist (clock change) */
+function tzToUtc(dateStr, timeStr, tz){
+  const d = String(dateStr).split('-').map(Number), t = String(timeStr).split(':').map(Number);
+  if(d.length !== 3 || t.length < 2 || d.some(isNaN) || t.some(isNaN)) return null;
+  const guess = Date.UTC(d[0], d[1] - 1, d[2], t[0], t[1]); let off = tzOffsetMin(guess, tz), u = guess - off * 60000;
+  const off2 = tzOffsetMin(u, tz); if(off2 !== off){ off = off2; u = guess - off * 60000; }
+  return tzOffsetMin(u, tz) === off && tzWall(u, tz).date === dateStr && tzWall(u, tz).time === String(timeStr).slice(0, 5) ? u : null;
+}
+function tzWall(utcMs, tz){
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone:tz, hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }), p = {};
+  f.formatToParts(new Date(utcMs)).forEach(x => { p[x.type] = x.value; });
+  return { date:p.year + '-' + p.month + '-' + p.day, time:p.hour + ':' + p.minute };
+}
+function tzWeekday(dateStr){ const d = String(dateStr).split('-').map(Number); return new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay(); }   // 0=Sun
+function tzNextBusinessDay(tz, country){   // tomorrow (recipient's calendar), skipping the recipient's weekend
+  let ms = Date.now() + 86400000, guard = 0, fs = tzIsFriSat(country);
+  for(;;){ const w = tzWall(ms, tz), wd = tzWeekday(w.date), we = fs ? (wd === 5 || wd === 6) : (wd === 0 || wd === 6); if(!we || guard++ > 7) return w.date; ms += 86400000; }
+}
+
 /* =====================================================================
    v4 OUTREACH HUB + PIPELINE + LEAD PANEL.  n8n endpoints (all under N8N_BASE):
    GET  /hub-queue            -> {test_mode, test_addresses[], items:[{match_key,name,country,channel,fit,why,email_no,reason,contact:{name,title,email,type,email_status}}]}
@@ -2835,6 +2900,8 @@ function hubDrawSent(){
   const k = (l, v, f) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + xN(v) + '</div><div class="f">' + f + '</div></div>';
   const sent = T.sent || 0;
   let h = '<div class="x-grid x-g6">' + k('Sent', T.sent, 'delivered to the server') + k('Scheduled', T.scheduled, 'waiting to go out') + k('Bounced', T.bounced, sent ? xPct(T.bounced || 0, sent) + '% of sent' : '') + k('Replied', T.replied, sent ? xPct(T.replied || 0, sent) + '% of sent' : '') + k('Clicked', T.clicked, 'a link in the signature') + k('Failed', T.failed, 'could not be sent') + '</div>';
+  const late = rows.filter(r => r.status === 'Scheduled' && r.scheduled_at && Date.now() - new Date(r.scheduled_at).getTime() > 10 * 60000);
+  if(late.length) h += '<div class="x-note amber"><b>' + late.length + ' email' + (late.length > 1 ? 's are' : ' is') + ' overdue.</b> They were due more than 10 minutes ago but have not gone out. Either the n8n workflow <code>Email_Send_Due</code> is not Active, or the computer running n8n was asleep or offline.</div>';
   h += '<div class="x-note blue">Clicks are counted only for people (clicks within seconds of sending are ignored, since mail scanners open links). Opens are not tracked: they are unreliable and inflated by Apple Mail privacy.</div>';
   if(!rows.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails yet.</b><br>Sent and scheduled emails show up here with their status.</div></div>';
   else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + '</td></tr>').join('') + '</tbody></table></div>';
@@ -2859,7 +2926,7 @@ async function dOpen(i){
   $x('dTitle').textContent = 'Draft for ' + q.name; $x('dSub').textContent = [q.country, q.channel, q.fit != null ? 'Fit ' + q.fit : '', q.why].filter(Boolean).join(' · ');
   $x('dFlags').innerHTML = ''; $x('dMode').innerHTML = '<div class="x-note blue">Writing the draft with AI… this takes about 10-30 seconds.</div>';
   ['dTo', 'dName', 'dCo', 'dType', 'dTitleIn', 'dNo', 'dSubj', 'dBody'].forEach(id => $x(id).value = ''); $x('dSig').srcdoc = ''; $x('dWc').textContent = '';
-  $x('dSend').disabled = true; $x('dRegen').disabled = true; xOpen('xDraft');
+  $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose(); xOpen('xDraft');
   await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1 });
 }
 async function dGenerate(body){
@@ -2880,20 +2947,48 @@ function dCount(){
   $x('dFlags').innerHTML = flags.map(f => '<span class="x-pill amber x-flag">' + escH(FLAG_TXT[f] || f) + '</span>').join('');
   const hard = flags.includes('PLACEHOLDER_LEFT') || flags.includes('NO_BODY') || flags.includes('NO_SUBJECT'), soft = flags.length > 0;
   $x('dAckWrap').style.display = (soft && !hard) ? '' : 'none';
-  $x('dSend').disabled = !HUB.draft || hard || !$x('dTo').value.trim() || (soft && !$x('dAck').checked);
+  $x('dSend').disabled = $x('dSchedBtn').disabled = !HUB.draft || hard || !$x('dTo').value.trim() || (soft && !$x('dAck').checked);
 }
-function dWhenCh(){ const l = $x('dWhen').value === 'later'; $x('dAt').style.display = l ? '' : 'none'; if(l && !$x('dAt').value){ const t = new Date(Date.now() + 3600e3); t.setMinutes(0, 0, 0); const p = n => String(n).padStart(2, '0'); $x('dAt').value = t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate()) + 'T' + p(t.getHours()) + ':00'; } dAtHint(); }
-function dAtHint(){ const tz = HUB.draft && HUB.draft.recipient_tz, v = $x('dAt').value; let s = ''; if($x('dWhen').value === 'later' && v && tz){ try { s = 'That is ' + new Intl.DateTimeFormat('en-GB', { timeZone:tz, weekday:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(v)) + ' for the recipient (' + tz + ').'; } catch(e){} } $x('dAtHint').textContent = s; }
-$x('dAt') && $x('dAt').addEventListener('change', dAtHint);
+function dSchedOpen(){
+  const q = HUB.qItem || {}, d = HUB.draft || {}, zs = tzZonesFor(q.country), def = (zs && zs[0]) || d.recipient_tz || '', all = tzAllZones();
+  const opt = z => '<option value="' + z + '">' + z.replace(/_/g, ' ') + '</option>';
+  $x('dTz').innerHTML = (zs ? '<optgroup label="' + escH(q.country) + '">' + zs.map(opt).join('') + '</optgroup>' : '') + '<optgroup label="' + (zs ? 'Other zones' : 'Pick the recipient time zone') + '">' + all.filter(z => !zs || !zs.includes(z)).map(opt).join('') + '</optgroup>';
+  if(def && !all.includes(def)) $x('dTz').insertAdjacentHTML('afterbegin', opt(def));
+  if(def) $x('dTz').value = def; else $x('dTz').selectedIndex = -1;
+  const p = n => String(n).padStart(2, '0'); let t = ''; for(let m = 0; m < 1440; m += 30) t += '<option>' + p(Math.floor(m / 60)) + ':' + p(m % 60) + '</option>';
+  $x('dTime').innerHTML = t; $x('dTime').value = '09:00';
+  if(def){ $x('dDate').value = tzNextBusinessDay(def, q.country); $x('dDate').min = tzWall(Date.now(), def).date; }
+  $x('dSched').style.display = ''; $x('dSchedBtn').textContent = 'Confirm schedule'; $x('dSchedBtn').className = 'x-btn p'; $x('dSend').className = 'x-btn'; dAtHint();
+}
+function dSchedClose(){ $x('dSched').style.display = 'none'; $x('dSchedBtn').textContent = 'Schedule…'; $x('dSchedBtn').className = 'x-btn'; $x('dSend').className = 'x-btn p'; }
+function dSchedClick(){ if($x('dSched').style.display === 'none') dSchedOpen(); else dSend('later'); }
+function dSchedCalc(){   // -> {ms, tz, wall, warn[], err}
+  const tz = $x('dTz').value, date = $x('dDate').value, time = $x('dTime').value, q = HUB.qItem || {}, r = { ms:null, tz, warn:[], err:'' };
+  if(!tz){ r.err = 'Pick the recipient time zone.'; return r; } if(!date){ r.err = 'Pick a date.'; return r; }
+  r.ms = tzToUtc(date, time, tz); if(r.ms == null){ r.err = 'That local time does not exist in ' + tz + ' (clock change). Pick another time.'; return r; }
+  if(r.ms < Date.now() + 120000){ r.err = 'That moment has already passed (in ' + tz.replace(/_/g, ' ') + '). Pick a later date or time.'; return r; }
+  if(r.ms > Date.now() + 119 * 86400000){ r.err = 'Too far ahead. The maximum is 120 days.'; return r; }
+  const wd = tzWeekday(date), fs = tzIsFriSat(q.country), we = fs ? (wd === 5 || wd === 6) : (wd === 0 || wd === 6), hh = +time.slice(0, 2);
+  if(we) r.warn.push('That day is usually a weekend in ' + (q.country || 'the recipient country') + '. B2B emails sent then are less likely to be read.');
+  if(hh < 7 || hh >= 19) r.warn.push('That is outside normal office hours (07:00-19:00) for the recipient.');
+  return r;
+}
+function dAtHint(){
+  const el = $x('dAtHint'); if($x('dSched').style.display === 'none'){ el.innerHTML = ''; return; }
+  const r = dSchedCalc(); if(r.err){ el.innerHTML = '<span style="color:var(--red)">' + escH(r.err) + '</span>'; return; }
+  const mine = Intl.DateTimeFormat().resolvedOptions().timeZone, f = (z, o) => new Intl.DateTimeFormat('en-GB', Object.assign({ timeZone:z, weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23' }, o || {})).format(new Date(r.ms));
+  el.innerHTML = '<b>Leaves at ' + escH(f(r.tz)) + '</b> in ' + escH(r.tz.replace(/_/g, ' ')) + '<br><span style="color:var(--ink-soft)">= ' + escH(f(mine)) + ' your time (' + escH(mine.replace(/_/g, ' ')) + ') = ' + escH(f('UTC', { weekday:undefined })) + ' UTC</span>' + r.warn.map(w => '<div style="color:var(--amber);margin-top:4px">' + escH(w) + '</div>').join('');
+}
 async function dRegen(){ const q = HUB.qItem; $x('dRegen').disabled = true; $x('dSend').disabled = true; $x('dMode').innerHTML = '<div class="x-note blue">Rewriting…</div>'; await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, rewrite:true, current_body:$x('dBody').value }); }
-async function dSend(){
-  const d = HUB.draft; if(!d) return; const later = $x('dWhen').value === 'later'; if(later && !$x('dAt').value){ showToast('Pick a date and time'); return; }
-  $x('dSend').disabled = true; $x('dSend').textContent = 'Sending…';
+async function dSend(mode){
+  const d = HUB.draft; if(!d) return; const later = mode === 'later'; let at = null;
+  if(later){ const r = dSchedCalc(); if(r.err){ dAtHint(); showToast(r.err); return; } at = new Date(r.ms).toISOString(); }
+  const b1 = $x('dSend'), b2 = $x('dSchedBtn'); b1.disabled = b2.disabled = true; (later ? b2 : b1).textContent = later ? 'Scheduling…' : 'Sending…';
   try {
-    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:$x('dTo').value.trim(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:later ? new Date($x('dAt').value).toISOString() : null });
-    xCloseAll(); showToast(later ? 'Scheduled' : 'Queued. It leaves within about 2 minutes.' + (r.status ? ' Status: ' + r.status : '')); hubLoad(true);
+    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:$x('dTo').value.trim(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:at });
+    xCloseAll(); showToast(later ? 'Scheduled' : 'Sending now…'); hubLoad(true); if(!later){ setTimeout(() => hubLoad(true), 6000); setTimeout(() => hubLoad(true), 25000); }
   } catch(e){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> ' + escH(e.message) + '</div>'; }
-  $x('dSend').textContent = 'Send'; dCount();
+  b1.textContent = 'Send now'; b2.textContent = $x('dSched').style.display === 'none' ? 'Schedule…' : 'Confirm schedule'; dCount();
 }
 
 /* ---------- LEAD PANEL ---------- */
