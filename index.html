@@ -497,6 +497,23 @@
 .x-panel,.x-kpi,.x-bar,.x-tbl,.x-card,.x-todo,.x-note,.x-ev{font-size:13px}
 .x-bar .lab{font-size:13px}.x-kpi .v{font-size:28px}.x-tbl td{font-size:13px}
 
+/* score tiles + draft generating animation */
+.x-scores{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.x-sc{display:flex;align-items:center;gap:10px;border-radius:12px;padding:8px 14px 8px 12px;min-width:150px}
+.x-sc .n{font-size:32px;font-weight:800;line-height:1;letter-spacing:-.02em}.x-sc .l{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}.x-sc .w{font-size:12px;font-weight:700}
+.x-sc.green{background:var(--green-soft);color:var(--green)}.x-sc.blue{background:var(--brand-soft);color:var(--brand)}.x-sc.amber{background:var(--amber-soft);color:#8a5a00}.x-sc.red{background:var(--red-soft);color:var(--red)}.x-sc.grey{background:#EEF0F3;color:var(--ink-soft)}
+.x-gen{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px 14px;background:linear-gradient(100deg,#EEF3FF,#F5EEFF,#EEF3FF);background-size:200% 100%;animation:xgrad 3s ease-in-out infinite;color:#2b3f91;font-size:13px}
+.x-gen .sp{width:18px;height:18px;border-radius:50%;border:2.5px solid #9db3f5;border-top-color:#2f56d8;animation:xsp .8s linear infinite;flex:none}
+.x-gen b{display:block;font-size:13px}.x-gen span.s{font-size:12px;opacity:.8}
+.x-gen .dots i{display:inline-block;width:4px;height:4px;border-radius:50%;background:#2f56d8;margin-left:3px;animation:xdot 1.2s infinite}.x-gen .dots i:nth-child(2){animation-delay:.2s}.x-gen .dots i:nth-child(3){animation-delay:.4s}
+@keyframes xgrad{0%,100%{background-position:0 0}50%{background-position:100% 0}}@keyframes xdot{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.x-slide .shim{background:linear-gradient(90deg,#f1f3f6 25%,#e6eaf0 37%,#f1f3f6 63%)!important;background-size:400% 100%;animation:xshim 1.4s ease infinite;color:transparent!important;border-color:#e6eaf0!important}
+.x-caret{caret-color:#2f56d8}
+@keyframes xshim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.x-add{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.x-add button{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--border);background:#fff;border-radius:12px;padding:14px;cursor:pointer;font:inherit;font-weight:700;color:var(--ink)}.x-add button:hover{border-color:var(--brand);background:#f7f9ff}.x-add button span.i{font-size:22px}.x-add button small{display:block;font-weight:500;color:var(--ink-soft);font-size:11.5px;margin-top:2px}
+@media (prefers-reduced-motion:reduce){.x-gen,.x-gen .sp,.x-gen .dots i,.x-slide .shim{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1092,38 +1109,40 @@ Write the email now.</textarea>
 
 <!-- Draft slide-over -->
 <div class="x-slide" id="xDraft">
-  <div class="hd"><div><h2 id="dTitle">Draft</h2><div id="dSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:2px"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
+  <div class="hd"><div style="min-width:0;flex:1"><h2 id="dTitle">Draft</h2><div id="dScores" class="x-scores"></div><div id="dSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:8px;line-height:1.5"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
     <div id="dMode"></div>
     <div id="dFlags"></div>
-    <div class="x-two"><div><label class="f">To (email)</label><input id="dTo"></div><div><label class="f">Greeting name</label><input id="dName" placeholder="empty = Hi {Company} team"></div></div>
-    <div class="x-two"><div><label class="f">Company</label><input id="dCo" readonly></div><div><label class="f">Contact type</label><input id="dType" readonly></div></div>
-    <div class="x-two"><div><label class="f">Position</label><input id="dTitleIn" readonly></div><div><label class="f">Email no.</label><input id="dNo" readonly></div></div>
-    <label class="f">Subject</label><input id="dSubj">
+    <div class="x-two"><div><label class="f">Send to</label><select id="dToSel" onchange="dRecipChange()"></select></div><div><label class="f">Greeting name</label><input id="dName" placeholder="empty = Hi {Company} team" oninput="dGreet();dCount()"></div></div>
+    <input id="dTo" placeholder="name@company.com" style="display:none;margin-top:8px" oninput="dCount()">
+    <div id="dDeliver" style="font-size:12px;color:var(--ink-soft);margin-top:6px"></div>
+    <label class="f">Subject</label><input id="dSubj" oninput="dCount()">
     <label class="f">Body <span id="dWc" style="text-transform:none;letter-spacing:0"></span></label><textarea id="dBody" class="big" oninput="dCount()"></textarea>
     <label class="f">Signature (added automatically, not editable by AI)</label>
     <iframe class="x-sig" id="dSig" sandbox="" title="Signature preview"></iframe>
     <div id="dSched" style="display:none;margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:#FAFBFC">
       <div style="display:flex;justify-content:space-between;align-items:center"><label class="f" style="margin:0">Schedule (recipient's local time)</label><a href="#" onclick="dSchedClose();return false" style="font-size:12px">Cancel schedule</a></div>
       <div class="x-two"><div><label class="f">Date</label><input id="dDate" type="date" onchange="dAtHint()"></div><div><label class="f">Time</label><select id="dTime" onchange="dAtHint()"></select></div></div>
-      <label class="f">Recipient time zone</label><select id="dTz" onchange="dAtHint()"></select>
+      <div id="dTzLine" style="font-size:12.5px;margin-top:10px;color:var(--ink-soft)"></div>
+      <select id="dTz" onchange="dAtHint()" style="display:none;margin-top:6px"></select>
       <div id="dAtHint" style="font-size:12.5px;margin-top:8px"></div>
     </div>
     <label class="x-chk" id="dAckWrap" style="display:none"><input type="checkbox" id="dAck" onchange="dCount()"> I checked the flagged items above</label>
   </div>
-  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Rewrite with AI</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn" id="dSchedBtn" onclick="dSchedClick()">Schedule…</button><button class="x-btn p" id="dSend" onclick="dSend('now')">Send now</button></div>
+  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Regenerate</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn" id="dSchedBtn" onclick="dSchedClick()">Schedule…</button><button class="x-btn p" id="dSend" onclick="dSend('now')">Send now</button></div>
 </div>
 
 <!-- Lead slide-over -->
 <div class="x-slide" id="xLead">
   <div class="hd"><div><h2 id="lTitle">Lead</h2><div id="lSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:2px"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
-    <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap"><label class="f" style="margin:0">Stage</label><select id="lStage" style="width:auto" onchange="lStageCh()"></select><span id="lPills"></span></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap"><label class="f" style="margin:0">Status</label><span id="lPills"></span></div>
+    <div id="lSignals"></div>
     <div id="lNext" style="margin-top:8px;font-size:12.5px;color:var(--ink-soft)"></div>
     <label class="f" style="margin-top:16px">Timeline</label>
     <div id="lTl"></div>
   </div>
-  <div class="ft"><button class="x-btn" onclick="lForm('reply')">📥 Log reply</button><button class="x-btn" onclick="lAddMenu()">＋ Add event</button><span style="flex:1"></span><button class="x-btn g" onclick="bOpen()">✨ Generate brief</button></div>
+  <div class="ft"><button class="x-btn" id="lFollowBtn" onclick="lFollow()" style="display:none">↻ Follow up</button><button class="x-btn" onclick="lForm('reply')">📥 Log reply</button><button class="x-btn" onclick="lAddMenu()">＋ Add event</button><span style="flex:1"></span><button class="x-btn g" onclick="bOpen()">✨ Generate brief</button></div>
 </div>
 
 <!-- Form slide-over (reply, meeting, sample, quote, order, lost, nurture, note) -->
@@ -2891,8 +2910,8 @@ function hubDrawQueue(){
   const el = $x('hubQueue'); if(HUB.errs.queue){ el.innerHTML = xErrBox('the queue', HUB.errs.queue.ep, HUB.errs.queue.e); return; }
   const items = (HUB.queue && HUB.queue.items) || [];
   if(!items.length){ el.innerHTML = '<div class="x-panel"><div class="x-empty"><b>No leads to write to right now.</b><br>A lead appears here when it is qualified, has a contact email, and has not been emailed yet (or a follow-up is due).</div></div>'; return; }
-  el.innerHTML = '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Channel</th><th>Country</th><th>Contact</th><th>Type</th><th>Email</th><th class="r">Fit</th><th></th></tr></thead><tbody>' + items.map((q, i) => {
-    const c = q.contact || {}; return '<tr><td><b>' + escH(q.name) + '</b>' + (q.why ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(q.why) + '</div>' : '') + '</td><td>' + escH(q.channel) + '</td><td>' + escH(q.country) + '</td><td>' + (c.name ? escH(c.name) : '<span style="color:var(--ink-faint)">company address</span>') + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') + '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.email || '') + '</div></td><td><span class="x-pill ' + (c.type === 'Personal' ? 'blue' : 'grey') + '">' + escH(c.type || '—') + '</span></td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + (q.reason ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(q.reason) + '</div>' : '') + '</td><td class="r"><b>' + escH(q.fit == null ? '' : q.fit) + '</b></td><td class="r"><button class="x-btn p" data-i="' + i + '" onclick="dOpen(+this.getAttribute(\'data-i\'))">Write draft</button></td></tr>'; }).join('') + '</tbody></table></div>';
+  el.innerHTML = '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Channel</th><th>Country</th><th>Contact</th><th>Email</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody>' + items.map((q, i) => {
+    const c = q.contact || {}; return '<tr><td><b>' + escH(q.name) + '</b>' + (cleanWhy(q.why) ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(cleanWhy(q.why)) + '</div>' : '') + '</td><td>' + escH(q.channel) + '</td><td>' + escH(q.country) + '</td><td>' + (c.name ? escH(c.name) : '<span style="color:var(--ink-faint)">company address</span>') + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') + '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.email || '') + '</div>' + ((q.contacts || []).length > 1 ? '<div style="font-size:11.5px;color:var(--brand);font-weight:600">+' + (q.contacts.length - 1) + ' more address' + (q.contacts.length > 2 ? 'es' : '') + '</div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + (q.reason ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(q.reason) + '</div>' : '') + '</td><td class="r"><span class="x-pill ' + ((q.fit == null) ? 'grey' : q.fit >= 85 ? 'green' : q.fit >= 70 ? 'blue' : 'amber') + '">' + escH(q.fit == null ? '–' : Math.round(q.fit)) + '</span></td><td class="r"><span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span></td><td class="r"><button class="x-btn p" data-i="' + i + '" onclick="dOpen(+this.getAttribute(\'data-i\'))">Write draft</button></td></tr>'; }).join('') + '</tbody></table></div>';
 }
 function hubDrawSent(){
   const el = $x('hubSent'); if(HUB.errs.sent){ el.innerHTML = xErrBox('sent emails', HUB.errs.sent.ep, HUB.errs.sent.e); return; }
@@ -2921,22 +2940,70 @@ function hubHistRows(){
 /* ---------- DRAFT ---------- */
 function dFlagsClient(subj, body){ const f = []; if(/\[[^\]]+\]/.test(subj + body)) f.push('PLACEHOLDER_LEFT'); if(/https?:\/\//i.test(body)) f.push('HAS_LINK'); return f; }
 const FLAG_TXT = { PLACEHOLDER_LEFT:'A [placeholder] is still in the text. Replace it before sending.', HAS_LINK:'The body contains a link. Links belong only in the signature.', TOO_LONG:'Longer than the target length.', TOO_SHORT:'Shorter than the target length.', NO_SUBJECT:'Subject is empty.', NO_BODY:'Body is empty.', AI_OUTPUT_UNREADABLE:'The AI answer could not be read. Rewrite it.' };
-async function dOpen(i){
-  const q = HUB.queue.items[i]; HUB.qItem = q; HUB.draft = null; const c = q.contact || {};
-  $x('dTitle').textContent = 'Draft for ' + q.name; $x('dSub').textContent = [q.country, q.channel, q.fit != null ? 'Fit ' + q.fit : '', q.why].filter(Boolean).join(' · ');
-  $x('dFlags').innerHTML = ''; $x('dMode').innerHTML = '<div class="x-note blue">Writing the draft with AI… this takes about 10-30 seconds.</div>';
-  ['dTo', 'dName', 'dCo', 'dType', 'dTitleIn', 'dNo', 'dSubj', 'dBody'].forEach(id => $x(id).value = ''); $x('dSig').srcdoc = ''; $x('dWc').textContent = '';
-  $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose(); xOpen('xDraft');
-  await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1 });
+const FIT_BANDS = [[85, 'green', 'Strong'], [70, 'blue', 'Good'], [0, 'amber', 'Low']];     // Fit: >=85 green, 70-84 blue, below 70 amber
+const ESG_BANDS = [[70, 'green', 'High'], [40, 'amber', 'Medium'], [0, 'red', 'Low']];             // ESG (assumed scale 0-100): >=70 green, 40-69 amber, below 40 red
+function scoreTile(label, v, bands){
+  let cls = 'grey', w = 'No data'; if(v != null && isFinite(v)){ const b = bands.find(x => v >= x[0]) || bands[bands.length - 1]; cls = b[1]; w = b[2]; }
+  return '<div class="x-sc ' + cls + '"><div class="n">' + (v == null ? '–' : escH(Math.round(v))) + '</div><div><div class="l">' + label + ' score</div><div class="w">' + w + '</div></div></div>';
 }
-async function dGenerate(body){
+const cleanWhy = v => String(v == null ? '' : v).replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
+const GEN_STEPS = ['Reading the lead profile', 'Choosing verified facts to mention', 'Writing the draft', 'Checking facts, length and links'];
+function dTypeStop(){ HUB.typeTok = (HUB.typeTok || 0) + 1; if(HUB.genTimer){ clearInterval(HUB.genTimer); HUB.genTimer = null; } ['dSubj', 'dBody'].forEach(id => { const e = $x(id); if(e) e.classList.remove('shim'); }); }
+function dGenStart(label){
+  dTypeStop(); let i = 0; const el = $x('dMode');
+  const draw = () => { el.innerHTML = '<div class="x-gen"><div class="sp"></div><div><b>' + escH(label) + '<span class="dots"><i></i><i></i><i></i></span></b><span class="s">' + GEN_STEPS[Math.min(i, GEN_STEPS.length - 1)] + '</span></div></div>'; };
+  draw(); HUB.genTimer = setInterval(() => { i++; draw(); }, 3500);
+  ['dSubj', 'dBody'].forEach(id => { $x(id).value = ''; $x(id).classList.add('shim'); });
+}
+function dTypeIn(subj, body, done){     // writes the text in like someone typing, ~1.5 s in total
+  const tok = HUB.typeTok = (HUB.typeTok || 0) + 1, sEl = $x('dSubj'), bEl = $x('dBody'); sEl.value = ''; bEl.value = '';
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches){ sEl.value = subj; bEl.value = body; done(); return; }
+  const total = subj.length + body.length, per = Math.max(3, Math.ceil(total / 60)); let i = 0;
+  const step = () => { if(tok !== HUB.typeTok) return; i += per;
+    if(i <= subj.length) sEl.value = subj.slice(0, i); else { sEl.value = subj; bEl.value = body.slice(0, i - subj.length); bEl.scrollTop = bEl.scrollHeight; }
+    if(i < total) setTimeout(step, 25); else { sEl.value = subj; bEl.value = body; bEl.scrollTop = 0; done(); } };
+  step();
+}
+function dToVal(){ const sel = $x('dToSel').value; if(sel === '__other') return $x('dTo').value.trim(); return (HUB.testMode && HUB.testAddr) ? HUB.testAddr : sel; }
+function dGreet(){ const g = $x('dName').value.trim(), co = (HUB.qItem && HUB.qItem.name) || '', b = $x('dBody').value; if(/^Hi [^\n,]*,/.test(b)) $x('dBody').value = b.replace(/^Hi [^\n,]*,/, 'Hi ' + (g || co + ' team') + ','); }
+function dDeliverText(){
+  const sel = $x('dToSel').value; $x('dTo').style.display = sel === '__other' ? '' : 'none';
+  $x('dDeliver').innerHTML = (HUB.testMode && HUB.testAddr && sel !== '__other') ? 'Test mode: this will be delivered to <b>' + escH(HUB.testAddr) + '</b>, not to ' + escH(sel) + '.' : '';
+}
+function dFillRecip(q, d){
+  const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
+  $x('dToSel').innerHTML = list.map(c => '<option value="' + escH(c.email) + '">' + escH((c.name || 'Company address') + (c.title ? ' · ' + c.title : '') + ' · ' + c.email) + '</option>').join('') + '<option value="__other">Other address…</option>';
+  const want = ((d && d.to_email) || (list[0] && list[0].email) || '').toLowerCase();
+  $x('dToSel').value = list.some(c => c.email === want) ? want : (list.length ? list[0].email : '__other'); dDeliverText();
+}
+function dRecipChange(){
+  const sel = $x('dToSel').value;
+  if(sel !== '__other'){ const c = (HUB.recips || []).find(x => x.email === sel); if(c){ $x('dName').value = (c.type === 'Personal' && c.name) ? c.name.split(/\s+/)[0] : ''; dGreet(); } }
+  dDeliverText(); dCount();
+}
+function dOpen(i){ return dOpenItem(HUB.queue.items[i]); }
+async function dOpenItem(q){
+  HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
+  $x('dTitle').innerHTML = 'Draft for ' + escH(q.name) + ' <span class="x-pill ' + (q.email_no > 1 ? 'amber' : 'green') + '" style="vertical-align:middle;margin-left:8px">' + (q.email_no > 1 ? 'Follow-up ' + (q.email_no - 1) : 'First email') + '</span>';
+  $x('dScores').innerHTML = scoreTile('Fit', q.fit, FIT_BANDS) + scoreTile('ESG', q.esg, ESG_BANDS);
+  const why = cleanWhy(q.why); $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · ') + (why ? ': ' + why : '');
+  $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = '';
+  dFillRecip(q, { to_email: q.contact && q.contact.email });
+  $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose(); xOpen('xDraft');
+  await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email: q.contact && q.contact.email }, 'Writing the draft');
+}
+async function dGenerate(body, label){
+  dGenStart(label || 'Writing the draft');
   try {
     const r = await n8nPost('/hub-generate', body), d = r.draft; if(!d) throw new Error('No draft returned');
-    HUB.draft = d; $x('dTo').value = d.to_email || ''; $x('dName').value = d.greeting_name || ''; $x('dCo').value = HUB.qItem.name; $x('dType').value = d.contact_type || ''; $x('dTitleIn').value = d.contact_title || ''; $x('dNo').value = d.email_no || 1;
-    $x('dSubj').value = d.subject || ''; $x('dBody').value = d.body || ''; $x('dSig').srcdoc = d.signature_html || '<p style="font:12px sans-serif;color:#888">Signature preview not provided by n8n.</p>';
+    dTypeStop(); HUB.draft = d; HUB.testMode = !!r.test_mode; HUB.testAddr = (r.test_addresses && r.test_addresses[0]) || ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
+    $x('dName').value = d.greeting_name || ''; dFillRecip(HUB.qItem, d);
+    $x('dSig').srcdoc = d.signature_html || '<p style="font:12px sans-serif;color:#888">Signature preview not provided by n8n.</p>';
     $x('dMode').innerHTML = r.test_mode ? '<div class="x-note amber"><b>TEST MODE</b>, this email can only be sent to your own office address.</div>' : '';
-    $x('dAckWrap').style.display = (d.flags || []).length ? '' : 'none'; $x('dAck').checked = false; dCount();
-  } catch(e){ $x('dMode').innerHTML = '<div class="x-err"><b>Could not write the draft.</b> ' + escH(e.message) + '<br>The n8n workflow <code>hub-generate</code> may not be built yet or is not Active.</div>'; }
+    $x('dAckWrap').style.display = (d.flags || []).length ? '' : 'none'; $x('dAck').checked = false;
+    dTypeIn(d.subject || '', d.body || '', () => { dCount(); $x('dRegen').disabled = false; });
+    return;
+  } catch(e){ dTypeStop(); $x('dMode').innerHTML = '<div class="x-err"><b>Could not write the draft.</b> ' + escH(e.message) + '<br>The n8n workflow <code>hub-generate</code> may not be built yet or is not Active.</div>'; }
   $x('dRegen').disabled = false;
 }
 function dCount(){
@@ -2947,7 +3014,7 @@ function dCount(){
   $x('dFlags').innerHTML = flags.map(f => '<span class="x-pill amber x-flag">' + escH(FLAG_TXT[f] || f) + '</span>').join('');
   const hard = flags.includes('PLACEHOLDER_LEFT') || flags.includes('NO_BODY') || flags.includes('NO_SUBJECT'), soft = flags.length > 0;
   $x('dAckWrap').style.display = (soft && !hard) ? '' : 'none';
-  $x('dSend').disabled = $x('dSchedBtn').disabled = !HUB.draft || hard || !$x('dTo').value.trim() || (soft && !$x('dAck').checked);
+  $x('dSend').disabled = $x('dSchedBtn').disabled = !HUB.draft || hard || !dToVal() || (soft && !$x('dAck').checked);
 }
 function dSchedOpen(){
   const q = HUB.qItem || {}, d = HUB.draft || {}, zs = tzZonesFor(q.country), def = (zs && zs[0]) || d.recipient_tz || '', all = tzAllZones();
@@ -2955,11 +3022,14 @@ function dSchedOpen(){
   $x('dTz').innerHTML = (zs ? '<optgroup label="' + escH(q.country) + '">' + zs.map(opt).join('') + '</optgroup>' : '') + '<optgroup label="' + (zs ? 'Other zones' : 'Pick the recipient time zone') + '">' + all.filter(z => !zs || !zs.includes(z)).map(opt).join('') + '</optgroup>';
   if(def && !all.includes(def)) $x('dTz').insertAdjacentHTML('afterbegin', opt(def));
   if(def) $x('dTz').value = def; else $x('dTz').selectedIndex = -1;
+  $x('dTz').style.display = def ? 'none' : '';
+  $x('dTzLine').innerHTML = def ? 'Recipient time zone: <b>' + escH(def.replace(/_/g, ' ')) + '</b>' + (q.country ? ' (set from ' + escH(q.country) + ')' : '') + (zs && zs.length > 1 ? ' · <a href="#" onclick="dTzShow();return false">change</a>' : '') : '<span style="color:var(--amber)">Country not recognised. Pick the recipient time zone.</span>';
   const p = n => String(n).padStart(2, '0'); let t = ''; for(let m = 0; m < 1440; m += 30) t += '<option>' + p(Math.floor(m / 60)) + ':' + p(m % 60) + '</option>';
   $x('dTime').innerHTML = t; $x('dTime').value = '09:00';
   if(def){ $x('dDate').value = tzNextBusinessDay(def, q.country); $x('dDate').min = tzWall(Date.now(), def).date; }
   $x('dSched').style.display = ''; $x('dSchedBtn').textContent = 'Confirm schedule'; $x('dSchedBtn').className = 'x-btn p'; $x('dSend').className = 'x-btn'; dAtHint();
 }
+function dTzShow(){ $x('dTz').style.display = ''; $x('dTzLine').innerHTML = 'Recipient time zone:'; }
 function dSchedClose(){ $x('dSched').style.display = 'none'; $x('dSchedBtn').textContent = 'Schedule…'; $x('dSchedBtn').className = 'x-btn'; $x('dSend').className = 'x-btn p'; }
 function dSchedClick(){ if($x('dSched').style.display === 'none') dSchedOpen(); else dSend('later'); }
 function dSchedCalc(){   // -> {ms, tz, wall, warn[], err}
@@ -2979,13 +3049,13 @@ function dAtHint(){
   const mine = Intl.DateTimeFormat().resolvedOptions().timeZone, f = (z, o) => new Intl.DateTimeFormat('en-GB', Object.assign({ timeZone:z, weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23' }, o || {})).format(new Date(r.ms));
   el.innerHTML = '<b>Leaves at ' + escH(f(r.tz)) + '</b> in ' + escH(r.tz.replace(/_/g, ' ')) + '<br><span style="color:var(--ink-soft)">= ' + escH(f(mine)) + ' your time (' + escH(mine.replace(/_/g, ' ')) + ') = ' + escH(f('UTC', { weekday:undefined })) + ' UTC</span>' + r.warn.map(w => '<div style="color:var(--amber);margin-top:4px">' + escH(w) + '</div>').join('');
 }
-async function dRegen(){ const q = HUB.qItem; $x('dRegen').disabled = true; $x('dSend').disabled = true; $x('dMode').innerHTML = '<div class="x-note blue">Rewriting…</div>'; await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, rewrite:true, current_body:$x('dBody').value }); }
+async function dRegen(){ const q = HUB.qItem, sel = $x('dToSel').value; $x('dRegen').disabled = true; $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, rewrite:true, current_body:$x('dBody').value, contact_email:(sel && sel !== '__other') ? sel : undefined }, 'Writing a new version'); }
 async function dSend(mode){
   const d = HUB.draft; if(!d) return; const later = mode === 'later'; let at = null;
   if(later){ const r = dSchedCalc(); if(r.err){ dAtHint(); showToast(r.err); return; } at = new Date(r.ms).toISOString(); }
   const b1 = $x('dSend'), b2 = $x('dSchedBtn'); b1.disabled = b2.disabled = true; (later ? b2 : b1).textContent = later ? 'Scheduling…' : 'Sending…';
   try {
-    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:$x('dTo').value.trim(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:at });
+    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:dToVal(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:at });
     xCloseAll(); showToast(later ? 'Scheduled' : 'Sending now…'); hubLoad(true); if(!later){ setTimeout(() => hubLoad(true), 6000); setTimeout(() => hubLoad(true), 25000); }
   } catch(e){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> ' + escH(e.message) + '</div>'; }
   b1.textContent = 'Send now'; b2.textContent = $x('dSched').style.display === 'none' ? 'Schedule…' : 'Confirm schedule'; dCount();
@@ -2994,14 +3064,16 @@ async function dSend(mode){
 /* ---------- LEAD PANEL ---------- */
 async function lOpen(mk){
   HUB.leadKey = mk; HUB.lead = null; $x('lTitle').textContent = 'Loading…'; $x('lSub').textContent = ''; $x('lTl').innerHTML = '<div class="x-empty">Loading…</div>'; $x('lPills').innerHTML = ''; $x('lNext').textContent = '';
-  $x('lStage').innerHTML = STAGE_LIST.map(s => '<option>' + s + '</option>').join(''); xOpen('xLead');
+  $x('lSignals').innerHTML = ''; $x('lFollowBtn').style.display = 'none'; xOpen('xLead');
   try { HUB.lead = await n8nGet('/hub-lead?match_key=' + encodeURIComponent(mk)); lDraw(); }
   catch(e){ $x('lTl').innerHTML = xErrBox('this lead', '/hub-lead', e); }
 }
 function lDraw(){
   const L = HUB.lead.lead || {}, ev = HUB.lead.events || [];
   $x('lTitle').textContent = L.company || L.name || HUB.leadKey; $x('lSub').textContent = [L.country, L.channel, L.contact_name, L.contact_title, L.contact_email].filter(Boolean).join(' · ');
-  $x('lStage').value = L.stage || 'Contacted'; $x('lPills').innerHTML = L.status ? '<span class="x-pill ' + statusColor(L.status) + '">' + escH(L.status) + '</span>' : '';
+  $x('lPills').innerHTML = (L.stage ? '<span class="x-pill ' + stageColor(L.stage) + '">' + escH(L.stage) + '</span>' : (L.status ? '' : '<span class="x-pill grey">Not contacted yet</span>')) + (L.status ? '<span class="x-pill ' + statusColor(L.status) + '">' + escH(L.status) + '</span>' : '');
+  const ck = Number(L.clicks) || 0; $x('lSignals').innerHTML = ck ? '<div class="x-note ' + (ck >= 2 ? 'amber' : 'blue') + '" style="margin-top:10px">' + (ck >= 2 ? '🔥 ' : '') + '<b>Clicked ' + ck + ' time' + (ck === 1 ? '' : 's') + '</b>' + (L.last_click_at ? ', last on ' + xDate(L.last_click_at) : '') + '. This lead is opening the links in your signature.</div>' : '';
+  $x('lFollowBtn').style.display = ((L.emails_sent || 0) > 0 && !['Replied', 'Meeting', 'Sample', 'Quotation', 'Won', 'Lost'].includes(L.stage) && L.status !== 'Replied' && L.status !== 'Bounced' && L.emails_sent < 7) ? '' : 'none';
   const dd = xDays(L.stage_since); $x('lNext').innerHTML = (dd != null ? 'In this stage for <b>' + dd + ' day' + (dd === 1 ? '' : 's') + '</b>. ' : '') + (L.next_step ? 'Next step: <b>' + escH(L.next_step) + '</b>' + (L.next_step_due ? ' by ' + xDate(L.next_step_due, true) : '') : '<span style="color:var(--amber)">No next step set.</span>');
   const KV = { meeting:[['at','Date'],['format','Format'],['attendees','Attendees'],['summary','Summary'],['needs','Needs / pain points'],['products','Products of interest'],['objections','Objections'],['decisions','Decisions'],['actions','Action items'],['next_step','Next step'],['next_step_due','Next step due'],['link','Link']],
     sample:[['products','Products and qty'],['ship_to','Sent to'],['ship_country','Country'],['ship_date','Shipped'],['courier','Courier'],['tracking','Tracking no.'],['eta','Expected arrival'],['received_date','Received'],['who_pays','Shipping paid by'],['feedback_due','Feedback due'],['feedback_rating','Feedback rating'],['feedback_notes','Feedback']],
@@ -3013,12 +3085,16 @@ function lDraw(){
     const k = ['out', 'in', 'note', 'stage'].includes(e.kind) ? e.kind : 'stage', meta = e.meta || {}, rows = (KV[e.kind] || []).filter(p => meta[p[0]] != null && String(meta[p[0]]).trim() !== '');
     return '<div class="x-ev ' + k + '"><div class="m">' + xDate(e.at) + '</div><div class="t">' + escH(e.title || e.kind) + '</div>' + (e.subject ? '<div style="color:var(--ink-soft);font-size:12px">Subject: ' + escH(e.subject) + '</div>' : '') + (e.body ? '<div class="b">' + escH(e.body) + '</div>' : '') + (rows.length ? '<div class="kv">' + rows.map(p => '<span>' + p[1] + '</span><span>' + escH(meta[p[0]]) + '</span>').join('') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '<div class="x-empty">Nothing recorded for this lead yet.</div>';
 }
-async function lStageCh(){
-  const s = $x('lStage').value, formFor = { Meeting:'meeting', Sample:'sample', Quotation:'quote', Won:'order', Lost:'lost', Nurture:'nurture' };
-  if(formFor[s]){ lForm(formFor[s]); return; }
-  try { await n8nPost('/hub-stage', { match_key:HUB.leadKey, stage:s }); showToast('Stage set to ' + s); await lOpen(HUB.leadKey); hubLoad(true); } catch(e){ showToast('Failed: ' + e.message); lDraw(); }
+function lAddMenu(){
+  const L = (HUB.lead && HUB.lead.lead) || {}; $x('fTitle').textContent = 'Add event'; $x('fSub').textContent = L.company || L.name || ''; $x('fMsg').textContent = ''; $x('fSave').style.display = 'none';
+  const it = [['meeting', '🗓️', 'Meeting', 'Call or visit, with MOM'], ['sample', '📦', 'Sample sent', 'Products, courier, tracking'], ['quote', '💬', 'Quotation', 'Prices, MOQ, terms'], ['order', '🏆', 'Won: order', 'PO and order value'], ['lost', '✖️', 'Lost', 'Reason and competitor'], ['nurture', '⏳', 'Keep warm', 'Contact again later'], ['note', '📝', 'Note', 'Anything else']];
+  $x('fBody').innerHTML = '<div class="x-add">' + it.map(x => '<button onclick="lForm(\'' + x[0] + '\')"><span class="i">' + x[1] + '</span><span>' + x[2] + '<small>' + x[3] + '</small></span></button>').join('') + '</div>'; xOpen('xForm');
 }
-function lAddMenu(){ const t = prompt('Add what? Type one of: meeting, sample, quote, order, lost, nurture, note', 'meeting'); if(t && FORMS[t.trim().toLowerCase()]) lForm(t.trim().toLowerCase()); else if(t) showToast('Unknown type'); }
+function lFollow(){
+  const L = (HUB.lead && HUB.lead.lead) || {}, mk = HUB.leadKey, n = (L.emails_sent || 0) + 1; let q = ((HUB.queue && HUB.queue.items) || []).find(x => x.match_key === mk);
+  q = q ? Object.assign({}, q, { email_no:Math.max(q.email_no || 1, n) }) : { match_key:mk, name:L.company || mk, country:L.country, channel:L.channel, fit:L.fit, esg:L.esg, why:'', email_no:n, reason:'Manual follow-up', contact:L.contact_email ? { name:L.contact_name, title:L.contact_title, email:L.contact_email, type:L.contact_name ? 'Personal' : 'Generic' } : null, contacts:[] };
+  xCloseAll(); dOpenItem(q);
+}
 
 /* ---------- FORMS (one engine, config per stage) ---------- */
 const LOST_REASONS = ['Price', 'MOQ', 'Not the right time', 'Chose a competitor', 'Product does not fit', 'Certification / regulation', 'Logistics', 'No response', 'Other'];
@@ -3034,7 +3110,7 @@ const FORMS = {
 };
 const xNowLocal = () => { const t = new Date(), p = n => String(n).padStart(2, '0'); return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate()) + 'T' + p(t.getHours()) + ':' + p(t.getMinutes()); };
 function lForm(key){
-  const F = FORMS[key]; HUB.form = key; const L = (HUB.lead && HUB.lead.lead) || {};
+  const F = FORMS[key]; HUB.form = key; const L = (HUB.lead && HUB.lead.lead) || {}; $x('fSave').style.display = '';
   $x('fTitle').textContent = F.title; $x('fSub').textContent = L.company || L.name || ''; $x('fMsg').textContent = '';
   let h = F.tidy ? '<div class="x-note blue">Paste your raw notes below and press <b>Tidy with AI</b>. The AI only restructures what you wrote and does not add anything. Check it before saving.</div><label class="f">Raw notes (optional)</label><textarea id="fRaw" placeholder="Paste meeting notes or a transcript"></textarea><button class="x-btn" style="margin-top:8px" id="fTidy" onclick="fTidy()">✨ Tidy with AI</button>' : '';
   h += F.fields.map(f => { const id = 'f_' + f[0], req = f[3] ? ' *' : ''; let inp;
