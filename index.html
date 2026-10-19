@@ -514,6 +514,13 @@
 .x-add button{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--border);background:#fff;border-radius:12px;padding:14px;cursor:pointer;font:inherit;font-weight:700;color:var(--ink)}.x-add button:hover{border-color:var(--brand);background:#f7f9ff}.x-add button span.i{font-size:22px}.x-add button small{display:block;font-weight:500;color:var(--ink-soft);font-size:11.5px;margin-top:2px}
 @media (prefers-reduced-motion:reduce){.x-gen,.x-gen .sp,.x-gen .dots i,.x-slide .shim{animation:none}}
 
+.x-recip{display:flex;align-items:center;gap:10px;border:1px solid var(--line,#E3E6EC);border-radius:10px;padding:8px 10px;background:#fff;min-height:44px}
+.x-recip .ic{flex:none;width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center}
+.x-recip .tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}.x-recip .tx b{font-size:13.5px}.x-recip .tx span{font-size:12px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x-recip a{font-size:12px;font-weight:600;color:var(--brand);text-decoration:none;flex:none}
+.x-clk{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px 2px 7px;margin:2px 0 0 4px;font-size:12px;background:var(--brand-soft);color:var(--brand)}
+.x-clk b{font-weight:700}.x-clk i{font-style:normal;font-size:11px;opacity:.85}.x-clk.instagram{background:#FCE8F1;color:#B0245F}.x-clk.body{background:#EEF0F3;color:var(--ink-soft)}
+
 </style>
 </head>
 <body>
@@ -1113,7 +1120,7 @@ Write the email now.</textarea>
   <div class="bd">
     <div id="dMode"></div>
     <div id="dFlags"></div>
-    <div class="x-two"><div><label class="f">Send to</label><select id="dToSel" onchange="dRecipChange()"></select></div><div><label class="f">Greeting name</label><input id="dName" placeholder="empty = Hi {Company} team" oninput="dGreet();dCount()"></div></div>
+    <div class="x-two"><div><label class="f">Send to</label><div id="dToCard" class="x-recip"></div><select id="dToSel" onchange="dRecipChange()" style="display:none"></select></div><div><label class="f">Greeting name</label><input id="dName" placeholder="empty = Hi {Company} team" oninput="dGreet();dCount()"></div></div>
     <input id="dTo" placeholder="name@company.com" style="display:none;margin-top:8px" oninput="dCount()">
     <div id="dDeliver" style="font-size:12px;color:var(--ink-soft);margin-top:6px"></div>
     <label class="f">Subject</label><input id="dSubj" oninput="dCount()">
@@ -2879,8 +2886,12 @@ const xDate = (iso, short) => { if(!iso) return '—'; const d = new Date(iso); 
 const xDays = iso => { if(!iso) return null; const d = new Date(iso); return isNaN(d) ? null : Math.floor((Date.now() - d.getTime()) / 86400000); };
 const xErrBox = (what, ep, e) => '<div class="x-err"><b>Could not load ' + escH(what) + '.</b> ' + escH(e.message || e) + '<br>The n8n workflow <code>' + escH(ep) + '</code> may not be built yet, not Active, or its Allowed Origins is not set. Nothing is shown here instead of made-up data.</div>';
 const $x = id => document.getElementById(id);
-const LINK_NAME = { website:'Website', instagram:'Instagram', body:'Link in the text' };
-const xClickChips = o => Object.keys(o || {}).filter(k => o[k] > 0).map(k => '<span class="x-pill blue" style="margin:2px 4px 0 0">' + escH(LINK_NAME[k] || k) + ' ×' + o[k] + '</span>').join('');
+const LINK_NAME = { website:'Website', instagram:'Instagram', body:'Link in the email text' };
+const LINK_ICON = {
+  website:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>',
+  instagram:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.8" fill="currentColor"/></svg>',
+  body:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>' };
+const xClickChips = o => Object.keys(o || {}).filter(k => o[k] > 0).map(k => '<span class="x-clk ' + escH(k) + '" title="' + escH(LINK_NAME[k] || k) + '">' + (LINK_ICON[k] || LINK_ICON.body) + '<b>' + o[k] + '</b><i>' + escH(LINK_NAME[k] || k) + '</i></span>').join('');
 
 /* ---------- slide-overs ---------- */
 function xOpen(id){ $x('xShade').classList.add('on'); $x(id).classList.add('on'); }
@@ -2974,8 +2985,13 @@ function dToVal(){ const sel = $x('dToSel').value; if(sel === '__other') return 
 function dGreet(){ const g = $x('dName').value.trim(), co = (HUB.qItem && HUB.qItem.name) || '', b = $x('dBody').value; if(/^Hi [^\n,]*,/.test(b)) $x('dBody').value = b.replace(/^Hi [^\n,]*,/, 'Hi ' + (g || co + ' team') + ','); }
 function dDeliverText(){
   const sel = $x('dToSel').value; $x('dTo').style.display = sel === '__other' ? '' : 'none';
+  const c = (HUB.recips || []).find(x => x.email === sel), named = !!(c && c.name);
+  const head = sel === '__other' ? 'Other address' : (named ? escH(c.name) + (c.title ? ' <span style="color:var(--ink-soft);font-weight:500">· ' + escH(c.title) + '</span>' : '') : 'Generic company email');
+  const sub = sel === '__other' ? escH($x('dTo').value.trim() || 'type the address below') : escH(sel);
+  $x('dToCard').innerHTML = '<span class="ic">' + (named ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>') + '</span><span class="tx"><b>' + head + '</b><span>' + sub + '</span></span><a href="#" onclick="dToChange();return false">Change</a>';
   $x('dDeliver').innerHTML = (HUB.testMode && HUB.testAddr && sel !== '__other') ? 'Test mode: this will be delivered to <b>' + escH(HUB.testAddr) + '</b>, not to ' + escH(sel) + '.' : '';
 }
+function dToChange(){ $x('dToCard').style.display = 'none'; $x('dToSel').style.display = ''; $x('dToSel').focus(); }
 function dFillRecip(q, d){
   const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
   $x('dToSel').innerHTML = list.map(c => '<option value="' + escH(c.email) + '">' + escH((c.name || 'Company address') + (c.title ? ' · ' + c.title : '') + ' · ' + c.email) + '</option>').join('') + '<option value="__other">Other address…</option>';
@@ -2983,9 +2999,11 @@ function dFillRecip(q, d){
   $x('dToSel').value = list.some(c => c.email === want) ? want : (list.length ? list[0].email : '__other'); dDeliverText();
 }
 function dRecipChange(){
-  const sel = $x('dToSel').value;
-  if(sel !== '__other'){ const c = (HUB.recips || []).find(x => x.email === sel); if(c){ $x('dName').value = (c.type === 'Personal' && c.name) ? c.name.split(/\s+/)[0] : ''; dGreet(); } }
-  dDeliverText(); dCount();
+  const sel = $x('dToSel').value; $x('dToSel').style.display = 'none'; $x('dToCard').style.display = ''; dDeliverText();
+  if(sel === '__other'){ dCount(); return; }
+  const c = (HUB.recips || []).find(x => x.email === sel), q = HUB.qItem;   // a different person needs a different email, so write it again for them
+  $x('dRegen').disabled = true; $x('dSend').disabled = true; $x('dSchedBtn').disabled = true;
+  dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email:sel }, 'Writing for ' + ((c && c.name) || 'the company team'));
 }
 function dOpen(i, email){ return dOpenItem(HUB.queue.items[i], email); }
 async function dOpenItem(q, email){
@@ -3090,7 +3108,7 @@ function lDraw(){
     nurture:[['revisit_date','Revisit on'],['note','Note']] };
   $x('lTl').innerHTML = ev.length ? '<div class="x-tl">' + ev.map(e => {
     const k = ['out', 'in', 'note', 'stage'].includes(e.kind) ? e.kind : 'stage', meta = e.meta || {}, rows = (KV[e.kind] || []).filter(p => meta[p[0]] != null && String(meta[p[0]]).trim() !== '');
-    return '<div class="x-ev ' + k + '"><div class="m">' + xDate(e.at) + '</div><div class="t">' + escH(e.title || e.kind) + '</div>' + (e.subject ? '<div style="color:var(--ink-soft);font-size:12px">Subject: ' + escH(e.subject) + '</div>' : '') + (e.body ? '<div class="b">' + escH(e.body) + '</div>' : '') + (rows.length ? '<div class="kv">' + rows.map(p => '<span>' + p[1] + '</span><span>' + escH(meta[p[0]]) + '</span>').join('') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '<div class="x-empty">Nothing recorded for this lead yet.</div>';
+    return '<div class="x-ev ' + k + '"><div class="m">' + xDate(e.at) + '</div><div class="t">' + escH(e.title || e.kind) + '</div>' + (e.click_links && Object.keys(e.click_links).length ? '<div style="margin-top:4px">' + xClickChips(e.click_links) + '</div>' : '') + (e.subject ? '<div style="color:var(--ink-soft);font-size:12px">Subject: ' + escH(e.subject) + '</div>' : '') + (e.body ? '<div class="b">' + escH(e.body) + '</div>' : '') + (rows.length ? '<div class="kv">' + rows.map(p => '<span>' + p[1] + '</span><span>' + escH(meta[p[0]]) + '</span>').join('') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '<div class="x-empty">Nothing recorded for this lead yet.</div>';
 }
 function lAddMenu(){
   const L = (HUB.lead && HUB.lead.lead) || {}; $x('fTitle').textContent = 'Add event'; $x('fSub').textContent = L.company || L.name || ''; $x('fMsg').textContent = ''; $x('fSave').style.display = 'none';
