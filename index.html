@@ -521,6 +521,15 @@
 .x-clk{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px 2px 7px;margin:2px 0 0 4px;font-size:12px;background:var(--brand-soft);color:var(--brand)}
 .x-clk b{font-weight:700}.x-clk i{font-style:normal;font-size:11px;opacity:.85}.x-clk.instagram{background:#FCE8F1;color:#B0245F}.x-clk.body{background:#EEF0F3;color:var(--ink-soft)}
 
+.x-pickc{display:flex;align-items:flex-start;gap:10px;border:1.5px solid var(--border,#E3E6EC);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;background:#fff}
+.x-pickc.on{border-color:var(--brand);background:var(--brand-soft)}.x-pickc input{margin-top:9px;flex:none}
+.x-pickc .ic{flex:none;width:32px;height:32px;border-radius:50%;background:#EEF0F3;color:var(--ink-soft);display:flex;align-items:center;justify-content:center}
+.x-pickc.on .ic{background:#fff;color:var(--brand)}
+.x-pickc .tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}.x-pickc .tx b{font-size:13.5px}.x-pickc .tx>span{font-size:12.5px;color:var(--ink-soft)}.x-pickc .tx em{font-style:normal;font-size:12px;color:var(--ink-soft);margin-top:4px}
+
+.x-slide .x-pickc input[type=radio]{width:auto;height:auto;padding:0;margin:9px 0 0;flex:none}
+.x-pickc .tx em i{font-style:normal}
+
 </style>
 </head>
 <body>
@@ -724,7 +733,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead.</p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 19 Oct 16:30</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <span class="live-dot" id="hubUpdated"><span class="d"></span> Loading…</span>
@@ -1118,6 +1127,8 @@ Write the email now.</textarea>
 <div class="x-slide" id="xDraft">
   <div class="hd"><div style="min-width:0;flex:1"><h2 id="dTitle">Draft</h2><div id="dScores" class="x-scores"></div><div id="dSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:8px;line-height:1.5"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
+    <div id="dPick"></div>
+    <div id="dCompose">
     <div id="dMode"></div>
     <div id="dFlags"></div>
     <div class="x-two"><div><label class="f">Send to</label><div id="dToCard" class="x-recip"></div><select id="dToSel" onchange="dRecipChange()" style="display:none"></select></div><div><label class="f">Greeting name</label><input id="dName" placeholder="empty = Hi {Company} team" oninput="dGreet();dCount()"></div></div>
@@ -1135,8 +1146,9 @@ Write the email now.</textarea>
       <div id="dAtHint" style="font-size:12.5px;margin-top:8px"></div>
     </div>
     <label class="x-chk" id="dAckWrap" style="display:none"><input type="checkbox" id="dAck" onchange="dCount()"> I checked the flagged items above</label>
+    </div>
   </div>
-  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Regenerate</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn" id="dSchedBtn" onclick="dSchedClick()">Schedule…</button><button class="x-btn p" id="dSend" onclick="dSend('now')">Send now</button></div>
+  <div class="ft"><button class="x-btn" id="dRegen" onclick="dRegen()">↻ Regenerate</button><span style="flex:1"></span><button class="x-btn" onclick="xCloseAll()">Close</button><button class="x-btn" id="dSchedBtn" onclick="dSchedClick()">Schedule…</button><button class="x-btn p" id="dSend" onclick="dSend('now')">Send now</button><button class="x-btn p" id="dWrite" onclick="dWriteGo()" style="display:none">Write draft</button></div>
 </div>
 
 <!-- Lead slide-over -->
@@ -3006,15 +3018,39 @@ function dRecipChange(){
   dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email:sel }, 'Writing for ' + ((c && c.name) || 'the company team'));
 }
 function dOpen(i, email){ return dOpenItem(HUB.queue.items[i], email); }
+const REL_ROLE = /(buy|purchas|procure|sourc|category|merchandis|product|brand|retail|partner|business dev|supply|sales|commercial|amenit|f&b|housekeeping|rooms|operations|distribut|import)/i;
+const recipKind = c => !c.name ? 'Generic' : (REL_ROLE.test(c.title || '') ? 'Direct' : 'Senior');   // same rule as Prepare_Generate in n8n
+const KIND_TAG = { Direct:['green', 'Direct pitch: a relevant fact and an offer of the catalogue'], Senior:['amber', 'Senior or other team: short note asking who handles sourcing'], Generic:['grey', 'Generic inbox: short note asking to pass it to the right person'] };
+function dState(s){ const pick = s === 'pick'; $x('dPick').style.display = pick ? '' : 'none'; $x('dCompose').style.display = pick ? 'none' : ''; ['dRegen', 'dSchedBtn', 'dSend'].forEach(id => { $x(id).style.display = pick ? 'none' : ''; }); $x('dWrite').style.display = pick ? '' : 'none'; }
+function dPickSync(){
+  const r = document.querySelector('#dPick input[name="dPickR"]:checked'); if(!r) return;
+  document.querySelectorAll('#dPick .x-pickc').forEach(e => e.classList.toggle('on', e.contains(r)));
+  const c = (HUB.recips || []).find(x => x.email === r.value) || {};
+  $x('dWrite').textContent = 'Write draft for ' + (c.name ? c.name.split(/\s+/)[0] : 'the company inbox');
+}
+function dPickRender(q, pre){
+  const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
+  const sel = (pre && list.some(c => c.email === pre)) ? pre : (list[0] && list[0].email);
+  const person = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>', mail = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+  $x('dPick').innerHTML = '<label class="f" style="margin-top:14px">Who do you want to write to?</label><div style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 10px">The email is written differently for each kind of recipient. Nothing is written until you click <b>Write draft</b>.</div>' + list.map(c => {
+    const k = recipKind(c), t = KIND_TAG[k];
+    return '<label class="x-pickc"><input type="radio" name="dPickR" value="' + escH(c.email) + '"' + (c.email === sel ? ' checked' : '') + ' onchange="dPickSync()"><span class="ic">' + (c.name ? person : mail) + '</span><span class="tx"><b>' + (c.name ? escH(c.name) + (c.title ? ' <span style="color:var(--ink-soft);font-weight:500">· ' + escH(c.title) + '</span>' : '') : 'Generic company email') + '</b><span>' + escH(c.email) + '</span><em><i class="x-pill ' + t[0] + '">' + k + '</i> ' + escH(t[1]) + '</em></span></label>';
+  }).join('');
+  dPickSync();
+}
 async function dOpenItem(q, email){
-  email = String(email || (q.contact && q.contact.email) || '').toLowerCase();
   HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
   $x('dTitle').innerHTML = 'Draft for ' + escH(q.name) + ' <span class="x-pill ' + (q.email_no > 1 ? 'amber' : 'green') + '" style="vertical-align:middle;margin-left:8px">' + (q.email_no > 1 ? 'Follow-up ' + (q.email_no - 1) : 'First email') + '</span>';
   $x('dScores').innerHTML = scoreTile('Fit', q.fit, FIT_BANDS) + scoreTile('ESG', q.esg, ESG_BANDS);
   const why = cleanWhy(q.why); $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · ') + (why ? ': ' + why : '');
-  $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = '';
-  dFillRecip(q, { to_email: email });
-  $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose(); xOpen('xDraft');
+  $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = ''; $x('dMode').innerHTML = ''; $x('dSubj').value = ''; $x('dBody').value = '';
+  dTypeStop();
+  $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose();
+  dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); xOpen('xDraft');
+}
+async function dWriteGo(){
+  const q = HUB.qItem, r = document.querySelector('#dPick input[name="dPickR"]:checked'); if(!q || !r) return;
+  const email = r.value; dState('compose'); dFillRecip(q, { to_email: email });
   await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email: email }, 'Writing the draft');
 }
 async function dGenerate(body, label){
