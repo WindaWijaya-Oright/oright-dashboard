@@ -2879,6 +2879,8 @@ const xDate = (iso, short) => { if(!iso) return '—'; const d = new Date(iso); 
 const xDays = iso => { if(!iso) return null; const d = new Date(iso); return isNaN(d) ? null : Math.floor((Date.now() - d.getTime()) / 86400000); };
 const xErrBox = (what, ep, e) => '<div class="x-err"><b>Could not load ' + escH(what) + '.</b> ' + escH(e.message || e) + '<br>The n8n workflow <code>' + escH(ep) + '</code> may not be built yet, not Active, or its Allowed Origins is not set. Nothing is shown here instead of made-up data.</div>';
 const $x = id => document.getElementById(id);
+const LINK_NAME = { website:'Website', instagram:'Instagram', body:'Link in the text' };
+const xClickChips = o => Object.keys(o || {}).filter(k => o[k] > 0).map(k => '<span class="x-pill blue" style="margin:2px 4px 0 0">' + escH(LINK_NAME[k] || k) + ' ×' + o[k] + '</span>').join('');
 
 /* ---------- slide-overs ---------- */
 function xOpen(id){ $x('xShade').classList.add('on'); $x(id).classList.add('on'); }
@@ -2910,8 +2912,12 @@ function hubDrawQueue(){
   const el = $x('hubQueue'); if(HUB.errs.queue){ el.innerHTML = xErrBox('the queue', HUB.errs.queue.ep, HUB.errs.queue.e); return; }
   const items = (HUB.queue && HUB.queue.items) || [];
   if(!items.length){ el.innerHTML = '<div class="x-panel"><div class="x-empty"><b>No leads to write to right now.</b><br>A lead appears here when it is qualified, has a contact email, and has not been emailed yet (or a follow-up is due).</div></div>'; return; }
-  el.innerHTML = '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Channel</th><th>Country</th><th>Contact</th><th>Email</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody>' + items.map((q, i) => {
-    const c = q.contact || {}; return '<tr><td><b>' + escH(q.name) + '</b>' + (cleanWhy(q.why) ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(cleanWhy(q.why)) + '</div>' : '') + '</td><td>' + escH(q.channel) + '</td><td>' + escH(q.country) + '</td><td>' + (c.name ? escH(c.name) : '<span style="color:var(--ink-faint)">company address</span>') + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') + '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.email || '') + '</div>' + ((q.contacts || []).length > 1 ? '<div style="font-size:11.5px;color:var(--brand);font-weight:600">+' + (q.contacts.length - 1) + ' more address' + (q.contacts.length > 2 ? 'es' : '') + '</div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + (q.reason ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(q.reason) + '</div>' : '') + '</td><td class="r"><span class="x-pill ' + ((q.fit == null) ? 'grey' : q.fit >= 85 ? 'green' : q.fit >= 70 ? 'blue' : 'amber') + '">' + escH(q.fit == null ? '–' : Math.round(q.fit)) + '</span></td><td class="r"><span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span></td><td class="r"><button class="x-btn p" data-i="' + i + '" onclick="dOpen(+this.getAttribute(\'data-i\'))">Write draft</button></td></tr>'; }).join('') + '</tbody></table></div>';
+  const rows = []; items.forEach((q, i) => { const list = (q.contacts && q.contacts.length) ? q.contacts : (q.contact && q.contact.email ? [q.contact] : []); list.forEach((c, j) => rows.push({ q, i, c, first: j === 0, n: list.length })); });
+  const pill = (v, hi, mid) => '<span class="x-pill ' + (v == null ? 'grey' : v >= hi ? 'green' : v >= mid ? 'blue' : 'amber') + '">' + escH(v == null ? '–' : Math.round(v)) + '</span>';
+  el.innerHTML = '<div class="x-note blue" style="margin-bottom:10px">Pick the contact you want to write to. The draft is written for that person only after you click.</div><div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Type</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody>' + rows.map(r => {
+    const q = r.q, c = r.c;
+    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (cleanWhy(q.why) ? ' · ' + escH(cleanWhy(q.why)) : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">Company address</span>') + '</td><td>' + escH(c.email || '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
+  }).join('') + '</tbody></table></div>';
 }
 function hubDrawSent(){
   const el = $x('hubSent'); if(HUB.errs.sent){ el.innerHTML = xErrBox('sent emails', HUB.errs.sent.ep, HUB.errs.sent.e); return; }
@@ -2923,7 +2929,7 @@ function hubDrawSent(){
   if(late.length) h += '<div class="x-note amber"><b>' + late.length + ' email' + (late.length > 1 ? 's are' : ' is') + ' overdue.</b> They were due more than 10 minutes ago but have not gone out. Either the n8n workflow <code>Email_Send_Due</code> is not Active, or the computer running n8n was asleep or offline.</div>';
   h += '<div class="x-note blue">Clicks are counted only for people (clicks within seconds of sending are ignored, since mail scanners open links). Opens are not tracked: they are unreliable and inflated by Apple Mail privacy.</div>';
   if(!rows.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails yet.</b><br>Sent and scheduled emails show up here with their status.</div></div>';
-  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + '</td></tr>').join('') + '</tbody></table></div>';
+  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
   el.innerHTML = h;
 }
 function hubDrawHist(){
@@ -2981,16 +2987,17 @@ function dRecipChange(){
   if(sel !== '__other'){ const c = (HUB.recips || []).find(x => x.email === sel); if(c){ $x('dName').value = (c.type === 'Personal' && c.name) ? c.name.split(/\s+/)[0] : ''; dGreet(); } }
   dDeliverText(); dCount();
 }
-function dOpen(i){ return dOpenItem(HUB.queue.items[i]); }
-async function dOpenItem(q){
+function dOpen(i, email){ return dOpenItem(HUB.queue.items[i], email); }
+async function dOpenItem(q, email){
+  email = String(email || (q.contact && q.contact.email) || '').toLowerCase();
   HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
   $x('dTitle').innerHTML = 'Draft for ' + escH(q.name) + ' <span class="x-pill ' + (q.email_no > 1 ? 'amber' : 'green') + '" style="vertical-align:middle;margin-left:8px">' + (q.email_no > 1 ? 'Follow-up ' + (q.email_no - 1) : 'First email') + '</span>';
   $x('dScores').innerHTML = scoreTile('Fit', q.fit, FIT_BANDS) + scoreTile('ESG', q.esg, ESG_BANDS);
   const why = cleanWhy(q.why); $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · ') + (why ? ': ' + why : '');
   $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = '';
-  dFillRecip(q, { to_email: q.contact && q.contact.email });
+  dFillRecip(q, { to_email: email });
   $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose(); xOpen('xDraft');
-  await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email: q.contact && q.contact.email }, 'Writing the draft');
+  await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, contact_email: email }, 'Writing the draft');
 }
 async function dGenerate(body, label){
   dGenStart(label || 'Writing the draft');
@@ -3072,7 +3079,7 @@ function lDraw(){
   const L = HUB.lead.lead || {}, ev = HUB.lead.events || [];
   $x('lTitle').textContent = L.company || L.name || HUB.leadKey; $x('lSub').textContent = [L.country, L.channel, L.contact_name, L.contact_title, L.contact_email].filter(Boolean).join(' · ');
   $x('lPills').innerHTML = (L.stage ? '<span class="x-pill ' + stageColor(L.stage) + '">' + escH(L.stage) + '</span>' : (L.status ? '' : '<span class="x-pill grey">Not contacted yet</span>')) + (L.status ? '<span class="x-pill ' + statusColor(L.status) + '">' + escH(L.status) + '</span>' : '');
-  const ck = Number(L.clicks) || 0; $x('lSignals').innerHTML = ck ? '<div class="x-note ' + (ck >= 2 ? 'amber' : 'blue') + '" style="margin-top:10px">' + (ck >= 2 ? '🔥 ' : '') + '<b>Clicked ' + ck + ' time' + (ck === 1 ? '' : 's') + '</b>' + (L.last_click_at ? ', last on ' + xDate(L.last_click_at) : '') + '. This lead is opening the links in your signature.</div>' : '';
+  const ck = Number(L.clicks) || 0; $x('lSignals').innerHTML = ck ? '<div class="x-note ' + (ck >= 2 ? 'amber' : 'blue') + '" style="margin-top:10px">' + (ck >= 2 ? '🔥 ' : '') + '<b>Clicked ' + ck + ' time' + (ck === 1 ? '' : 's') + '</b>' + (L.last_click_at ? ', last on ' + xDate(L.last_click_at) : '') + '. This lead is opening the links in your signature.<div style="margin-top:4px">' + xClickChips(L.click_links) + '</div></div>' : '';
   $x('lFollowBtn').style.display = ((L.emails_sent || 0) > 0 && !['Replied', 'Meeting', 'Sample', 'Quotation', 'Won', 'Lost'].includes(L.stage) && L.status !== 'Replied' && L.status !== 'Bounced' && L.emails_sent < 7) ? '' : 'none';
   const dd = xDays(L.stage_since); $x('lNext').innerHTML = (dd != null ? 'In this stage for <b>' + dd + ' day' + (dd === 1 ? '' : 's') + '</b>. ' : '') + (L.next_step ? 'Next step: <b>' + escH(L.next_step) + '</b>' + (L.next_step_due ? ' by ' + xDate(L.next_step_due, true) : '') : '<span style="color:var(--amber)">No next step set.</span>');
   const KV = { meeting:[['at','Date'],['format','Format'],['attendees','Attendees'],['summary','Summary'],['needs','Needs / pain points'],['products','Products of interest'],['objections','Objections'],['decisions','Decisions'],['actions','Action items'],['next_step','Next step'],['next_step_due','Next step due'],['link','Link']],
