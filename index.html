@@ -530,6 +530,21 @@
 .x-slide .x-pickc input[type=radio]{width:auto;height:auto;padding:0;margin:9px 0 0;flex:none}
 .x-pickc .tx em i{font-style:normal}
 
+.x-dos{border:1px solid var(--border);border-radius:12px;background:#FAFBFC;padding:12px 14px;margin:12px 0}
+.x-dos .top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.x-dos .chip{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--border);background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;text-decoration:none;color:var(--brand)}
+.x-dos .chip.off{color:var(--ink-faint);background:#F4F5F7;font-weight:500}
+.x-dos .desc{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:6px 0 8px}
+.x-dos .kv{display:grid;grid-template-columns:118px 1fr;gap:4px 10px;font-size:12.5px;line-height:1.45}
+.x-dos .kv span:nth-child(odd){color:var(--ink-faint)}
+.x-dos details{margin-top:8px}.x-dos summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+.x-sig-row{display:flex;gap:8px;flex-wrap:wrap}
+.x-sigb{border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.x-sigb b{font-size:13px}.x-sigb.on{box-shadow:0 0 0 2px var(--brand) inset}
+.x-sigb.red{background:var(--red-soft);color:var(--red)}.x-sigb.amber{background:var(--amber-soft);color:var(--amber)}.x-sigb.blue{background:var(--brand-soft);color:var(--brand)}.x-sigb.purple{background:var(--purple-soft);color:var(--purple)}
+
+.x-brief .ai.rec{border:2px solid var(--brand);background:var(--brand-soft);font-weight:600}
+
 </style>
 </head>
 <body>
@@ -733,7 +748,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 19 Oct 16:30</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 20 Oct 10:10</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <span class="live-dot" id="hubUpdated"><span class="d"></span> Loading…</span>
@@ -1127,6 +1142,7 @@ Write the email now.</textarea>
 <div class="x-slide" id="xDraft">
   <div class="hd"><div style="min-width:0;flex:1"><h2 id="dTitle">Draft</h2><div id="dScores" class="x-scores"></div><div id="dSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:8px;line-height:1.5"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
+    <div id="dDossier"></div>
     <div id="dPick"></div>
     <div id="dCompose">
     <div id="dMode"></div>
@@ -1157,6 +1173,7 @@ Write the email now.</textarea>
   <div class="bd">
     <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap"><label class="f" style="margin:0">Status</label><span id="lPills"></span></div>
     <div id="lSignals"></div>
+    <div id="lDossier"></div>
     <div id="lNext" style="margin-top:8px;font-size:12.5px;color:var(--ink-soft)"></div>
     <label class="f" style="margin-top:16px">Timeline</label>
     <div id="lTl"></div>
@@ -2931,16 +2948,69 @@ function hubRender(){
   const nc = document.getElementById('navHubCnt'); if(nc){ const n = Q ? (Q.items || []).length : 0; nc.textContent = n; nc.style.display = n ? '' : 'none'; }
   hubDrawQueue(); hubDrawSent(); hubDrawHist();
 }
+const xHref = u => { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : (u ? 'https://' + u : ''); };
+const xClean = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+const SOC_ICON = { LinkedIn:'in', Instagram:'IG', Facebook:'f', TikTok:'♪', YouTube:'▶', X:'X' };
+function xDossier(d, q){
+  if(!d) return '<div class="x-note amber"><b>No company data for this lead.</b> It was not found in Leads_Pool, so nothing can be cross-checked here.</div>';
+  const chips = []; if(xClean(d.website)) chips.push('<a class="chip" href="' + escH(xHref(d.website)) + '" target="_blank" rel="noopener noreferrer" title="Open the website and check it is the right company">🌐 ' + escH(xClean(d.website).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '').slice(0, 40)) + ' ↗</a>'); else chips.push('<span class="chip off">🌐 No website</span>');
+  const have = {}; (d.socials || []).forEach(s => { have[s.name] = 1; chips.push('<a class="chip" href="' + escH(s.url) + '" target="_blank" rel="noopener noreferrer">' + escH(s.name) + ' ↗</a>'); });
+  ['LinkedIn', 'Instagram', 'Facebook'].filter(n => !have[n]).forEach(n => chips.push('<span class="chip off" title="Not found yet. Use Enrich to look for it">' + n + ': none yet</span>'));
+  const facts = [['Employees', d.employees], ['Founded', d.founded], ['Rooms', d.rooms], ['Stores', d.stores], ['Sub-segment', d.sub_segment], ['Brands carried', d.brands], ['Target markets', d.target_markets], ['Countries served', d.countries_served], ['Online channels', d.online], ['Industry', d.industry], ['Address', d.address], ['Phone', d.phone], ['Source', d.source], ['Batch', d.batch]].filter(p => xClean(p[1]));
+  const sig = t => xClean(String(t || '').replace(/\[(LEAD|BRAND\/PRODUCT|UNCLASSIFIED)\]/g, ' • ')).replace(/^•\s*/, '');
+  const esg = sig(d.esg_signals), risk = sig(d.risk_signals), fr = cleanWhy(d.fit_reason), er = cleanWhy(d.esg_reason);
+  return '<div class="x-dos"><div class="top">' + chips.join('') + '</div>' +
+    (xClean(d.description) ? '<div class="desc">' + escH(xClean(d.description)) + '</div>' : '') +
+    (facts.length ? '<div class="kv">' + facts.map(p => '<span>' + p[0] + '</span><span>' + escH(xClean(p[1])) + '</span>').join('') + '</div>' : '<div class="desc" style="color:var(--amber)">No business details saved for this lead yet (employees, founded, brands…).</div>') +
+    ((esg || risk || fr || er) ? '<details><summary>Scores, ESG and risk signals</summary><div class="kv">' + (fr ? '<span>Why this fit score</span><span>' + escH(fr) + '</span>' : '') + (er ? '<span>Why this ESG score</span><span>' + escH(er) + '</span>' : '') + (esg ? '<span>ESG signals</span><span>' + escH(esg) + '</span>' : '') + (risk ? '<span>Risk signals</span><span>' + escH(risk) + '</span>' : '') + '</div></details>' : '') + '</div>';
+}
+function hubQF(){ return HUB.f || (HUB.f = { ch:'', co:'', type:'', ct:'', min:'', batch:'', q:'', sort:'fit' }); }
 function hubDrawQueue(){
   const el = $x('hubQueue'); if(HUB.errs.queue){ el.innerHTML = xErrBox('the queue', HUB.errs.queue.ep, HUB.errs.queue.e); return; }
   const items = (HUB.queue && HUB.queue.items) || [];
-  if(!items.length){ el.innerHTML = '<div class="x-panel"><div class="x-empty"><b>No leads to write to right now.</b><br>A lead appears here when it is qualified, has a contact email, and has not been emailed yet (or a follow-up is due).</div></div>'; return; }
-  const rows = []; items.forEach((q, i) => { const list = (q.contacts && q.contacts.length) ? q.contacts : (q.contact && q.contact.email ? [q.contact] : []); list.forEach((c, j) => rows.push({ q, i, c, first: j === 0, n: list.length })); });
+  if(!items.length){ el.innerHTML = '<div class="x-panel"><div class="x-empty"><b>No leads to write to right now.</b><br>A lead appears here when it is verified, has a usable contact email, and has not been emailed yet (or a follow-up is due).</div></div>'; return; }
+  const F = hubQF(), uniq = k => Array.from(new Set(items.map(q => xClean(q[k])).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  const opts = (arr, cur, all) => '<option value="">' + all + '</option>' + arr.map(v => '<option' + (v === cur ? ' selected' : '') + '>' + escH(v) + '</option>').join('');
+  const sel = 'padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font:inherit;font-size:12.5px';
+  el.innerHTML = '<div class="x-note blue" style="margin-bottom:10px">Pick the contact you want to write to. Best-scoring leads are at the top. Use the filters to focus, for example one country before an expo.</div>' +
+    '<div class="x-panel" style="margin-bottom:12px;padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+    '<input id="qfq" placeholder="Search company" value="' + escH(F.q) + '" oninput="hubQFSet(\'q\',this.value)" style="' + sel + ';min-width:170px">' +
+    '<select id="qfco" onchange="hubQFSet(\'co\',this.value)" style="' + sel + '">' + opts(uniq('country'), F.co, 'All countries') + '</select>' +
+    '<select id="qfch" onchange="hubQFSet(\'ch\',this.value)" style="' + sel + '">' + opts(uniq('channel'), F.ch, 'All channels') + '</select>' +
+    '<select id="qfbatch" onchange="hubQFSet(\'batch\',this.value)" style="' + sel + '">' + opts(uniq('batch'), F.batch, 'All batches') + '</select>' +
+    '<select id="qftype" onchange="hubQFSet(\'type\',this.value)" style="' + sel + '"><option value="">First + follow-ups</option><option value="first"' + (F.type === 'first' ? ' selected' : '') + '>First emails only</option><option value="follow"' + (F.type === 'follow' ? ' selected' : '') + '>Follow-ups only</option></select>' +
+    '<select id="qfct" onchange="hubQFSet(\'ct\',this.value)" style="' + sel + '"><option value="">Named + company inbox</option><option value="named"' + (F.ct === 'named' ? ' selected' : '') + '>Named people only</option><option value="generic"' + (F.ct === 'generic' ? ' selected' : '') + '>Company inbox only</option></select>' +
+    '<input id="qfmin" type="number" min="0" max="100" placeholder="Min fit" value="' + escH(F.min) + '" oninput="hubQFSet(\'min\',this.value)" style="' + sel + ';width:84px">' +
+    '<select id="qfsort" onchange="hubQFSet(\'sort\',this.value)" style="' + sel + '"><option value="fit">Sort: fit, high first</option><option value="esg"' + (F.sort === 'esg' ? ' selected' : '') + '>Sort: ESG, high first</option><option value="name"' + (F.sort === 'name' ? ' selected' : '') + '>Sort: company A to Z</option><option value="follow"' + (F.sort === 'follow' ? ' selected' : '') + '>Sort: follow-ups first</option></select>' +
+    '<button class="x-btn" onclick="hubQFReset()">Reset</button><span id="qfCount" style="margin-left:auto;color:var(--ink-faint);font-size:12px"></span></div>' +
+    '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Type</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody id="qBody"></tbody></table></div>';
+  hubQueueRows();
+}
+function hubQFSet(k, v){ hubQF()[k] = v; hubQueueRows(); }
+function hubQFReset(){ HUB.f = null; hubDrawQueue(); }
+function hubQueueRows(){
+  const items = (HUB.queue && HUB.queue.items) || [], F = hubQF(), body = $x('qBody'); if(!body) return;
+  const min = F.min === '' ? null : Number(F.min), q = F.q.toLowerCase();
+  let rows = []; items.forEach((it, i) => {
+    if(F.ch && it.channel !== F.ch) return; if(F.co && it.country !== F.co) return; if(F.batch && it.batch !== F.batch) return;
+    if(F.type === 'first' && it.email_no > 1) return; if(F.type === 'follow' && !(it.email_no > 1)) return;
+    if(min != null && !(it.fit != null && it.fit >= min)) return; if(q && !(it.name || '').toLowerCase().includes(q)) return;
+    let list = (it.contacts && it.contacts.length) ? it.contacts : (it.contact && it.contact.email ? [it.contact] : []);
+    if(F.ct === 'named') list = list.filter(c => c.name); if(F.ct === 'generic') list = list.filter(c => !c.name);
+    if(list.length) rows.push({ it, i, list });
+  });
+  const num = v => v == null ? -1 : Number(v);
+  if(F.sort === 'esg') rows.sort((a, b) => num(b.it.esg) - num(a.it.esg) || num(b.it.fit) - num(a.it.fit));
+  else if(F.sort === 'name') rows.sort((a, b) => (a.it.name || '').localeCompare(b.it.name || ''));
+  else if(F.sort === 'follow') rows.sort((a, b) => ((b.it.email_no > 1) - (a.it.email_no > 1)) || num(b.it.fit) - num(a.it.fit));
+  else rows.sort((a, b) => num(b.it.fit) - num(a.it.fit) || (a.it.name || '').localeCompare(b.it.name || ''));
   const pill = (v, hi, mid) => '<span class="x-pill ' + (v == null ? 'grey' : v >= hi ? 'green' : v >= mid ? 'blue' : 'amber') + '">' + escH(v == null ? '–' : Math.round(v)) + '</span>';
-  el.innerHTML = '<div class="x-note blue" style="margin-bottom:10px">Pick the contact you want to write to. The draft is written for that person only after you click.</div><div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Type</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody>' + rows.map(r => {
+  const flat = []; rows.forEach(r => r.list.forEach((c, j) => flat.push({ q: r.it, i: r.i, c, first: j === 0 })));
+  $x('qfCount').textContent = 'Showing ' + rows.length + ' of ' + items.length + ' leads · ' + flat.length + ' contacts';
+  body.innerHTML = flat.length ? flat.map(r => {
     const q = r.q, c = r.c;
-    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (cleanWhy(q.why) ? ' · ' + escH(cleanWhy(q.why)) : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">Company address</span>') + '</td><td>' + escH(c.email || '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
-  }).join('') + '</tbody></table></div>';
+    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (q.lead && q.lead.employees ? ' · ' + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">Company address</span>') + '</td><td>' + escH(c.email || '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
+  }).join('') : '<tr><td colspan="7" class="x-empty">No lead matches these filters. Press Reset.</td></tr>';
 }
 function hubDrawSent(){
   const el = $x('hubSent'); if(HUB.errs.sent){ el.innerHTML = xErrBox('sent emails', HUB.errs.sent.ep, HUB.errs.sent.e); return; }
@@ -2955,15 +3025,27 @@ function hubDrawSent(){
   else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
   el.innerHTML = h;
 }
+const SIGNAL = { hot:['red', '🔥 HOT'], active:['purple', 'Active'], followup:['amber', 'Follow up'], warm:['blue', 'Warm'], waiting:['grey', 'Waiting'], cold:['grey', 'Cold'], bounced:['red', 'Bounced'], closed:['grey', 'Closed'] };
+const SIGNAL_ORDER = ['hot', 'active', 'followup', 'warm', 'waiting', 'cold', 'bounced', 'closed'];
 function hubDrawHist(){
   const el = $x('hubHist'); if(HUB.errs.hist){ el.innerHTML = xErrBox('the history', HUB.errs.hist.ep, HUB.errs.hist.e); return; }
-  el.innerHTML = '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap"><input id="hq" placeholder="Search company or contact" oninput="hubHistRows()" style="padding:8px 10px;border:1px solid var(--border);border-radius:9px;min-width:240px;font:inherit;font-size:13px"><select id="hf" onchange="hubHistRows()" style="padding:8px 10px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:13px"><option value="">All stages</option>' + STAGE_LIST.map(s => '<option>' + s + '</option>').join('') + '</select></div><div class="x-panel"><table class="x-tbl"><thead><tr><th>Lead</th><th>Country · channel</th><th class="r">Emails</th><th>Last activity</th><th>Email status</th><th>Stage</th></tr></thead><tbody id="hBody"></tbody></table></div>';
+  const L = (HUB.hist && HUB.hist.leads) || [], cnt = {}; L.forEach(l => { const k = l.signal || ''; cnt[k] = (cnt[k] || 0) + 1; });
+  const cur = HUB.hs || '';
+  const sel = 'padding:8px 10px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:13px';
+  el.innerHTML = '<div class="x-sig-row">' + SIGNAL_ORDER.filter(k => cnt[k]).map(k => '<button class="x-sigb ' + SIGNAL[k][0] + (cur === k ? ' on' : '') + '" onclick="hubHistSig(\'' + k + '\')"><b>' + cnt[k] + '</b> ' + SIGNAL[k][1] + '</button>').join('') + (cur ? '<button class="x-sigb" onclick="hubHistSig(\'\')">Show all</button>' : '') + '</div>' +
+    '<div style="display:flex;gap:10px;margin:10px 0 12px;flex-wrap:wrap"><input id="hq" placeholder="Search company or contact" oninput="hubHistRows()" style="' + sel + ';min-width:240px"><select id="hf" onchange="hubHistRows()" style="' + sel + '"><option value="">All stages</option>' + STAGE_LIST.map(s => '<option>' + s + '</option>').join('') + '</select></div>' +
+    '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Signal</th><th>Lead</th><th>Country · channel</th><th class="r">Emails</th><th>Clicks</th><th>Last activity</th><th>What to do</th><th>Stage</th></tr></thead><tbody id="hBody"></tbody></table></div>' +
+    '<details class="x-note blue" style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">How these labels are decided</summary><div style="margin-top:6px"><b>HOT</b>: they replied, or clicked 3+ times in the last 7 days, or clicked two different links. <b>Active</b>: stage is Meeting, Sample or Quotation. <b>Follow up</b>: no reply after ' + ((HUB.queue && HUB.queue.gap) || 5) + '+ days and follow-ups remain, or a Nurture/Cold revisit date has arrived. <b>Warm</b>: 1-2 clicks. <b>Waiting</b>: sent recently. <b>Cold</b>: all follow-ups sent, no reply. A click is a signal, not proof of interest: company mail scanners can open links too, and clicks within 20 seconds of sending are ignored.</div></details>';
   hubHistRows();
 }
+function hubHistSig(k){ HUB.hs = k; hubDrawHist(); }
 function hubHistRows(){
-  const q = ($x('hq') ? $x('hq').value : '').toLowerCase(), f = $x('hf') ? $x('hf').value : '', L = (HUB.hist && HUB.hist.leads) || [], b = $x('hBody'); if(!b) return;
-  const rows = L.map((l, i) => ({ l, i })).filter(x => (!f || x.l.stage === f) && (!q || ((x.l.company || '') + ' ' + (x.l.contact_name || '')).toLowerCase().includes(q)));
-  b.innerHTML = rows.length ? rows.map(x => '<tr class="row" data-k="' + x.i + '" onclick="lOpen(HUB.hist.leads[+this.getAttribute(\'data-k\')].match_key)"><td><b>' + escH(x.l.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(x.l.contact_name || '') + (x.l.contact_title ? ', ' + escH(x.l.contact_title) : '') + '</div></td><td>' + escH(x.l.country) + ' · ' + escH(x.l.channel) + '</td><td class="r">' + escH(x.l.emails == null ? '' : x.l.emails) + '</td><td>' + xDate(x.l.last_at) + '</td><td><span class="x-pill ' + statusColor(x.l.status) + '">' + escH(x.l.status || '—') + '</span></td><td><span class="x-pill ' + stageColor(x.l.stage) + '">' + escH(x.l.stage || '—') + '</span></td></tr>').join('') : '<tr><td colspan="6" class="x-empty">' + (L.length ? 'No lead matches this filter.' : '<b>No outreach history yet.</b><br>Every lead you email appears here with its full timeline.') + '</td></tr>';
+  const q = ($x('hq') ? $x('hq').value : '').toLowerCase(), f = $x('hf') ? $x('hf').value : '', sg = HUB.hs || '', L = (HUB.hist && HUB.hist.leads) || [], b = $x('hBody'); if(!b) return;
+  const rows = L.map((l, i) => ({ l, i })).filter(x => (!f || x.l.stage === f) && (!sg || x.l.signal === sg) && (!q || ((x.l.company || '') + ' ' + (x.l.contact_name || '')).toLowerCase().includes(q)));
+  b.innerHTML = rows.length ? rows.map(x => {
+    const l = x.l, S = SIGNAL[l.signal] || ['grey', '—'], d = l.days_since_sent;
+    return '<tr class="row" data-k="' + x.i + '" onclick="lOpen(HUB.hist.leads[+this.getAttribute(\'data-k\')].match_key)"><td><span class="x-pill ' + S[0] + '">' + S[1] + '</span></td><td><b>' + escH(l.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(l.contact_name || '') + (l.contact_title ? ', ' + escH(l.contact_title) : '') + '</div></td><td>' + escH(l.country) + ' · ' + escH(l.channel) + '</td><td class="r">' + escH(l.emails == null ? '' : l.emails) + '</td><td>' + (l.clicks ? '<b>' + l.clicks + '</b> ' + (xClickChips(l.click_links) || '') + (l.last_click_at ? '<div style="color:var(--ink-faint);font-size:11.5px">last ' + xDate(l.last_click_at, true) + '</div>' : '') : '<span style="color:var(--ink-faint)">0</span>') + '</td><td>' + xDate(l.last_at) + (d != null ? '<div style="color:var(--ink-faint);font-size:11.5px">' + (d === 0 ? 'sent today' : d + ' d since last email') + '</div>' : '') + '</td><td style="max-width:230px;font-size:12.5px">' + escH(l.signal_why || '') + '</td><td><span class="x-pill ' + stageColor(l.stage) + '">' + escH(l.stage || '—') + '</span></td></tr>';
+  }).join('') : '<tr><td colspan="8" class="x-empty">' + (L.length ? 'No lead matches this filter.' : '<b>No outreach history yet.</b><br>Every lead you email appears here with its full timeline.') + '</td></tr>';
 }
 
 /* ---------- DRAFT ---------- */
@@ -3042,7 +3124,7 @@ async function dOpenItem(q, email){
   HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
   $x('dTitle').innerHTML = 'Draft for ' + escH(q.name) + ' <span class="x-pill ' + (q.email_no > 1 ? 'amber' : 'green') + '" style="vertical-align:middle;margin-left:8px">' + (q.email_no > 1 ? 'Follow-up ' + (q.email_no - 1) : 'First email') + '</span>';
   $x('dScores').innerHTML = scoreTile('Fit', q.fit, FIT_BANDS) + scoreTile('ESG', q.esg, ESG_BANDS);
-  const why = cleanWhy(q.why); $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · ') + (why ? ': ' + why : '');
+  $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · '); $x('dDossier').innerHTML = xDossier(q.lead, q);
   $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = ''; $x('dMode').innerHTML = ''; $x('dSubj').value = ''; $x('dBody').value = '';
   dTypeStop();
   $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose();
@@ -3125,7 +3207,7 @@ async function dSend(mode){
 /* ---------- LEAD PANEL ---------- */
 async function lOpen(mk){
   HUB.leadKey = mk; HUB.lead = null; $x('lTitle').textContent = 'Loading…'; $x('lSub').textContent = ''; $x('lTl').innerHTML = '<div class="x-empty">Loading…</div>'; $x('lPills').innerHTML = ''; $x('lNext').textContent = '';
-  $x('lSignals').innerHTML = ''; $x('lFollowBtn').style.display = 'none'; xOpen('xLead');
+  $x('lSignals').innerHTML = ''; $x('lDossier').innerHTML = ''; $x('lFollowBtn').style.display = 'none'; xOpen('xLead');
   try { HUB.lead = await n8nGet('/hub-lead?match_key=' + encodeURIComponent(mk)); lDraw(); }
   catch(e){ $x('lTl').innerHTML = xErrBox('this lead', '/hub-lead', e); }
 }
@@ -3133,6 +3215,7 @@ function lDraw(){
   const L = HUB.lead.lead || {}, ev = HUB.lead.events || [];
   $x('lTitle').textContent = L.company || L.name || HUB.leadKey; $x('lSub').textContent = [L.country, L.channel, L.contact_name, L.contact_title, L.contact_email].filter(Boolean).join(' · ');
   $x('lPills').innerHTML = (L.stage ? '<span class="x-pill ' + stageColor(L.stage) + '">' + escH(L.stage) + '</span>' : (L.status ? '' : '<span class="x-pill grey">Not contacted yet</span>')) + (L.status ? '<span class="x-pill ' + statusColor(L.status) + '">' + escH(L.status) + '</span>' : '');
+  $x('lDossier').innerHTML = L.dossier ? '<label class="f" style="margin-top:16px">Company</label>' + xDossier(L.dossier) : '';
   const ck = Number(L.clicks) || 0; $x('lSignals').innerHTML = ck ? '<div class="x-note ' + (ck >= 2 ? 'amber' : 'blue') + '" style="margin-top:10px">' + (ck >= 2 ? '🔥 ' : '') + '<b>Clicked ' + ck + ' time' + (ck === 1 ? '' : 's') + '</b>' + (L.last_click_at ? ', last on ' + xDate(L.last_click_at) : '') + '. This lead is opening the links in your signature.<div style="margin-top:4px">' + xClickChips(L.click_links) + '</div></div>' : '';
   $x('lFollowBtn').style.display = ((L.emails_sent || 0) > 0 && !['Replied', 'Meeting', 'Sample', 'Quotation', 'Won', 'Lost'].includes(L.stage) && L.status !== 'Replied' && L.status !== 'Bounced' && L.emails_sent < 7) ? '' : 'none';
   const dd = xDays(L.stage_since); $x('lNext').innerHTML = (dd != null ? 'In this stage for <b>' + dd + ' day' + (dd === 1 ? '' : 's') + '</b>. ' : '') + (L.next_step ? 'Next step: <b>' + escH(L.next_step) + '</b>' + (L.next_step_due ? ' by ' + xDate(L.next_step_due, true) : '') : '<span style="color:var(--amber)">No next step set.</span>');
@@ -3158,9 +3241,18 @@ function lFollow(){
 }
 
 /* ---------- FORMS (one engine, config per stage) ---------- */
-const LOST_REASONS = ['Price', 'MOQ', 'Not the right time', 'Chose a competitor', 'Product does not fit', 'Certification / regulation', 'Logistics', 'No response', 'Other'];
+const REPLY_KINDS = [   // [label, what happens, action]
+  ['Real reply: interested', 'Stage becomes Replied. Add a next step below.', 'replied'],
+  ['Real reply: asks for information', 'Stage becomes Replied. Write their questions below so you do not forget them.', 'replied'],
+  ['Not now, ask me later', 'Stage becomes Nurture and you get a reminder on the date you pick.', 'nurture'],
+  ['Not interested', 'Stage becomes Lost. The lead is no longer offered for emailing.', 'lost'],
+  ['Wrong person, referred to someone else', 'Stage becomes Replied. Write who they referred you to, and make that your next step.', 'referred'],
+  ['Auto-reply (out of office etc.)', 'Only noted in the timeline. It does NOT count as a reply and the stage does not change.', 'auto'],
+  ['Unsubscribe / stop emailing', 'Stage becomes Lost with reason Unsubscribed. The lead will never be offered for emailing again.', 'unsub']
+];
+const LOST_REASONS = ['Not interested', 'Unsubscribed', 'Price', 'MOQ', 'Not the right time', 'Chose a competitor', 'Product does not fit', 'Certification / regulation', 'Logistics', 'No response', 'Other'];
 const FORMS = {
-  reply:{ title:'Log a reply', ep:'/hub-log-reply', fields:[['at', 'Received', 'datetime', 1], ['from_name', 'From (name)', 'text'], ['from_email', 'From (email)', 'text'], ['subject', 'Subject', 'text'], ['body', 'Reply text (paste exactly)', 'textarea', 1, 'big'], ['kind', 'Type of reply', 'select', 0, ['Interested', 'Asks for info', 'Not now', 'Not relevant', 'Wrong person', 'Auto-reply']], ['questions', 'Questions they asked (one per line)', 'textarea'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
+  reply:{ title:'Log a reply', ep:'/hub-log-reply', fields:[['at', 'Received', 'datetime', 1], ['from_name', 'From (name)', 'text'], ['from_email', 'From (email)', 'text'], ['subject', 'Subject', 'text'], ['body', 'Reply text (paste exactly)', 'textarea', 1, 'big'], ['kind', 'What kind of reply is it?', 'select', 1, REPLY_KINDS.map(k => k[0])], ['revisit_date', 'Ask me again on', 'date'], ['referred_to', 'Referred to (name and email)', 'text'], ['questions', 'Questions they asked (one per line)', 'textarea'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
   meeting:{ title:'Meeting + MOM', ep:'/hub-event', type:'meeting', tidy:true, fields:[['at', 'Date and time', 'datetime', 1], ['format', 'Format', 'select', 0, ['Zoom / Teams', 'In person', 'Trade show', 'Phone']], ['attendees', 'Attendees (both sides, with position)', 'textarea', 1], ['summary', 'MOM: summary', 'textarea', 1], ['needs', 'Their needs / pain points', 'textarea'], ['products', 'Products of interest', 'textarea'], ['objections', 'Objections', 'textarea'], ['decisions', 'Decisions', 'textarea'], ['actions', 'Action items (who, deadline)', 'textarea'], ['next_step', 'Next step', 'text', 1], ['next_step_due', 'Next step due', 'date', 1], ['link', 'Link (recording, slides)', 'text']] },
   sample:{ title:'Sample sent', ep:'/hub-event', type:'sample', fields:[['products', 'Products and quantity', 'textarea', 1], ['ship_to', 'Sent to (name)', 'text', 1], ['ship_country', 'Country', 'text', 1], ['ship_date', 'Shipped on', 'date', 1], ['courier', 'Courier', 'text'], ['tracking', 'Tracking number', 'text'], ['eta', 'Expected arrival', 'date'], ['received_date', 'Received on', 'date'], ['who_pays', 'Shipping paid by', 'select', 0, ['O’right', 'Customer']], ['feedback_due', 'Feedback due', 'date'], ['feedback_rating', 'Feedback rating (1-5)', 'select', 0, ['', '1', '2', '3', '4', '5']], ['feedback_notes', 'Feedback', 'textarea'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
   quote:{ title:'Quotation', ep:'/hub-event', type:'quote', fields:[['no', 'Quote no.', 'text', 1], ['version', 'Version', 'text', 0, 'v1'], ['at', 'Date', 'date', 1], ['items', 'SKU, qty, unit price', 'textarea', 1], ['currency', 'Currency', 'text', 1], ['moq', 'MOQ', 'text'], ['incoterm', 'Incoterm', 'text'], ['payment_terms', 'Payment terms', 'text'], ['lead_time', 'Lead time', 'text'], ['valid_until', 'Valid until', 'date'], ['status', 'Status', 'select', 0, ['Sent', 'Negotiating', 'Accepted', 'Rejected']], ['response', 'Their response / counter-offer', 'textarea'], ['est_value', 'Estimated value', 'text'], ['expected_close', 'Expected close', 'date'], ['link', 'File link', 'text'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
@@ -3180,8 +3272,15 @@ function lForm(key){
     else inp = '<input id="' + id + '" type="' + (f[2] === 'datetime' ? 'datetime-local' : f[2] === 'date' ? 'date' : 'text') + '"' + (typeof f[4] === 'string' ? ' value="' + escH(f[4]) + '"' : '') + '>';
     return '<label class="f">' + escH(f[1]) + req + '</label>' + inp; }).join('');
   $x('fBody').innerHTML = h; F.fields.forEach(f => { if(f[2] === 'datetime') $x('f_' + f[0]).value = xNowLocal(); if(f[2] === 'date' && f[0] === 'at') $x('f_at').value = xNowLocal().slice(0, 10); });
+  if(key === 'reply'){ $x('f_kind').setAttribute('onchange', 'fKindChange()'); const hint = document.createElement('div'); hint.id = 'fKindHint'; hint.style.cssText = 'font-size:12.5px;color:var(--ink-soft);margin-top:6px;line-height:1.45'; $x('f_kind').insertAdjacentElement('afterend', hint); fKindChange(); }
   if(key === 'lost'){ const s = $x('f_lost_at_stage'), cur = L.stage; if(s && STAGE_LIST.slice(0, 6).includes(cur)) s.value = cur; }
   xOpen('xForm');
+}
+function fToggle(id, on){ const e = $x('f_' + id); if(!e) return; e.style.display = on ? '' : 'none'; if(e.previousElementSibling) e.previousElementSibling.style.display = on ? '' : 'none'; }
+function fKindChange(){
+  const k = REPLY_KINDS.find(x => x[0] === $x('f_kind').value) || REPLY_KINDS[0], a = k[2];
+  $x('fKindHint').textContent = k[1]; fToggle('revisit_date', a === 'nurture'); fToggle('referred_to', a === 'referred');
+  ['questions', 'next_step', 'next_step_due'].forEach(id => fToggle(id, !['auto', 'unsub', 'lost'].includes(a)));
 }
 async function fTidy(){
   const raw = $x('fRaw').value.trim(); if(!raw){ $x('fMsg').textContent = 'Paste some notes first.'; return; }
@@ -3196,7 +3295,20 @@ async function fSave(){
   if(miss.length){ $x('fMsg').textContent = 'Required: ' + miss.join(', '); return; }
   $x('fSave').disabled = true; $x('fMsg').textContent = '';
   try {
-    if(HUB.form === 'reply') await n8nPost(F.ep, Object.assign({ match_key:HUB.leadKey }, data));
+    if(HUB.form === 'reply'){
+      const k = REPLY_KINDS.find(x => x[0] === data.kind) || REPLY_KINDS[0], a = k[2], L = (HUB.lead && HUB.lead.lead) || {};
+      if(a === 'nurture' && !data.revisit_date){ $x('fMsg').textContent = 'Required: Ask me again on'; $x('fSave').disabled = false; return; }
+      if(a === 'referred' && !data.referred_to){ $x('fMsg').textContent = 'Required: Referred to'; $x('fSave').disabled = false; return; }
+      const post = Object.assign({ match_key:HUB.leadKey }, data); delete post.revisit_date; delete post.referred_to;
+      if(a === 'referred' && !post.next_step) post.next_step = 'Write to ' + data.referred_to;
+      await n8nPost(F.ep, post);
+      const was = ['Contacted', 'Replied', 'Meeting', 'Sample', 'Quotation', 'Won'].includes(L.stage) ? L.stage : 'Contacted';
+      try {
+        if(a === 'nurture') await n8nPost('/hub-event', { match_key:HUB.leadKey, type:'nurture', data:{ revisit_date:data.revisit_date, note:'Asked to be contacted later' } });
+        if(a === 'lost') await n8nPost('/hub-event', { match_key:HUB.leadKey, type:'lost', data:{ reason:'Not interested', lost_at_stage:was, note:'They replied that they are not interested' } });
+        if(a === 'unsub') await n8nPost('/hub-event', { match_key:HUB.leadKey, type:'lost', data:{ reason:'Unsubscribed', lost_at_stage:was, note:'Asked not to be emailed again' } });
+      } catch(e2){ $x('fMsg').textContent = 'The reply was saved, but the stage could not be updated: ' + e2.message + '. Use Add event to set it.'; $x('fSave').disabled = false; await lOpen(HUB.leadKey); hubLoad(true); return; }
+    }
     else await n8nPost(F.ep, { match_key:HUB.leadKey, type:F.type, data });
     lBack(); showToast('Saved'); await lOpen(HUB.leadKey); hubLoad(true);
   } catch(e){ $x('fMsg').textContent = 'Not saved: ' + e.message; }
@@ -3210,9 +3322,9 @@ async function bRun(){
   try {
     const r = await n8nPost('/hub-brief', { match_key:HUB.leadKey, lang:$x('bLang').value }), b = r.brief; if(!b || !(b.sections || []).length) throw new Error('Empty brief returned');
     HUB.brief = b; $x('bState').innerHTML = '';
-    $x('bOut').innerHTML = b.sections.map(s => { const body = escH(s.body || ''), lab = s.kind === 'ai' ? '<div style="font-size:11px;font-weight:700;color:var(--ink-faint);margin-bottom:4px">AI-WRITTEN, CHECK BEFORE USING</div>' : '';
+    $x('bOut').innerHTML = ((HUB.lead && HUB.lead.lead && HUB.lead.lead.dossier) ? xDossier(HUB.lead.lead.dossier) : '') + b.sections.map(s => { const body = escH(s.body || ''), lab = s.kind === 'ai' ? '<div style="font-size:11px;font-weight:700;color:var(--ink-faint);margin-bottom:4px">AI-WRITTEN, CHECK BEFORE USING</div>' : '';
       const src = (s.sources || []).filter(x => /^https?:\/\//i.test(x.url || '')).map(x => '<li><a href="' + escH(x.url) + '" target="_blank" rel="noopener noreferrer">' + escH(x.title || x.url) + '</a></li>').join('');
-      return '<h4>' + escH(s.title) + '</h4>' + (s.kind === 'quote' ? '<blockquote>' + body + '</blockquote>' : s.kind === 'ai' ? '<div class="ai">' + lab + body + '</div>' : '<div style="white-space:pre-wrap;line-height:1.55">' + body + '</div>') + (src ? '<ul class="src">' + src + '</ul>' : ''); }).join('');
+      return '<h4>' + escH(s.title) + '</h4>' + (s.kind === 'quote' ? '<blockquote>' + body + '</blockquote>' : s.kind === 'ai' ? '<div class="ai' + (/^(Recommendation|建議)/.test(s.title) ? ' rec' : '') + '">' + lab + body + '</div>' : '<div style="white-space:pre-wrap;line-height:1.55">' + body + '</div>') + (src ? '<ul class="src">' + src + '</ul>' : ''); }).join('');
     $x('bCopy').disabled = false; $x('bFoot').textContent = b.generated_at ? 'Generated ' + xDate(b.generated_at) : '';
   } catch(e){ $x('bState').innerHTML = '<div class="x-err"><b>Could not generate the brief.</b> ' + escH(e.message) + '<br>The n8n workflow <code>hub-brief</code> may not be built yet or is not Active.</div>'; }
   $x('bGo').disabled = false;
