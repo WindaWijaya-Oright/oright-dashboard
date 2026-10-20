@@ -1294,7 +1294,7 @@ function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null
 function lsSet(k,v){ try { if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); } catch(e){} }
 
 /* ---------------- UPLOAD ---------------- */
-const UP = { CHUNK:10, SOFT_MAX:50, HARD_MAX:200, POLL_MS:10000, STALE_MS:180000, LS:'oright_active_batch' };
+const UP = { CHUNK:10, SOFT_MAX:50, HARD_MAX:200, POLL_MS:45000, STALE_MS:180000, LS:'oright_active_batch' };
 const OFFICIAL_CHANNELS = ['Distributor','Retail','Amenities','OEM','Corporate Gifting'];
 const INBOX_COLS = ['Source','Registry_ID','Name','Country','City','Address','Phone','Website','General_Email','Registry_Email','Industry','Channel','Searched',
   'C1_Name','C1_Title','C1_Email','C2_Name','C2_Title','C2_Email','C3_Name','C3_Title','C3_Email','Follow_Up_Count','Last_Contact_Date','Email_Status'];
