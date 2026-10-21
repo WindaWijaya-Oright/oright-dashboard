@@ -545,6 +545,77 @@
 
 .x-brief .ai.rec{border:2px solid var(--brand);background:var(--brand-soft);font-weight:600}
 
+
+  /* ===== ADD LEADS (finder / upload / scan) ===== */
+  .af-hero{background:linear-gradient(180deg,var(--g1) 0%,#F3FAF6 100%); border:1px solid var(--g2); border-radius:20px; padding:34px 32px 30px; margin-bottom:18px;}
+  .af-hero h2{font-family:'Manrope',sans-serif; font-size:27px; line-height:1.2; letter-spacing:-.4px; font-weight:800; margin:0 0 18px; color:var(--g6);}
+  .af-search{display:flex; align-items:center; gap:0; background:#fff; border:1.5px solid var(--g3); border-radius:16px; padding:6px 6px 6px 16px; box-shadow:0 6px 22px rgba(23,130,90,.10); transition:box-shadow .15s,border-color .15s;}
+  .af-search:focus-within{border-color:var(--green); box-shadow:0 0 0 4px rgba(23,130,90,.16);}
+  .af-ico{color:var(--g5); flex-shrink:0;}
+  .af-q,.af-c{border:none; outline:none; background:transparent; font:600 16px 'Inter',sans-serif; color:var(--ink); padding:13px 10px; min-width:0;}
+  .af-q{flex:1;}
+  .af-c{width:170px; border-left:1px solid var(--border); font-weight:500; font-size:14.5px; padding-left:16px;}
+  .af-q::placeholder,.af-c::placeholder{color:var(--ink-faint); font-weight:500;}
+  .af-go{flex:none; padding:13px 22px; border-radius:11px; font-size:14px;}
+  #fnOut{margin-top:16px;}
+  .fn-list{display:flex; flex-direction:column; gap:8px;}
+  .fn-row{display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--g2); border-radius:13px; padding:12px 14px;}
+  .fn-fav{width:38px; height:38px; border-radius:10px; background:var(--g1); color:var(--g6); display:flex; align-items:center; justify-content:center; font:800 15px 'Manrope',sans-serif; flex-shrink:0; overflow:hidden;}
+  .fn-fav{position:relative;} .fn-fav img{position:absolute; inset:0; width:100%; height:100%; padding:7px; background:#fff; border:1px solid var(--g2); border-radius:10px; box-sizing:border-box;}
+  .fn-main{flex:1; min-width:0;}
+  .fn-t{font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .fn-d{font-size:12px; color:var(--ink-soft); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .fn-d a{color:var(--brand); text-decoration:none; font-weight:600;}
+  .fn-d a:hover{text-decoration:underline;}
+  .fn-row .btn-primary,.fn-row .btn-secondary{flex:none; padding:9px 16px; font-size:12.5px;}
+  .fn-have{font-size:11px; font-weight:700; background:var(--amber-soft); color:var(--amber); border-radius:20px; padding:3px 9px; margin-left:8px;}
+  .fn-skel{height:62px; border-radius:13px; background:linear-gradient(90deg,#fff 0%,var(--g1) 50%,#fff 100%); background-size:200% 100%; animation:fnSh 1.2s linear infinite; border:1px solid var(--g2);}
+  @keyframes fnSh{to{background-position:-200% 0;}}
+  .fn-more{margin-top:10px; font-size:12.5px; color:var(--ink-soft);}
+  .fn-more summary{cursor:pointer; padding:4px 0;}
+  .fn-none{background:#fff; border:1px dashed var(--g3); border-radius:13px; padding:14px 16px; font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:12px; justify-content:space-between; margin-top:8px;}
+  .fn-none .btn-secondary{flex:none; padding:8px 14px; font-size:12.5px;}
+  .fn-pick{background:#fff; border:1px solid var(--g3); border-radius:14px; padding:18px;}
+  .fn-pick .site{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .fn-fields{display:grid; grid-template-columns:2fr 1.2fr 1.2fr; gap:10px; margin-bottom:14px;}
+  .fn-fields label{display:flex; flex-direction:column; gap:5px; font-size:12px; font-weight:600; color:var(--ink-soft);}
+  .fn-fields .ld-input{width:100%; padding:10px 11px; font-size:13.5px;}
+  .fn-pick .row{display:flex; gap:10px; align-items:center;}
+  .fn-pick .row .btn-primary,.fn-pick .row .btn-secondary{flex:none; padding:11px 20px;}
+  .af-card{background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:22px 24px; margin-bottom:18px;}
+  .af-card-head{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; flex-wrap:wrap;}
+  .af-card h2{font-family:'Manrope',sans-serif; font-size:19px; letter-spacing:-.2px; font-weight:800; margin:0;}
+  .dpanel .af-h3{font-family:'Manrope',sans-serif; font-size:15px; margin:0 0 4px; font-weight:800; text-transform:none; letter-spacing:0; color:var(--ink);}
+  .af-src{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .af-src .ld-input{width:230px;}
+  .af-drop{display:flex; align-items:center; gap:16px; text-align:left; padding:22px 24px; justify-content:flex-start; color:var(--ink-soft);}
+  .af-drop svg{flex-shrink:0; color:var(--brand);}
+  .af-when{margin-top:18px; padding-top:18px; border-top:1px solid var(--border);}
+  .af-seg{display:inline-flex; background:#EDEFF3; border-radius:11px; padding:4px; gap:2px;}
+  .af-seg button{border:none; background:transparent; font:700 13px 'Inter',sans-serif; color:var(--ink-soft); padding:9px 18px; border-radius:8px; cursor:pointer;}
+  .af-seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(16,24,43,.10);}
+  .af-sched{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px;}
+  .af-sched .chip{border:1px solid var(--border); background:#fff; border-radius:20px; padding:7px 14px; font:600 12.5px 'Inter',sans-serif; color:var(--ink-soft); cursor:pointer;}
+  .af-sched .chip.on{background:var(--brand-soft); border-color:var(--brand); color:var(--brand);}
+  .af-sched input[type=datetime-local]{border:1px solid var(--border); border-radius:9px; padding:7px 10px; font:500 12.5px 'Inter',sans-serif; color:var(--ink);}
+  .af-tz{font-size:12px; color:var(--ink-faint); margin-top:9px;}
+  .af-soon{border-style:dashed; background:#FAFBFC;}
+  .af-badge{font-size:11.5px; font-weight:700; color:var(--purple); background:var(--purple-soft); border-radius:20px; padding:4px 11px;}
+  .af-soon-body{opacity:.55; filter:saturate(.4);}
+  .af-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .af-chips span{border:1px solid var(--border); background:#fff; border-radius:20px; padding:7px 14px; font-size:12.5px; font-weight:600;}
+  .af-chips .add{border-style:dashed; color:var(--ink-faint);}
+  .af-soon-row{display:flex; align-items:center; gap:12px; font-size:13px;}
+  .af-soon-row .btn-secondary{flex:none; margin-left:auto; padding:8px 16px; font-size:12.5px;}
+  .af-switch{width:38px; height:22px; border-radius:20px; background:#D5DAE1; position:relative; flex-shrink:0;}
+  .af-switch i{position:absolute; left:3px; top:3px; width:16px; height:16px; border-radius:50%; background:#fff;}
+  .af-soon-note{font-size:12.5px; color:var(--ink-soft); margin:14px 0 0;}
+  @media (max-width:760px){
+    .af-hero{padding:24px 18px;} .af-hero h2{font-size:22px;}
+    .af-search{flex-wrap:wrap; padding:8px;} .af-q{flex-basis:calc(100% - 40px);} .af-c{width:100%; border-left:none; border-top:1px solid var(--border); padding-left:10px;} .af-go{width:100%;}
+    .fn-fields{grid-template-columns:1fr;} .af-src .ld-input{width:150px;} .fn-row{flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion:reduce){ .fn-skel{animation:none;} }
 </style>
 </head>
 <body>
@@ -561,7 +632,7 @@
     </div>
     <div class="nav">
       <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span data-i18n="nav_dashboard">📊 Dashboard</span></div>
-      <div class="nav-item" data-page="upload" onclick="showPage('upload')"><span>⬆️ Upload Leads</span></div>
+      <div class="nav-item" data-page="upload" onclick="showPage('upload')"><span>➕ Add Leads</span></div>
       <div class="nav-item" data-page="leads" onclick="showPage('leads')" style="gap:6px; padding-right:8px;"><span data-i18n="nav_leads">🔍 Leads &amp; Companies</span> <span class="cnt" id="navReviewCnt" style="display:none; background:var(--amber); padding:1px 6px; flex-shrink:0;">0</span></div>
       <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline')"><span data-i18n="nav_pipeline">🧪 Pipeline</span></div>
       <div class="nav-label"><span data-i18n="nav_comm">COMMUNICATION</span></div>
@@ -610,34 +681,19 @@
     <div class="page" id="page-upload">
       <div class="topbar">
         <div>
-          <h1>Upload Leads</h1>
-          <p class="desc">Upload a file of up to 50 leads. Watch it move through cleaning, verification, enrichment, scoring and contact search.</p>
+          <h1>Add leads</h1>
+          <p class="desc">Find one company, upload a list, or scan a whole market.</p>
         </div>
       </div>
 
-      <div class="dpanel" id="upStep1" style="margin-bottom:14px;">
-        <div style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:var(--ink-soft);" for="upSource">Default source (for rows without a Source value) <span style="color:var(--red);">*</span></label>
-          <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. ACRA-SG, Apollo export, Expo 2026 visitors, Google Maps scrape" style="width:100%; margin-top:6px;" oninput="lsSet('oright_last_source', this.value)">
-          <datalist id="upSourceList"></datalist>
-          <div style="font-size:11px; color:var(--ink-faint); margin-top:5px;">Used to compare which sources give the best leads. If your file has a <b>Source</b> column, each row keeps its own value (for example OSM for Canada, Business Registry for the rest). This box only fills rows whose Source is empty. Use the exact same spelling every time, because the source comparison groups by exact text.</div>
-        </div>
-        <input type="file" id="upFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="upOnFile(this.files[0])">
-        <div class="up-drop" id="upDrop" onclick="document.getElementById('upFile').click()">
-          <div class="big">📄</div>
-          <div class="t">Drop a CSV or Excel file here, or click to choose</div>
-          <div class="s">Any country. Use columns like Name, Country, Website, Email, Channel (Leads_Inbox format). Company-registry exports (CompanyName, uen, LeadCategory) are also recognized.</div>
-        </div>
-        <div id="upPreview" style="display:none;"></div>
-      </div>
-
-      <div class="dpanel" id="upProgress" style="display:none;">
+      <!-- progress of the batch being processed (shown only when there is one) -->
+      <div class="dpanel" id="upProgress" style="display:none; margin-bottom:16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <div>
-            <h3 style="margin:0 0 4px;" id="upBatchTitle">Batch</h3>
+            <h3 class="af-h3" id="upBatchTitle">Batch</h3>
             <div style="font-size:12px; color:var(--ink-faint);" id="upBatchSub"></div>
           </div>
-          <button class="btn-secondary" style="flex:none; padding:8px 14px; font-size:12px;" onclick="upStopWatch(true)">Stop watching</button>
+          <button class="btn-secondary" style="flex:none; padding:8px 14px; font-size:12px;" onclick="upStopWatch(true)">Hide</button>
         </div>
         <div id="upUploadBar" style="display:none; margin:10px 0 4px;">
           <div style="font-size:12px; font-weight:700; margin-bottom:5px;" id="upUploadTxt"></div>
@@ -647,6 +703,54 @@
         <div id="upStages"></div>
         <div id="upDone"></div>
       </div>
+
+      <!-- 1. FIND A COMPANY -->
+      <section class="af-hero" id="fnBox">
+        <h2>Which company are you looking for?</h2>
+        <form class="af-search" onsubmit="fnSearch(event)" autocomplete="off">
+          <svg class="af-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="fnQ" class="af-q" placeholder="Company name" maxlength="120" aria-label="Company name">
+          <input id="fnC" class="af-c" list="fnCountries" placeholder="Country" maxlength="60" aria-label="Country">
+          <button class="btn-primary af-go" id="fnGo" type="submit">Find website</button>
+        </form>
+        <datalist id="fnCountries"><option>Australia</option><option>Canada</option><option>Singapore</option><option>Malaysia</option><option>Indonesia</option><option>Thailand</option><option>Vietnam</option><option>Philippines</option><option>Japan</option><option>South Korea</option><option>United Arab Emirates</option><option>Saudi Arabia</option><option>United Kingdom</option><option>France</option><option>Germany</option><option>Italy</option><option>Spain</option><option>United States</option><option>Taiwan</option><option>Hong Kong</option><option>New Zealand</option></datalist>
+        <div id="fnOut" aria-live="polite"></div>
+      </section>
+
+      <!-- 2. UPLOAD A FILE -->
+      <section class="af-card" id="upStep1">
+        <div class="af-card-head">
+          <h2>Upload a list</h2>
+          <label class="af-src">
+            <span>Source</span>
+            <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. Expo 2026, Google Maps" oninput="lsSet('oright_last_source', this.value)">
+          </label>
+          <datalist id="upSourceList"></datalist>
+        </div>
+        <input type="file" id="upFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="upOnFile(this.files[0])">
+        <div class="up-drop af-drop" id="upDrop" onclick="document.getElementById('upFile').click()">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <div><div class="t">Drop a CSV or Excel file, or click to choose</div><div class="s">Up to 200 leads per file</div></div>
+        </div>
+        <div id="upPreview" style="display:none;"></div>
+      </section>
+
+      <!-- 3. SCAN NEW MARKETS (coming soon) -->
+      <section class="af-card af-soon" aria-label="Scan new markets, coming soon">
+        <div class="af-card-head">
+          <h2>Scan new markets</h2>
+          <span class="af-badge">Coming soon</span>
+        </div>
+        <div class="af-soon-body" inert>
+          <div class="af-chips"><span>Australia</span><span>Canada</span><span>Singapore</span><span>United Kingdom</span><span>United Arab Emirates</span><span class="add">+ Add market</span></div>
+          <div class="af-soon-row">
+            <div class="af-switch"><i></i></div>
+            <span>Scan every day at <b>06:00</b> Taiwan time</span>
+            <button class="btn-secondary" tabindex="-1">Scan now</button>
+          </div>
+        </div>
+        <p class="af-soon-note">New leads will be waiting for your review every morning.</p>
+      </section>
     </div>
 
     <div class="page" id="page-leads">
@@ -1294,7 +1398,7 @@ function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null
 function lsSet(k,v){ try { if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); } catch(e){} }
 
 /* ---------------- UPLOAD ---------------- */
-const UP = { CHUNK:10, SOFT_MAX:50, HARD_MAX:200, POLL_MS:45000, STALE_MS:180000, LS:'oright_active_batch' };
+const UP = { CHUNK:10, SOFT_MAX:50, HARD_MAX:200, POLL_MS:45000, STALE_MS:3000000, LS:'oright_active_batch' };
 const OFFICIAL_CHANNELS = ['Distributor','Retail','Amenities','OEM','Corporate Gifting'];
 const INBOX_COLS = ['Source','Registry_ID','Name','Country','City','Address','Phone','Website','General_Email','Registry_Email','Industry','Channel','Searched',
   'C1_Name','C1_Title','C1_Email','C2_Name','C2_Title','C2_Email','C3_Name','C3_Title','C3_Email','Follow_Up_Count','Last_Contact_Date','Email_Status'];
@@ -1408,6 +1512,111 @@ function upBuild(raw, fmt, skipNoContact){
   });
   return { rows, skipped, details };
 }
+/* =====================================================================
+   ADD LEADS: Taiwan-time helpers, Lead Finder, schedule
+   n8n: POST /finder-search  (new)   POST /upload-leads (now accepts Process_After)
+   ===================================================================== */
+const TW_OFF = 8 * 3600e3, p2 = n => String(n).padStart(2, '0');
+function twParts(ms){ const d = new Date(ms + TW_OFF); return { y:d.getUTCFullYear(), mo:d.getUTCMonth()+1, d:d.getUTCDate(), h:d.getUTCHours(), mi:d.getUTCMinutes() }; }
+function twStr(ms){ const t = twParts(ms); return 'TW' + t.y + '-' + p2(t.mo) + '-' + p2(t.d) + ' ' + p2(t.h) + ':' + p2(t.mi); }
+function twToInput(tw){ const m = String(tw || '').match(/^TW(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})$/); return m ? m[1] + 'T' + m[2] : ''; }
+function twFromInput(v){ const m = String(v || '').match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/); return m ? 'TW' + m[1] + ' ' + m[2] : ''; }
+function twNext(hour, plusDays){ const t = twParts(Date.now()); let ms = Date.UTC(t.y, t.mo - 1, t.d, hour, 0) - TW_OFF; while(ms <= Date.now() + 5 * 60000) ms += 86400000; return ms + (plusDays || 0) * 86400000; }
+function twLabel(tw){ const m = String(tw || '').match(/^TW(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/); if(!m) return String(tw || ''); return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }) + ', ' + m[4] + ':' + m[5]; }
+function upSchedFuture(batch){ const s = lsGet('oright_sched_' + batch); return (s && s > twStr(Date.now())) ? s : ''; }
+
+function upSetWhen(m){ upState.when = m; if(m === 'later' && !upState.at) upState.at = twStr(twNext(1, 0)); upRenderPreview(); }
+function upSetAt(v){ upState.at = twFromInput(v); upRenderPreview(); }
+function upSetAtMs(ms){ upState.at = twStr(ms); upRenderPreview(); }
+function upWhenHTML(n){
+  const later = upState.when === 'later', a = twNext(1, 0), b = twNext(1, 1);
+  const chip = ms => '<button type="button" class="chip' + (upState.at === twStr(ms) ? ' on' : '') + '" onclick="upSetAtMs(' + ms + ')">' + twLabel(twStr(ms)) + '</button>';
+  const sched = later ?
+    '<div class="af-sched">' + chip(a) + chip(b) + '<input type="datetime-local" aria-label="Start time, Taiwan time" value="' + twToInput(upState.at) + '" min="' + twToInput(twStr(Date.now() + 5 * 60000)) + '" onchange="upSetAt(this.value)"></div>' +
+    '<div class="af-tz">Taiwan time. It is ' + twLabel(twStr(Date.now())) + ' there now. Leads are saved now and processed from the chosen time.</div>' : '';
+  const label = later ? (upState.at ? 'Schedule ' + n + ' leads' : 'Pick a time') : 'Upload ' + n + ' leads';
+  const off = (n === 0 || n > UP.HARD_MAX || (later && !upState.at)) ? 'disabled' : '';
+  return '<div class="af-when"><div class="af-seg" role="group" aria-label="When to upload"><button type="button" class="' + (later ? '' : 'on') + '" onclick="upSetWhen(\'now\')">Upload now</button><button type="button" class="' + (later ? 'on' : '') + '" onclick="upSetWhen(\'later\')">Schedule</button></div>' + sched +
+    '<div class="up-actions"><button class="btn-primary" id="upStart" onclick="upStart()" ' + off + '>' + label + '</button><button class="btn-secondary" onclick="upReset()">Choose another file</button></div></div>';
+}
+
+/* ---------- Lead Finder ---------- */
+const FN = { results:[], pick:null, q:'', c:'', busy:false, poolTried:false };
+const fnEl = id => document.getElementById(id);
+function fnDom(u){ try { return new URL(/^https?:/i.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, '').toLowerCase(); } catch(e){ return ''; } }
+function fnFav(domain, name){
+  const l = escH(String(name || domain || '?').trim().charAt(0).toUpperCase());
+  return '<div class="fn-fav">' + l + (domain ? '<img src="https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=64" alt="" onerror="this.remove()">' : '') + '</div>';
+}
+function fnHave(domain){ return domain ? poolLeads.find(l => fnDom(l.Website || '') === domain) : null; }
+async function fnEnsurePool(){
+  if(poolLeads.length || FN.poolTried) return; FN.poolTried = true;
+  try { const d = await n8nGet('/pool-leads'); poolLeads = d.leads || []; } catch(e){}
+}
+async function fnSearch(e){
+  if(e) e.preventDefault(); if(FN.busy) return;
+  const q = fnEl('fnQ').value.trim(), c = fnEl('fnC').value.trim();
+  if(q.length < 2){ showToast('Type a company name first'); fnEl('fnQ').focus(); return; }
+  FN.busy = true; FN.q = q; FN.c = c; FN.pick = null;
+  const go = fnEl('fnGo'), out = fnEl('fnOut'); go.disabled = true; go.textContent = 'Searching…';
+  out.innerHTML = '<div class="fn-list"><div class="fn-skel"></div><div class="fn-skel"></div><div class="fn-skel"></div></div>';
+  try {
+    const [d] = await Promise.all([n8nPost('/finder-search', { query:q, country:c }), fnEnsurePool()]);
+    FN.results = Array.isArray(d.results) ? d.results : [];
+    fnRenderResults();
+  } catch(err){
+    out.innerHTML = '<div class="up-note err">' + escH(err.message) + '. Check that the finder-search workflow is active in n8n.</div>';
+  }
+  FN.busy = false; go.disabled = false; go.textContent = 'Find website';
+}
+function fnRowHTML(r, i, usable){
+  const dom = r.domain || fnDom(r.url), have = fnHave(dom);
+  return '<div class="fn-row">' + fnFav(dom, r.title) +
+    '<div class="fn-main"><div class="fn-t">' + escH(r.title || dom) + (have ? '<span class="fn-have">Already in leads</span>' : '') + '</div>' +
+    '<div class="fn-d"><a href="' + escH(r.page || r.url) + '" target="_blank" rel="noopener">' + escH(dom) + '</a>' + (r.snippet ? ' · ' + escH(r.snippet) : '') + '</div></div>' +
+    (usable ? '<button class="btn-primary" onclick="fnPick(' + i + ')">Use this site</button>' : '<a class="btn-secondary" style="text-decoration:none;" href="' + escH(r.url) + '" target="_blank" rel="noopener">Open</a>') + '</div>';
+}
+function fnRenderResults(){
+  const out = fnEl('fnOut'), all = FN.results.map((r, i) => [r, i]);
+  const sites = all.filter(([r]) => r.type === 'website'), other = all.filter(([r]) => r.type !== 'website');
+  let h = '';
+  if(sites.length) h += '<div class="fn-list">' + sites.map(([r, i]) => fnRowHTML(r, i, true)).join('') + '</div>';
+  else h += '<div class="up-note warn" style="background:#fff;">No company website found for “' + escH(FN.q) + '”. Try the full legal name, or add the country.</div>';
+  if(other.length) h += '<details class="fn-more"><summary>Other results (' + other.length + ')</summary><div class="fn-list" style="margin-top:8px;">' + other.map(([r, i]) => fnRowHTML(r, i, false)).join('') + '</div></details>';
+  h += '<div class="fn-none"><span>Not here? Add it by name and let the system search.</span><button class="btn-secondary" onclick="fnPick(-1)">Add name only</button></div>';
+  out.innerHTML = h;
+}
+function fnPick(i){
+  FN.pick = i >= 0 ? FN.results[i] : null; const r = FN.pick, dom = r ? (r.domain || fnDom(r.url)) : '', have = fnHave(dom);
+  const chan = lsGet('oright_fn_chan') || '';
+  fnEl('fnOut').innerHTML = '<div class="fn-pick"><div class="site">' + (r ? fnFav(dom, r.title) + '<div class="fn-main"><div class="fn-t">' + escH(dom) + '</div><div class="fn-d"><a href="' + escH(r.url) + '" target="_blank" rel="noopener">Open site</a></div></div>' : '<div class="fn-main"><div class="fn-t">No website yet</div><div class="fn-d">The system will look for it during verification.</div></div>') + '</div>' +
+    (have ? '<div class="up-note warn">This website is already in your leads as “' + escH(have.Name) + '”. Branches with a different city are still accepted; true duplicates are rejected on cleaning.</div>' : '') +
+    '<div class="fn-fields"><label>Company name<input class="ld-input" id="fnName" maxlength="120" value="' + escH(FN.q) + '"></label>' +
+    '<label>Country<input class="ld-input" id="fnCountry" list="fnCountries" maxlength="60" value="' + escH(FN.c) + '"></label>' +
+    '<label>Channel<select class="ld-input" id="fnChan"><option value="">Choose…</option>' + OFFICIAL_CHANNELS.map(c => '<option' + (c === chan ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label></div>' +
+    '<div class="row"><button class="btn-primary" id="fnAddBtn" onclick="fnAdd()">Add to leads</button><button class="btn-secondary" onclick="fnRenderResults()">Back to results</button></div></div>';
+}
+async function fnAdd(){
+  const name = fnEl('fnName').value.trim(), country = fnEl('fnCountry').value.trim(), channel = fnEl('fnChan').value;
+  if(!name){ showToast('Company name is empty'); return; }
+  if(!country){ showToast('Add the country'); fnEl('fnCountry').focus(); return; }
+  if(!channel){ showToast('Choose a channel'); fnEl('fnChan').focus(); return; }
+  lsSet('oright_fn_chan', channel);
+  const btn = fnEl('fnAddBtn'); btn.disabled = true; btn.textContent = 'Adding…';
+  const batch = upMakeBatchId();
+  try {
+    await n8nPost('/upload-leads', { batch_id:batch, rows:[{ Source:'Lead Finder', Name:name, Country:country, Website:FN.pick ? FN.pick.url : '', Channel:channel, Searched:'', Process_After:'' }] });
+    lsSet('oright_last_batch', batch); lsSet(UP.LS, batch);
+    upKick(batch); upWatchBegin(batch, true);
+    fnEl('fnQ').value = ''; fnEl('fnC').value = ''; fnEl('fnOut').innerHTML = ''; FN.pick = null; FN.results = [];
+    showToast('Added. Cleaning starts now.');
+    fnEl('upProgress').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch(err){
+    btn.disabled = false; btn.textContent = 'Add to leads';
+    fnEl('fnOut').insertAdjacentHTML('afterbegin', '<div class="up-note err">' + escH(err.message) + '</div>');
+  }
+}
+
 function upMakeBatchId(){
   const d = new Date(), p = n => String(n).padStart(2,'0');
   let id = 'UP-' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
@@ -1465,54 +1674,69 @@ function upRenderPreview(){
     '<div style="font-size:12px; color:var(--ink-soft); margin:4px 0 8px;">Channels: ' + (Object.entries(ch).map(([k,v]) => escH(k) + ' ' + v).join(' · ') || '—') + '</div>' +
     (skippedTotal ? '<details style="font-size:12px; margin-bottom:8px;"><summary style="cursor:pointer; color:var(--ink-soft);">Why ' + skippedTotal + ' rows were filtered out</summary><table class="up-table"><tbody>' + skipRows + '</tbody></table>' + (catRows ? '<div style="margin-top:6px; color:var(--ink-faint);">Out-of-scope categories: ' + catRows + '</div>' : '') + '</details>' : '') +
     (n ? '<table class="up-table"><thead><tr><th>Company</th><th>Channel</th><th>Website</th><th>Email</th></tr></thead><tbody>' + sample + '</tbody></table>' + (n > 6 ? '<div style="font-size:11px; color:var(--ink-faint); margin-top:5px;">Showing 6 of ' + n + '</div>' : '') : '') +
-    '<div class="up-actions"><button class="btn-primary" id="upStart" onclick="upStart()" ' + ((n === 0 || n > UP.HARD_MAX) ? 'disabled' : '') + '>Start upload (' + n + ' leads)</button><button class="btn-secondary" onclick="upReset()">Choose another file</button></div>';
+    upWhenHTML(n);
 }
-function upReset(){ upState = { fileName:'', raw:null, fmt:null, running:false }; document.getElementById('upPreview').style.display = 'none'; document.getElementById('upPreview').innerHTML = ''; document.getElementById('upFile').value = ''; }
+function upReset(){ upState = { fileName:'', raw:null, fmt:null, running:false, when:'now', at:'' }; document.getElementById('upPreview').style.display = 'none'; document.getElementById('upPreview').innerHTML = ''; document.getElementById('upFile').value = ''; }
 
 async function upStart(){
   if(upState.running || !upState.built || !upState.built.rows.length) return;
   const srcIn = document.getElementById('upSource'), src = srcIn ? srcIn.value.trim() : '';
   if(upState.built.rows.some(r => !r.Source) && !src){ showToast('Fill in where this data comes from first'); if(srcIn){ srcIn.focus(); srcIn.scrollIntoView({ block:'center' }); } return; }
   upState.built.rows.forEach(r => { if(!r.Source) r.Source = src; });
+  const later = upState.when === 'later';
+  if(later && (!upState.at || upState.at <= twStr(Date.now() + 5 * 60000))){ showToast('Pick a start time at least 5 minutes from now (Taiwan time)'); return; }
+  upState.built.rows.forEach(r => { r.Process_After = later ? upState.at : ''; });
   upState.running = true;
-  const rows = upState.built.rows, batch = upMakeBatchId();
-  const btn = document.getElementById('upStart'); if(btn){ btn.disabled = true; btn.textContent = 'Uploading…'; }
+  const rows = upState.built.rows, batch = upMakeBatchId(), schedAt = later ? upState.at : '';
+  const btn = document.getElementById('upStart'); if(btn){ btn.disabled = true; btn.textContent = later ? 'Saving…' : 'Uploading…'; }
   upWatchBegin(batch, false);
   const bar = document.getElementById('upUploadBar'), txt = document.getElementById('upUploadTxt'), fill = document.getElementById('upUploadFill');
   bar.style.display = 'block'; let sent = 0;
   try {
-    for(let i=0; i<rows.length; i+=UP.CHUNK){
-      const chunk = rows.slice(i, i + UP.CHUNK);
-      let lastErr = null;
+    for(let i=0; i<rows.length; ){
+      // scheduled upload: send 1 lead first to confirm n8n really stores the start time
+      const size = (later && i === 0) ? 1 : UP.CHUNK;
+      const chunk = rows.slice(i, i + size);
+      let lastErr = null, resp = null;
       for(let attempt=0; attempt<2; attempt++){
-        try { await n8nPost('/upload-leads', { batch_id:batch, rows:chunk }); lastErr = null; break; }
+        try { resp = await n8nPost('/upload-leads', { batch_id:batch, rows:chunk }); lastErr = null; break; }
         catch(e){ lastErr = e; await new Promise(r => setTimeout(r, 1500)); }
       }
       if(lastErr) throw new Error('Upload stopped after ' + sent + ' of ' + rows.length + ' leads: ' + lastErr.message);
-      sent += chunk.length;
-      txt.textContent = 'Uploading ' + sent + ' of ' + rows.length;
+      if(later && i === 0 && !(resp && resp.scheduled >= 1)) throw new Error('Scheduling is not switched on in n8n yet (Validate_Upload / Respond_Upload still need the Process_After update). 1 lead was saved and will run normally; the other ' + (rows.length - 1) + ' were not uploaded.');
+      sent += chunk.length; i += size;
+      txt.textContent = (later ? 'Saving ' : 'Uploading ') + sent + ' of ' + rows.length;
       fill.style.width = Math.round(sent / rows.length * 100) + '%';
     }
-    txt.textContent = 'Uploaded ' + rows.length + ' of ' + rows.length + ' ✓';
+    txt.textContent = (later ? 'Saved ' : 'Uploaded ') + rows.length + ' of ' + rows.length + ' ✓';
     lsSet('oright_last_batch', batch); lsSet(UP.LS, batch);
+    if(later){ lsSet('oright_sched_' + batch, schedAt); showToast('Scheduled for ' + twLabel(schedAt) + ' (Taiwan time)'); } else upKick(batch);
     upWatchBegin(batch, true);
     upReset();
   } catch(err){
     document.getElementById('upNotes').innerHTML = '<div class="up-note err">' + escH(err.message) + ' Rows already sent stay in the inbox; uploading the same file again is safe because duplicates are rejected.</div>';
-    upState.running = false; if(btn){ btn.disabled = false; btn.textContent = 'Retry upload (' + rows.length + ' leads)'; }
+    upState.running = false; if(btn){ btn.disabled = false; btn.textContent = 'Retry (' + rows.length + ' leads)'; }
     upStopWatch(false);
   }
   upState.running = false;
+}
+// Start cleaning right away instead of waiting for the :00/:30 schedule, then verification ~30 s later.
+// Fire-and-forget: if these n8n webhooks do not exist yet (or fail), the normal schedule still processes the batch.
+function upKick(batch){
+  const post = p => { try { fetch(N8N_BASE + p, { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ batch_id: batch }) }).catch(() => {}); } catch(e){} };
+  post('/kick-clean');
+  setTimeout(() => post('/kick-verify'), 30000);
 }
 function upWatchBegin(batch, uploaded){
   document.getElementById('upProgress').style.display = 'block';
   document.getElementById('upBatchTitle').textContent = 'Batch ' + batch;
   if(!upWatch.started || upWatch.id !== batch) upWatch.started = new Date();
-  document.getElementById('upBatchSub').textContent = 'Started ' + upWatch.started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · refreshes every ' + (UP.POLL_MS/1000) + 's';
-  upWatch.id = batch;
+  const sf = upSchedFuture(batch), every = sf ? 600000 : UP.POLL_MS;
+  document.getElementById('upBatchSub').textContent = sf ? 'Scheduled for ' + twLabel(sf) + ' Taiwan time' : 'Started ' + upWatch.started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · updates on its own';
+  upWatch.id = batch; upWatch.every = every;
   if(!uploaded){ document.getElementById('upStages').innerHTML = ''; document.getElementById('upDone').innerHTML = ''; document.getElementById('upNotes').innerHTML = ''; return; }
   upWatch.lastSig = ''; upWatch.lastChange = Date.now();
-  clearInterval(upWatch.timer); upPoll(); upWatch.timer = setInterval(upPoll, UP.POLL_MS);
+  clearInterval(upWatch.timer); upPoll(); upWatch.timer = setInterval(upPoll, every);
 }
 function upStopWatch(clear){ clearInterval(upWatch.timer); upWatch.timer = null; if(clear){ lsSet(UP.LS, null); document.getElementById('upProgress').style.display = 'none'; upWatch.id = null; } }
 function upResume(){
@@ -1524,6 +1748,8 @@ async function upPoll(){
   try { const d = await n8nGet('/batch-status?batch=' + encodeURIComponent(upWatch.id)); upRenderStages(d); }
   catch(e){ document.getElementById('upNotes').innerHTML = '<div class="up-note warn">Could not read batch status (' + escH(e.message) + '). Will keep trying.</div>'; }
   upWatch.busy = false;
+  const want = upSchedFuture(upWatch.id) ? 600000 : UP.POLL_MS;
+  if(upWatch.timer && upWatch.every !== want){ clearInterval(upWatch.timer); upWatch.every = want; upWatch.timer = setInterval(upPoll, want); }
 }
 const UP_STAGES = [
   ['upload','Upload','Rows received in the inbox sheet'],
@@ -1559,8 +1785,21 @@ function upRenderStages(d){
   const sig = JSON.stringify(Object.values(st).map(x => [x.done, x.total]));
   if(sig !== upWatch.lastSig){ upWatch.lastSig = sig; upWatch.lastChange = Date.now(); }
   const notes = document.getElementById('upNotes');
-  if(!allDone && Date.now() - upWatch.lastChange > UP.STALE_MS){
-    notes.innerHTML = '<div class="up-note warn">Nothing has moved for over 3 minutes. The next stage runs from its own n8n workflow — check that it is active and that its schedule has fired.</div>';
+  const schedFut = upSchedFuture(upWatch.id), schedAny = lsGet('oright_sched_' + upWatch.id);
+  if(schedFut){
+    upWatch.lastChange = Date.now();
+    notes.innerHTML = '<div class="up-note info">Scheduled for <b>' + twLabel(schedFut) + '</b> Taiwan time. Nothing runs before then. After that, about 15 leads are processed every 30 minutes.</div>';
+  } else if(!allDone && Date.now() - upWatch.lastChange > UP.STALE_MS){
+    notes.innerHTML = '<div class="up-note warn">Nothing has moved for a while. Check in n8n that the next workflow is active and that its schedule has fired.</div>';
+  } else if(!allDone && schedAny && !cleanDone){
+    notes.innerHTML = '<div class="up-note info">Running in small steps: about 15 leads every 30 minutes, so Google and Tavily limits are not hit. The numbers update on their own.</div>';
+  } else if(!allDone){
+    const nextAt = (mins) => { const n = new Date(); const m = n.getMinutes(); let c = mins.find(x => x > m); const d2 = new Date(n); if(c === undefined){ c = mins[0]; d2.setHours(d2.getHours() + 1); } d2.setMinutes(c, 0, 0); return d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); };
+    let msg = '';
+    if(!cleanDone) msg = 'Waiting for the next cleaning run (it runs automatically at :00 and :30 of every hour, next around ' + nextAt([0,30]) + '). Nothing is stuck.';
+    else if(!verifyDone) msg = 'Verification is running or waiting for its next run (:10 and :40 of every hour, next around ' + nextAt([10,40]) + ').';
+    else msg = 'Enrichment, scoring and contact search each run about every 10 minutes. The numbers will update on their own.';
+    notes.innerHTML = '<div class="up-note info">' + msg + '</div>';
   } else notes.innerHTML = '';
   const done = document.getElementById('upDone');
   if(allDone){
@@ -2941,9 +3180,27 @@ function hubTab(t){
   document.querySelectorAll('#hubTabs .x-tab').forEach(e => e.classList.toggle('on', e.getAttribute('data-t') === t));
   $x('hubQueue').style.display = t === 'queue' ? '' : 'none'; $x('hubSent').style.display = t === 'sent' ? '' : 'none'; $x('hubHist').style.display = t === 'hist' ? '' : 'none';
 }
+function hubSafetyHTML(Q){
+  const S = Q && Q.safety; if(!S) return '';
+  const b = S.bounce || {}, pct = (b.sent_30d ? b.rate : 0) + '%', h = [];
+  if(S.blocked_by_bounce) h.push('<div class="x-err" style="margin:8px 0"><b>Sending is paused: bounce rate is too high.</b> ' + b.bounced_30d + ' of ' + b.sent_30d + ' emails bounced in the last 30 days (' + pct + '). Amazon SES puts an account under review at 5% and may pause it at 10%. Mark the bad addresses in the Sent tab and pick other contacts. Sending resumes when the rate drops.</div>');
+  else if(b.level === 'caution') h.push('<div class="x-note amber"><b>Bounce rate is getting high:</b> ' + b.bounced_30d + ' of ' + b.sent_30d + ' emails bounced in the last 30 days (' + pct + '). Amazon SES puts an account under review at 5%. Check contacts before sending more.</div>');
+  if(S.override) h.push('<div class="x-note amber"><b>Bounce protection is switched off</b> (BOUNCE_OVERRIDE in Hub_Config). Sending is not paused even when the bounce rate is high.</div>');
+  if(S.daily_level === 'limit') h.push('<div class="x-err" style="margin:8px 0"><b>Daily limit reached: ' + S.sent_today + ' of ' + S.limit + ' emails sent today (Taiwan time).</b> Anything you send now waits until tomorrow. You can still schedule emails for later days.</div>');
+  else if(S.daily_level === 'near') h.push('<div class="x-note amber"><b>Close to the daily limit:</b> ' + S.sent_today + ' of ' + S.limit + ' emails sent today (Taiwan time).</div>');
+  h.push('<div style="font-size:12px;color:var(--ink-faint);margin:6px 2px 4px" title="Bounces count only when they are marked in the Sent tab or recorded by the mailbox watcher. The Amazon SES console is the official number.">Today ' + S.sent_today + ' of ' + S.limit + ' · Bounce rate ' + pct + (b.small_sample && b.sent_30d ? ' (too few emails to judge yet)' : '') + ' over 30 days' + (S.mx_check === false ? ' · MX check is off' : '') + '</div>');
+  return h.join('');
+}
+async function hubBounce(i){
+  const r = (HUB.sent && HUB.sent.rows || [])[i]; if(!r) return;
+  const why = prompt('Mark this email as bounced?\n' + r.to_email + '\n\nOptional: paste the reason from the bounce message (for example "550 user unknown").', '');
+  if(why === null) return;
+  try { await n8nPost('/hub-bounce', { email_id:r.email_id, reason:why }); showToast('Marked as bounced'); hubLoad(true); }
+  catch(e){ showToast('Could not save: ' + e.message); }
+}
 function hubRender(){
   const Q = HUB.queue, S = HUB.sent, H = HUB.hist;
-  $x('hubMode').innerHTML = (Q && Q.test_mode) ? '<div class="x-note amber"><b>TEST MODE.</b> Emails can only be sent to your own office address' + ((Q.test_addresses || []).length ? ' (' + escH(Q.test_addresses.join(', ')) + ')' : '') + '. Sending to real leads is switched on later, after IT opens external sending.</div>' : '';
+  $x('hubMode').innerHTML = hubSafetyHTML(Q) + ((Q && Q.test_mode) ? '<div class="x-note amber"><b>TEST MODE.</b> Emails can only be sent to your own office address' + ((Q.test_addresses || []).length ? ' (' + escH(Q.test_addresses.join(', ')) + ')' : '') + '. Sending to real leads is switched on later, after IT opens external sending.</div>' : '');
   $x('hubCntQueue').textContent = Q ? '· ' + (Q.items || []).length : ''; $x('hubCntSent').textContent = S ? '· ' + ((S.rows || []).length) : ''; $x('hubCntHist').textContent = H ? '· ' + ((H.leads || []).length) : '';
   const nc = document.getElementById('navHubCnt'); if(nc){ const n = Q ? (Q.items || []).length : 0; nc.textContent = n; nc.style.display = n ? '' : 'none'; }
   hubDrawQueue(); hubDrawSent(); hubDrawHist();
@@ -3022,7 +3279,7 @@ function hubDrawSent(){
   if(late.length) h += '<div class="x-note amber"><b>' + late.length + ' email' + (late.length > 1 ? 's are' : ' is') + ' overdue.</b> They were due more than 10 minutes ago but have not gone out. Either the n8n workflow <code>Email_Send_Due</code> is not Active, or the computer running n8n was asleep or offline.</div>';
   h += '<div class="x-note blue">Clicks are counted only for people (clicks within seconds of sending are ignored, since mail scanners open links). Opens are not tracked: they are unreliable and inflated by Apple Mail privacy.</div>';
   if(!rows.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails yet.</b><br>Sent and scheduled emails show up here with their status.</div></div>';
-  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
+  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th><th></th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td><td class="r" onclick="event.stopPropagation()">' + (r.status === 'Sent' ? '<button class="x-btn" style="padding:4px 9px;font-size:11.5px" title="The email came back undeliverable" onclick="hubBounce(' + i + ')">Mark bounced</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
   el.innerHTML = h;
 }
 const SIGNAL = { hot:['red', '🔥 HOT'], active:['purple', 'Active'], followup:['amber', 'Follow up'], warm:['blue', 'Warm'], waiting:['grey', 'Waiting'], cold:['grey', 'Cold'], bounced:['red', 'Bounced'], closed:['grey', 'Closed'] };
@@ -3193,14 +3450,20 @@ function dAtHint(){
   el.innerHTML = '<b>Leaves at ' + escH(f(r.tz)) + '</b> in ' + escH(r.tz.replace(/_/g, ' ')) + '<br><span style="color:var(--ink-soft)">= ' + escH(f(mine)) + ' your time (' + escH(mine.replace(/_/g, ' ')) + ') = ' + escH(f('UTC', { weekday:undefined })) + ' UTC</span>' + r.warn.map(w => '<div style="color:var(--amber);margin-top:4px">' + escH(w) + '</div>').join('');
 }
 async function dRegen(){ const q = HUB.qItem, sel = $x('dToSel').value; $x('dRegen').disabled = true; $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; await dGenerate({ match_key:q.match_key, email_no:q.email_no || 1, rewrite:true, current_body:$x('dBody').value, contact_email:(sel && sel !== '__other') ? sel : undefined }, 'Writing a new version'); }
-async function dSend(mode){
+async function dSend(mode, confirmRisky){
   const d = HUB.draft; if(!d) return; const later = mode === 'later'; let at = null;
+  { const S = HUB.queue && HUB.queue.safety;
+    if(S && S.blocked_by_bounce){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> Sending is paused because the bounce rate is too high (' + S.bounce.bounced_30d + ' of ' + S.bounce.sent_30d + ' in 30 days).</div>'; return; }
+    if(S && !later && S.daily_level === 'limit'){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> Daily limit reached (' + S.sent_today + ' of ' + S.limit + '). Use Schedule and pick tomorrow.</div>'; return; } }
   if(later){ const r = dSchedCalc(); if(r.err){ dAtHint(); showToast(r.err); return; } at = new Date(r.ms).toISOString(); }
   const b1 = $x('dSend'), b2 = $x('dSchedBtn'); b1.disabled = b2.disabled = true; (later ? b2 : b1).textContent = later ? 'Scheduling…' : 'Sending…';
   try {
-    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:dToVal(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:at });
+    const r = await n8nPost('/hub-send', { email_id:d.email_id, match_key:HUB.qItem.match_key, to_email:dToVal(), greeting_name:$x('dName').value.trim(), subject:$x('dSubj').value.trim(), body:$x('dBody').value, when:later ? 'later' : 'now', at:at, confirm_risky:!!confirmRisky });
     xCloseAll(); showToast(later ? 'Scheduled' : 'Sending now…'); hubLoad(true); if(!later){ setTimeout(() => hubLoad(true), 6000); setTimeout(() => hubLoad(true), 25000); }
-  } catch(e){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> ' + escH(e.message) + '</div>'; }
+  } catch(e){
+    if(/^EMAIL_UNCERTAIN/.test(e.message)) $x('dMode').innerHTML = '<div class="x-note amber"><b>Not sent yet.</b> ' + escH(e.message.replace(/^EMAIL_UNCERTAIN:\s*/, '')) + '<div style="margin-top:8px"><button class="x-btn p" onclick="dSend(\'' + mode + '\', true)">Send anyway</button> <span style="color:var(--ink-soft)">or pick another contact above.</span></div></div>';
+    else $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> ' + escH(e.message) + '</div>';
+  }
   b1.textContent = 'Send now'; b2.textContent = $x('dSched').style.display === 'none' ? 'Schedule…' : 'Confirm schedule'; dCount();
 }
 
