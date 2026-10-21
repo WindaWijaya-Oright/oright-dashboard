@@ -710,10 +710,10 @@
         <form class="af-search" onsubmit="fnSearch(event)" autocomplete="off">
           <svg class="af-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="fnQ" class="af-q" placeholder="Company name" maxlength="120" aria-label="Company name">
-          <input id="fnC" class="af-c" list="fnCountries" placeholder="Country" maxlength="60" aria-label="Country">
+          <input id="fnC" class="af-c" list="fnCountries" placeholder="Country (optional)" maxlength="60" aria-label="Country, optional">
           <button class="btn-primary af-go" id="fnGo" type="submit">Find website</button>
         </form>
-        <datalist id="fnCountries"><option>Australia</option><option>Canada</option><option>Singapore</option><option>Malaysia</option><option>Indonesia</option><option>Thailand</option><option>Vietnam</option><option>Philippines</option><option>Japan</option><option>South Korea</option><option>United Arab Emirates</option><option>Saudi Arabia</option><option>United Kingdom</option><option>France</option><option>Germany</option><option>Italy</option><option>Spain</option><option>United States</option><option>Taiwan</option><option>Hong Kong</option><option>New Zealand</option></datalist>
+        <datalist id="fnCountries"><option>Argentina</option><option>Australia</option><option>Austria</option><option>Bahrain</option><option>Bangladesh</option><option>Belgium</option><option>Brazil</option><option>Cambodia</option><option>Canada</option><option>Chile</option><option>China</option><option>Colombia</option><option>Croatia</option><option>Czech Republic</option><option>Denmark</option><option>Egypt</option><option>Finland</option><option>France</option><option>Germany</option><option>Greece</option><option>Hong Kong</option><option>Hungary</option><option>India</option><option>Indonesia</option><option>Ireland</option><option>Israel</option><option>Italy</option><option>Japan</option><option>Jordan</option><option>Kazakhstan</option><option>Kenya</option><option>Kuwait</option><option>Laos</option><option>Lebanon</option><option>Macau</option><option>Malaysia</option><option>Mexico</option><option>Morocco</option><option>Myanmar</option><option>Nepal</option><option>Netherlands</option><option>New Zealand</option><option>Nigeria</option><option>Norway</option><option>Oman</option><option>Pakistan</option><option>Peru</option><option>Philippines</option><option>Poland</option><option>Portugal</option><option>Qatar</option><option>Romania</option><option>Russia</option><option>Saudi Arabia</option><option>Singapore</option><option>South Africa</option><option>South Korea</option><option>Spain</option><option>Sri Lanka</option><option>Sweden</option><option>Switzerland</option><option>Taiwan</option><option>Thailand</option><option>Turkey</option><option>Ukraine</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option><option>Vietnam</option></datalist>
         <div id="fnOut" aria-live="polite"></div>
       </section>
 
@@ -1561,11 +1561,14 @@ async function fnSearch(e){
   const go = fnEl('fnGo'), out = fnEl('fnOut'); go.disabled = true; go.textContent = 'Searching…';
   out.innerHTML = '<div class="fn-list"><div class="fn-skel"></div><div class="fn-skel"></div><div class="fn-skel"></div></div>';
   try {
-    const [d] = await Promise.all([n8nPost('/finder-search', { query:q, country:c }), fnEnsurePool()]);
-    FN.results = Array.isArray(d.results) ? d.results : [];
+    const [raw] = await Promise.all([n8nPost('/finder-search', { query:q, country:c }), fnEnsurePool()]);
+    const d = Array.isArray(raw) ? (raw[0] || {}) : (raw || {});
+    try { console.log('finder-search response', raw); } catch(e){}
+    if(d.ok === false || !Array.isArray(d.results)) throw new Error(d.error || 'The search workflow answered in an unexpected format. Open the finder-search execution in n8n, node Build_Finder_Results');
+    FN.results = d.results;
     fnRenderResults();
   } catch(err){
-    out.innerHTML = '<div class="up-note err">' + escH(err.message) + '. Check that the finder-search workflow is active in n8n.</div>';
+    out.innerHTML = '<div class="up-note err">' + escH(err.message) + '</div>' + '<div class="fn-none"><span>You can still add it by name and let the system search.</span><button class="btn-secondary" onclick="fnPick(-1)">Add name only</button></div>';
   }
   FN.busy = false; go.disabled = false; go.textContent = 'Find website';
 }
@@ -1581,7 +1584,7 @@ function fnRenderResults(){
   const sites = all.filter(([r]) => r.type === 'website'), other = all.filter(([r]) => r.type !== 'website');
   let h = '';
   if(sites.length) h += '<div class="fn-list">' + sites.map(([r, i]) => fnRowHTML(r, i, true)).join('') + '</div>';
-  else h += '<div class="up-note warn" style="background:#fff;">No company website found for “' + escH(FN.q) + '”. Try the full legal name, or add the country.</div>';
+  else h += '<div class="up-note warn" style="background:#fff;">No company website found for “' + escH(FN.q) + '”. Try the full legal name or the brand’s full name. If you know the country, add it. You can also add the name only below.</div>';
   if(other.length) h += '<details class="fn-more"><summary>Other results (' + other.length + ')</summary><div class="fn-list" style="margin-top:8px;">' + other.map(([r, i]) => fnRowHTML(r, i, false)).join('') + '</div></details>';
   h += '<div class="fn-none"><span>Not here? Add it by name and let the system search.</span><button class="btn-secondary" onclick="fnPick(-1)">Add name only</button></div>';
   out.innerHTML = h;
@@ -1592,14 +1595,13 @@ function fnPick(i){
   fnEl('fnOut').innerHTML = '<div class="fn-pick"><div class="site">' + (r ? fnFav(dom, r.title) + '<div class="fn-main"><div class="fn-t">' + escH(dom) + '</div><div class="fn-d"><a href="' + escH(r.url) + '" target="_blank" rel="noopener">Open site</a></div></div>' : '<div class="fn-main"><div class="fn-t">No website yet</div><div class="fn-d">The system will look for it during verification.</div></div>') + '</div>' +
     (have ? '<div class="up-note warn">This website is already in your leads as “' + escH(have.Name) + '”. Branches with a different city are still accepted; true duplicates are rejected on cleaning.</div>' : '') +
     '<div class="fn-fields"><label>Company name<input class="ld-input" id="fnName" maxlength="120" value="' + escH(FN.q) + '"></label>' +
-    '<label>Country<input class="ld-input" id="fnCountry" list="fnCountries" maxlength="60" value="' + escH(FN.c) + '"></label>' +
+    '<label>Country (optional)<input class="ld-input" id="fnCountry" list="fnCountries" maxlength="60" value="' + escH(FN.c) + '"></label>' +
     '<label>Channel<select class="ld-input" id="fnChan"><option value="">Choose…</option>' + OFFICIAL_CHANNELS.map(c => '<option' + (c === chan ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label></div>' +
     '<div class="row"><button class="btn-primary" id="fnAddBtn" onclick="fnAdd()">Add to leads</button><button class="btn-secondary" onclick="fnRenderResults()">Back to results</button></div></div>';
 }
 async function fnAdd(){
   const name = fnEl('fnName').value.trim(), country = fnEl('fnCountry').value.trim(), channel = fnEl('fnChan').value;
   if(!name){ showToast('Company name is empty'); return; }
-  if(!country){ showToast('Add the country'); fnEl('fnCountry').focus(); return; }
   if(!channel){ showToast('Choose a channel'); fnEl('fnChan').focus(); return; }
   lsSet('oright_fn_chan', channel);
   const btn = fnEl('fnAddBtn'); btn.disabled = true; btn.textContent = 'Adding…';
