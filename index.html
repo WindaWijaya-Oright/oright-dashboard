@@ -1729,6 +1729,22 @@ function upKick(batch){
   post('/kick-clean');
   setTimeout(() => post('/kick-verify'), 30000);
 }
+const UP_KICK_GAP = { enrich:240000, score:240000, apify:300000 };
+function upKickStage(name, batch){
+  upWatch.kicks = upWatch.kicks || {};
+  const k = batch + ':' + name, now = Date.now();
+  if(upWatch.kicks[k] && now - upWatch.kicks[k] < UP_KICK_GAP[name]) return;
+  upWatch.kicks[k] = now;
+  try { fetch(N8N_BASE + '/kick-' + name, { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ batch_id: batch }) }).catch(() => {}); } catch(e){}
+}
+function upDriveStages(st, verifyDone){
+  const b = upWatch.id; if(!b || upSchedFuture(b)) return;
+  const g = k => st[k] || { total:0, done:0 };
+  const en = g('enrich'), sc = g('score'), ct = g('contacts');
+  if(g('verify').done > 0 && en.total > 0 && en.done < en.total) upKickStage('enrich', b);
+  if(en.done > 0 && sc.total > 0 && sc.done < sc.total) upKickStage('score', b);
+  if(verifyDone && sc.total > 0 && sc.done >= sc.total && ct.total > 0 && ct.done < ct.total) upKickStage('apify', b);
+}
 function upWatchBegin(batch, uploaded){
   document.getElementById('upProgress').style.display = 'block';
   document.getElementById('upBatchTitle').textContent = 'Batch ' + batch;
@@ -1784,6 +1800,7 @@ function upRenderStages(d){
     html += '<div class="stg ' + cls + '"><div class="ic">' + (finished ? '✓' : (i+1)) + '</div><div><div class="nm">' + name + '</div><div class="ds">' + desc + '</div></div><div><div class="bar"><i style="width:' + pct + '%"></i></div>' + (chips ? '<div class="chips">' + chips + '</div>' : '') + '</div><div class="cnt">' + s.done + ' / ' + s.total + '</div></div>';
   });
   document.getElementById('upStages').innerHTML = html;
+  upDriveStages(st, verifyDone);
   const sig = JSON.stringify(Object.values(st).map(x => [x.done, x.total]));
   if(sig !== upWatch.lastSig){ upWatch.lastSig = sig; upWatch.lastChange = Date.now(); }
   const notes = document.getElementById('upNotes');
@@ -1800,7 +1817,7 @@ function upRenderStages(d){
     let msg = '';
     if(!cleanDone) msg = 'Waiting for the next cleaning run (it runs automatically at :00 and :30 of every hour, next around ' + nextAt([0,30]) + '). Nothing is stuck.';
     else if(!verifyDone) msg = 'Verification is running or waiting for its next run (:10 and :40 of every hour, next around ' + nextAt([10,40]) + ').';
-    else msg = 'Enrichment, scoring and contact search each run about every 10 minutes. The numbers will update on their own.';
+    else msg = 'Enrichment, scoring and contact search start by themselves as each step finishes. Keep this page open for the fastest result; otherwise each step runs about every 10 minutes.';
     notes.innerHTML = '<div class="up-note info">' + msg + '</div>';
   } else notes.innerHTML = '';
   const done = document.getElementById('upDone');
