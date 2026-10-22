@@ -772,7 +772,7 @@
           <h2>Upload a list</h2>
           <label class="af-src">
             <span>Source</span>
-            <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. Expo 2026, Google Maps" oninput="lsSet('oright_last_source', this.value)">
+            <input class="ld-input" id="upSource" list="upSourceList" maxlength="40" placeholder="e.g. Expo 2026, Google Maps">
           </label>
           <datalist id="upSourceList"></datalist>
         </div>
@@ -1315,7 +1315,6 @@ function upFillSources(){
   const dl = document.getElementById('upSourceList'), si = document.getElementById('upSource'); if(!dl) return;
   const set = new Set(['ACRA-SG']); poolLeads.forEach(l => { if(l.Source) set.add(l.Source); });
   dl.innerHTML = [...set].sort().map(s => '<option value="' + escH(s) + '">').join('');
-  if(si && !si.value){ const last = lsGet('oright_last_source'); if(last) si.value = last; }
 }
 function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1894,7 +1893,7 @@ function renderLeads(){
     return '';
   };
   body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : '', cf = ldChanFlag(l); return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
-    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (ldChanHeld(l) ? '<span class="ld-dw" title="Scoring is paused until you confirm or change the channel.">⏸ channel on hold</span>' : (String(l.Human_Verdict || '') === 'AutoChannel' ? '<span class="ld-dw" title="The pipeline changed the channel from ' + escH(l.Channel_Prev || 'none') + ' based on the website. Open the lead to check.">↻ channel auto-changed</span>' : (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : ''))) + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
+    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + ldBrandPill(l) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (ldChanHeld(l) ? '<span class="ld-dw" title="Scoring is paused until you confirm or change the channel.">⏸ channel on hold</span>' : (String(l.Human_Verdict || '') === 'AutoChannel' ? '<span class="ld-dw" title="The pipeline changed the channel from ' + escH(l.Channel_Prev || 'none') + ' based on the website. Open the lead to check.">↻ channel auto-changed</span>' : (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : ''))) + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
     '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status, l) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
     '<div style="font-size:12px;">' + lcContactCell(l) + '</div></div>'; }).join('');
@@ -2030,6 +2029,7 @@ function renderLeadDrawer(){
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
   document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status, L);
   let h = ldDecisionHTML(L, status);
+  h += ldEditHTML(L);
   if(status !== 'Needs_Search') h += ldChannelHTML(L) + ldBrandHTML(L);
   h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
   const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
@@ -3838,13 +3838,15 @@ function pipeInsDraw(){
 
 /* ---------- BRAND on a lead (O'right <-> O'right PRO) ---------- */
 const BRAND_NAME = { ORIGHT:"O'right", PRO:"O'right PRO" };
+function ldBrandPill(l){ return String(l.Brand_Suggest || '').toUpperCase() === 'PRO' && String(l.Brand || '').toUpperCase() !== 'PRO' ? '<span class="ld-dw" title="The website suggests this company serves salons. Open the lead to decide on O\'right PRO.">PRO?</span>' : (String(l.Brand || '').toUpperCase() === 'PRO' ? '<span class="x-pill green" style="margin-left:6px">PRO</span>' : ''); }
 const BR_SRC = { manual:'set by you', website:'from the website', channel:'guess from channel', default:'default guess' };
 function ldBrandHTML(L){
-  const cur = String(L.Brand || '').toUpperCase(), prev = String(L.Brand_Prev || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase();
+  const cur = String(L.Brand || '').toUpperCase(), prev = String(L.Brand_Prev || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase(), sug = String(L.Brand_Suggest || '').toUpperCase();
   const other = cur === 'PRO' ? 'ORIGHT' : 'PRO';
   const mk = L.Match_Key || (ldCurrent && ldCurrent.mk) || '';
   const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === mk && /^(scheduled|queued)$/i.test(r.status || '')).length;
   return '<div class="ld-sec"><h4>Brand</h4>' + ldKV([['Current brand', cur ? '<b>' + escH(BRAND_NAME[cur] || cur) + '</b> <span class="x-pill ' + (src === 'manual' || src === 'website' ? 'green' : 'amber') + '">' + escH(BR_SRC[src] || 'rough guess') + '</span>' + (L.Brand_Evidence ? '<div class="ld-quote" style="margin-top:6px">“' + escH(L.Brand_Evidence) + '”</div>' : '') : '<span style="color:var(--ink-faint)">Not set yet. The channel default is used (Settings → Prompts).</span>']].concat(prev && String(L.Human_Verdict || '') === 'BrandChanged' ? [['Moved from', escH(BRAND_NAME[prev] || prev)]] : [])) +
+    ((sug === 'PRO' && cur !== 'PRO') ? '<div class="x-note amber"><b>This company seems to supply or serve salons.</b> Move it to O\'right PRO?' + (L.Brand_Evidence ? '<div class="ld-quote" style="margin-top:6px">“' + escH(L.Brand_Evidence) + '”</div>' : '') + '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" style="flex:none;padding:7px 14px;font-size:12px" onclick="ldBrandAnswer(\'PRO\')">Yes, move to PRO</button><button class="btn-secondary" style="flex:none;padding:7px 14px;font-size:12px" onclick="ldBrandAnswer(\'ORIGHT\')">No, keep O\'right</button></div></div>' : '') +
     '<div class="row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><select class="ld-input" id="ldBrSel" style="flex:1;min-width:150px"><option value="ORIGHT"' + (other === 'ORIGHT' ? ' selected' : '') + '>' + BRAND_NAME.ORIGHT + '</option><option value="PRO"' + (other === 'PRO' ? ' selected' : '') + '>' + BRAND_NAME.PRO + '</option></select><button class="btn-secondary" onclick="ldChangeBrand()">Move to this brand</button></div>' +
     '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin-top:8px;line-height:1.5"><input type="checkbox" id="ldBrRescore" style="margin-top:3px"><span>Score again with the new brand\'s rubric. Only tick this if you have created a rubric for that brand; otherwise the score stays the same anyway.</span></label>' +
     (sched ? '<div class="x-note amber"><b>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled</b> for this lead and will go out with the old brand\'s wording. Cancel or rewrite them in the Outreach Hub.</div>' : '') +
@@ -3862,6 +3864,35 @@ async function ldChangeBrand(){
     showToast('Moved to ' + BRAND_NAME[br] + (rescore ? '. It will be scored again.' : '.'));
     renderLeadDrawer(); sumCache = null;
   } catch(err){ showToast('Could not change brand: ' + err.message); }
+}
+
+async function ldBrandAnswer(br){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {};
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'set_brand', brand:br, old_brand:String(L.Brand || '').toUpperCase(), rescore:false });
+    const patch = { Brand:br, Brand_Prev:String(L.Brand || '').toUpperCase(), Brand_Source:'manual', Brand_Suggest:'', Human_Verdict:'BrandChanged' };
+    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, patch); Object.assign(L, patch);
+    showToast(br === 'PRO' ? 'Moved to O\'right PRO' : 'Kept as O\'right'); renderLeadDrawer(); renderLeads();
+  } catch(err){ showToast('Could not save: ' + err.message); }
+}
+/* ---------- edit lead details (name, source, country, city, industry) ---------- */
+const LD_EDIT = [['Name','Company name'],['Source','Source (where the data came from)'],['Country','Country'],['City','City'],['Industry','Industry']];
+function ldEditHTML(L){
+  return '<div class="ld-sec"><details><summary><h4 style="display:inline">Edit details</h4></summary><div style="margin-top:10px">' +
+    LD_EDIT.map(f => '<label class="sf-lb">' + f[1] + '</label><input class="ld-input" id="ldE_' + f[0] + '"' + (f[0] === 'Source' ? ' list="upSourceList"' : '') + ' value="' + escH(L[f[0]] || '') + '" maxlength="150">').join('') +
+    '<div style="display:flex;gap:8px;margin-top:10px"><button class="btn-primary" style="flex:none;padding:8px 16px;font-size:12px" onclick="ldSaveEdit()">Save changes</button></div>' +
+    '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;line-height:1.5">The lead keeps its ID, so contacts and emails stay linked. If you change the company name a lot, use "Check website again" so the website is re-verified for the new name. Website and channel are changed in their own sections.</div></div></details></div>';
+}
+async function ldSaveEdit(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {}, fields = {};
+  LD_EDIT.forEach(f => { const v = ($x('ldE_' + f[0]) || {}).value; if(v !== undefined && String(v).trim() !== String(L[f[0]] || '').trim()) fields[f[0]] = String(v).trim(); });
+  if(!Object.keys(fields).length){ showToast('Nothing changed'); return; }
+  if('Name' in fields && !fields.Name){ showToast('The company name cannot be empty'); return; }
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'edit_fields', fields });
+    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, fields); Object.assign(L, fields);
+    showToast('Saved'); renderLeadDrawer(); renderLeads(); sumCache = null;
+  } catch(err){ showToast('Could not save: ' + err.message); }
 }
 
 /* ---------- PIPELINE: layers 1-3 (pure logic, no DOM) ---------- */
