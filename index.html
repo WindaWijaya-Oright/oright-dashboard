@@ -3490,6 +3490,7 @@ async function dSend(mode, confirmRisky){
   } catch(e){
     if(/^EMAIL_UNCERTAIN/.test(e.message)) $x('dMode').innerHTML = '<div class="x-note amber"><b>Not sent yet.</b> ' + escH(e.message.replace(/^EMAIL_UNCERTAIN:\s*/, '')) + '<div style="margin-top:8px"><button class="x-btn p" onclick="dSend(\'' + mode + '\', true)">Send anyway</button> <span style="color:var(--ink-soft)">or pick another contact above.</span></div></div>';
     else $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> ' + escH(e.message) + '</div>';
+    showToast('Not sent: ' + String(e.message).slice(0, 140)); try { $x('dMode').scrollIntoView({ block:'center', behavior:'smooth' }); } catch(x){}
   }
   b1.textContent = 'Send now'; b2.textContent = $x('dSched').style.display === 'none' ? 'Schedule…' : 'Confirm schedule'; dCount();
 }
@@ -3873,11 +3874,12 @@ async function ldChangeBrand(){
 /* ---------- edit lead details (name, source, country, city, industry) ---------- */
 const LD_EDIT = [['Name','Company name'],['Source','Source (where the data came from)'],['Country','Country'],['City','City'],['Industry','Industry']];
 function ldEditHTML(L){
-  return '<div class="ld-sec"><details><summary><h4 style="display:inline">Edit details</h4></summary><div style="margin-top:10px">' +
+  return '<div class="ld-sec"><details open><summary><h4 style="display:inline">Edit details</h4></summary><div style="margin-top:10px" oninput="ldEditDirty()">' +
     LD_EDIT.map(f => '<label class="sf-lb">' + f[1] + '</label><input class="ld-input" id="ldE_' + f[0] + '"' + (f[0] === 'Source' ? ' list="upSourceList"' : '') + ' value="' + escH(L[f[0]] || '') + '" maxlength="150">').join('') +
-    '<div style="display:flex;gap:8px;margin-top:10px"><button class="btn-primary" style="flex:none;padding:8px 16px;font-size:12px" onclick="ldSaveEdit()">Save changes</button></div>' +
+    '<div style="margin-top:12px"><button id="ldEditSave" class="btn-primary" style="width:100%;padding:10px 16px;font-size:13px" onclick="ldSaveEdit()">Save changes</button></div>' +
     '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;line-height:1.5">The lead keeps its ID, so contacts and emails stay linked. If you change the company name a lot, use "Check website again" so the website is re-verified for the new name. Website and channel are changed in their own sections.</div></div></details></div>';
 }
+function ldEditDirty(){ const b = $x('ldEditSave'); if(!b) return; const L = (ldCurrent && ldCurrent.lead) || {}; const d = LD_EDIT.some(f => { const e = $x('ldE_' + f[0]); return e && String(e.value).trim() !== String(L[f[0]] || '').trim(); }); b.textContent = d ? 'Save changes (not saved yet)' : 'Save changes'; }
 async function ldSaveEdit(){
   const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {}, fields = {};
   LD_EDIT.forEach(f => { const v = ($x('ldE_' + f[0]) || {}).value; if(v !== undefined && String(v).trim() !== String(L[f[0]] || '').trim()) fields[f[0]] = String(v).trim(); });
