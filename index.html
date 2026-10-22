@@ -3128,7 +3128,12 @@ const TZ_TABLE = {
 const TZ_BY_KEY = {}; Object.keys(TZ_TABLE).forEach(k => k.split('|').forEach(n => { TZ_BY_KEY[n] = TZ_TABLE[k]; }));
 const WEEKEND_FRI_SAT = ['sa', 'kw', 'qa', 'bh', 'il', 'eg', 'jo', 'iq', 'ir'];      // weekend on Friday-Saturday (heuristic warning only)
 function tzNormCountry(c){ return String(c == null ? '' : c).toLowerCase().replace(/\s+/g, ' ').trim(); }
-function tzZonesFor(country){ return TZ_BY_KEY[tzNormCountry(country)] || null; }
+function tzZonesFor(country){
+  const n = tzNormCountry(country); if(TZ_BY_KEY[n]) return TZ_BY_KEY[n];
+  const parts = n.split(/[,;()\/|]+|\s-\s/).map(x => x.trim()).filter(Boolean).reverse();      // "Nice, France" / "France (FR)": try each piece, last first
+  for(const p of parts) if(TZ_BY_KEY[p]) return TZ_BY_KEY[p];
+  return null;
+}
 function tzAllZones(){ const o = {}; Object.keys(TZ_TABLE).forEach(k => TZ_TABLE[k].forEach(z => { o[z] = 1; })); return Object.keys(o).sort(); }
 function tzIsFriSat(country){ const k = tzNormCountry(country); return Object.keys(TZ_TABLE).some(key => key.split('|').includes(k) && WEEKEND_FRI_SAT.includes(key.split('|')[0])); }
 function tzOffsetMin(utcMs, tz){
@@ -3439,16 +3444,16 @@ function dCount(){
   $x('dSend').disabled = $x('dSchedBtn').disabled = !HUB.draft || hard || !dToVal() || (soft && !$x('dAck').checked);
 }
 function dSchedOpen(){
-  const q = HUB.qItem || {}, d = HUB.draft || {}, zs = tzZonesFor(q.country), def = (zs && zs[0]) || d.recipient_tz || '', all = tzAllZones();
+  const q = HUB.qItem || {}, d = HUB.draft || {}, L0 = (HUB.lead && HUB.lead.lead) || {}, ctry = String(q.country || d.country || L0.country || '').trim(), zs = tzZonesFor(ctry), def = (zs && zs[0]) || d.recipient_tz || '', all = tzAllZones();
   const opt = z => '<option value="' + z + '">' + z.replace(/_/g, ' ') + '</option>';
-  $x('dTz').innerHTML = (zs ? '<optgroup label="' + escH(q.country) + '">' + zs.map(opt).join('') + '</optgroup>' : '') + '<optgroup label="' + (zs ? 'Other zones' : 'Pick the recipient time zone') + '">' + all.filter(z => !zs || !zs.includes(z)).map(opt).join('') + '</optgroup>';
+  $x('dTz').innerHTML = (zs ? '<optgroup label="' + escH(ctry) + '">' + zs.map(opt).join('') + '</optgroup>' : '') + '<optgroup label="' + (zs ? 'Other zones' : 'Pick the recipient time zone') + '">' + all.filter(z => !zs || !zs.includes(z)).map(opt).join('') + '</optgroup>';
   if(def && !all.includes(def)) $x('dTz').insertAdjacentHTML('afterbegin', opt(def));
   if(def) $x('dTz').value = def; else $x('dTz').selectedIndex = -1;
   $x('dTz').style.display = def ? 'none' : '';
-  $x('dTzLine').innerHTML = def ? 'Recipient time zone: <b>' + escH(def.replace(/_/g, ' ')) + '</b>' + (q.country ? ' (set from ' + escH(q.country) + ')' : '') + (zs && zs.length > 1 ? ' · <a href="#" onclick="dTzShow();return false">change</a>' : '') : '<span style="color:var(--amber)">Country not recognised. Pick the recipient time zone.</span>';
+  $x('dTzLine').innerHTML = def ? 'Recipient time zone: <b>' + escH(def.replace(/_/g, ' ')) + '</b>' + (ctry ? ' (set from ' + escH(ctry) + ')' : '') + (zs && zs.length > 1 ? ' · <a href="#" onclick="dTzShow();return false">change</a>' : '') : '<span style="color:var(--amber)">' + (ctry ? 'Country "' + escH(ctry) + '" is not in the time zone list.' : 'This lead has no country.') + ' Pick the recipient time zone.</span>';
   const p = n => String(n).padStart(2, '0'); let t = ''; for(let m = 0; m < 1440; m += 30) t += '<option>' + p(Math.floor(m / 60)) + ':' + p(m % 60) + '</option>';
   $x('dTime').innerHTML = t; $x('dTime').value = '09:00';
-  if(def){ $x('dDate').value = tzNextBusinessDay(def, q.country); $x('dDate').min = tzWall(Date.now(), def).date; }
+  if(def){ $x('dDate').value = tzNextBusinessDay(def, ctry); $x('dDate').min = tzWall(Date.now(), def).date; }
   $x('dSched').style.display = ''; $x('dSchedBtn').textContent = 'Confirm schedule'; $x('dSchedBtn').className = 'x-btn p'; $x('dSend').className = 'x-btn'; dAtHint();
 }
 function dTzShow(){ $x('dTz').style.display = ''; $x('dTzLine').innerHTML = 'Recipient time zone:'; }
@@ -3838,15 +3843,14 @@ function pipeInsDraw(){
 
 /* ---------- BRAND on a lead (O'right <-> O'right PRO) ---------- */
 const BRAND_NAME = { ORIGHT:"O'right", PRO:"O'right PRO" };
-function ldBrandPill(l){ return String(l.Brand_Suggest || '').toUpperCase() === 'PRO' && String(l.Brand || '').toUpperCase() !== 'PRO' ? '<span class="ld-dw" title="The website suggests this company serves salons. Open the lead to decide on O\'right PRO.">PRO?</span>' : (String(l.Brand || '').toUpperCase() === 'PRO' ? '<span class="x-pill green" style="margin-left:6px">PRO</span>' : ''); }
+function ldBrandPill(l){ return String(l.Brand || '').toUpperCase() === 'PRO' ? '<span class="x-pill green" style="margin-left:6px" title="O\'right PRO">PRO</span>' : ''; }
 const BR_SRC = { manual:'set by you', website:'from the website', channel:'guess from channel', default:'default guess' };
 function ldBrandHTML(L){
-  const cur = String(L.Brand || '').toUpperCase(), prev = String(L.Brand_Prev || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase(), sug = String(L.Brand_Suggest || '').toUpperCase();
+  const cur = String(L.Brand || '').toUpperCase(), prev = String(L.Brand_Prev || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase();
   const other = cur === 'PRO' ? 'ORIGHT' : 'PRO';
   const mk = L.Match_Key || (ldCurrent && ldCurrent.mk) || '';
   const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === mk && /^(scheduled|queued)$/i.test(r.status || '')).length;
   return '<div class="ld-sec"><h4>Brand</h4>' + ldKV([['Current brand', cur ? '<b>' + escH(BRAND_NAME[cur] || cur) + '</b> <span class="x-pill ' + (src === 'manual' || src === 'website' ? 'green' : 'amber') + '">' + escH(BR_SRC[src] || 'rough guess') + '</span>' + (L.Brand_Evidence ? '<div class="ld-quote" style="margin-top:6px">“' + escH(L.Brand_Evidence) + '”</div>' : '') : '<span style="color:var(--ink-faint)">Not set yet. The channel default is used (Settings → Prompts).</span>']].concat(prev && String(L.Human_Verdict || '') === 'BrandChanged' ? [['Moved from', escH(BRAND_NAME[prev] || prev)]] : [])) +
-    ((sug === 'PRO' && cur !== 'PRO') ? '<div class="x-note amber"><b>This company seems to supply or serve salons.</b> Move it to O\'right PRO?' + (L.Brand_Evidence ? '<div class="ld-quote" style="margin-top:6px">“' + escH(L.Brand_Evidence) + '”</div>' : '') + '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" style="flex:none;padding:7px 14px;font-size:12px" onclick="ldBrandAnswer(\'PRO\')">Yes, move to PRO</button><button class="btn-secondary" style="flex:none;padding:7px 14px;font-size:12px" onclick="ldBrandAnswer(\'ORIGHT\')">No, keep O\'right</button></div></div>' : '') +
     '<div class="row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><select class="ld-input" id="ldBrSel" style="flex:1;min-width:150px"><option value="ORIGHT"' + (other === 'ORIGHT' ? ' selected' : '') + '>' + BRAND_NAME.ORIGHT + '</option><option value="PRO"' + (other === 'PRO' ? ' selected' : '') + '>' + BRAND_NAME.PRO + '</option></select><button class="btn-secondary" onclick="ldChangeBrand()">Move to this brand</button></div>' +
     '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin-top:8px;line-height:1.5"><input type="checkbox" id="ldBrRescore" style="margin-top:3px"><span>Score again with the new brand\'s rubric. Only tick this if you have created a rubric for that brand; otherwise the score stays the same anyway.</span></label>' +
     (sched ? '<div class="x-note amber"><b>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled</b> for this lead and will go out with the old brand\'s wording. Cancel or rewrite them in the Outreach Hub.</div>' : '') +
@@ -3866,15 +3870,6 @@ async function ldChangeBrand(){
   } catch(err){ showToast('Could not change brand: ' + err.message); }
 }
 
-async function ldBrandAnswer(br){
-  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {};
-  try {
-    await n8nPost('/lead-review', { match_key:mk, action:'set_brand', brand:br, old_brand:String(L.Brand || '').toUpperCase(), rescore:false });
-    const patch = { Brand:br, Brand_Prev:String(L.Brand || '').toUpperCase(), Brand_Source:'manual', Brand_Suggest:'', Human_Verdict:'BrandChanged' };
-    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, patch); Object.assign(L, patch);
-    showToast(br === 'PRO' ? 'Moved to O\'right PRO' : 'Kept as O\'right'); renderLeadDrawer(); renderLeads();
-  } catch(err){ showToast('Could not save: ' + err.message); }
-}
 /* ---------- edit lead details (name, source, country, city, industry) ---------- */
 const LD_EDIT = [['Name','Company name'],['Source','Source (where the data came from)'],['Country','Country'],['City','City'],['Industry','Industry']];
 function ldEditHTML(L){
