@@ -494,6 +494,55 @@
 .x-flag{display:inline-block;margin:2px 4px 2px 0}
 .x-chk{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:12.5px}.x-chk input{width:auto;margin-top:2px}
 #xForm,#xBrief{z-index:73}
+/* v11 pipeline */
+.pp-banner{display:flex;gap:14px;align-items:center;border-radius:14px;padding:16px 20px;margin-bottom:14px;border:1px solid var(--border);background:#fff}
+.pp-banner .dot{width:16px;height:16px;border-radius:50%;flex:none;background:#B7C0CC}
+.pp-banner .t{font-family:'Manrope',sans-serif;font-weight:800;font-size:17px}.pp-banner .s{color:var(--ink-soft);font-size:14px;margin-top:2px;line-height:1.5}
+.pp-banner.red{background:var(--red-soft);border-color:#F0C9C9}.pp-banner.red .dot{background:var(--red);box-shadow:0 0 0 5px #F3D3D3}
+.pp-banner.amber{background:var(--amber-soft);border-color:#EED9B0}.pp-banner.amber .dot{background:#D8921A;box-shadow:0 0 0 5px #F4E2BE}
+.pp-banner.green{background:var(--green-soft);border-color:#BFE3D0}.pp-banner.green .dot{background:var(--green);box-shadow:0 0 0 5px #CBEBDB}
+.pp-lanes{display:grid;grid-template-columns:repeat(5,minmax(190px,1fr));gap:12px;overflow:auto;padding-bottom:6px}
+.pp-lane{background:#fff;border:1px solid var(--border);border-top:3px solid #B7C0CC;border-radius:12px;padding:12px;min-width:0}
+.pp-lane.red{border-top-color:var(--red)}.pp-lane.amber{border-top-color:#D8921A}.pp-lane.blue{border-top-color:var(--brand)}
+.pp-lh{display:flex;justify-content:space-between;align-items:baseline}.pp-lt{font-weight:800;font-size:13.5px}.pp-ln{font-family:'Manrope',sans-serif;font-weight:800;font-size:22px}
+.pp-ls{font-size:11.5px;color:var(--ink-faint);margin:2px 0 10px;line-height:1.4}
+.pp-li{padding:8px 0;border-top:1px solid #F0F2F5;cursor:pointer}.pp-li:hover .n{color:var(--brand)}
+.pp-li .n{font-weight:700;font-size:13px}.pp-li .s{font-size:11.5px;color:var(--ink-soft)}.pp-li .w{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.4}
+.pp-none{font-size:12px;color:var(--ink-faint);padding:6px 0}.pp-more{margin-top:8px;width:100%}
+.pp-note{font-size:11.5px;color:var(--ink-faint);margin:8px 2px 14px}
+.pp-fr{display:grid;grid-template-columns:96px minmax(0,1fr) 44px 86px 110px;gap:10px;align-items:center;padding:6px 0}
+.pp-fr .nm{font-weight:700;font-size:13px}.pp-fr .bar{background:#EFF2F6;border-radius:6px;height:14px;overflow:hidden}.pp-fr .bar i{display:block;height:100%;background:var(--brand);border-radius:6px}
+.pp-fr .num{font-family:'Manrope',sans-serif;font-weight:800;text-align:right}.pp-fr .cv{font-size:12.5px;font-weight:700}.pp-fr .cv .small{color:var(--ink-faint)}.pp-fr .cv em{font-style:normal;font-weight:500;color:var(--ink-faint);font-size:11px}
+.pp-fr .sit{font-size:11.5px;color:var(--ink-faint)}
+.pp-fnote{font-size:12.5px;color:var(--ink-soft);border-top:1px solid #F0F2F5;margin-top:8px;padding-top:10px;line-height:1.55}
+.pp-board{margin-top:14px}.pp-board>summary{cursor:pointer;font-weight:800;font-size:14px;padding:10px 2px}
+@media(max-width:900px){.pp-fr{grid-template-columns:80px minmax(0,1fr) 36px}.pp-fr .cv,.pp-fr .sit{grid-column:2/4}}
+@media(max-width:700px){.pp-lanes{grid-template-columns:minmax(0,1fr)}}
+
+.sf-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;padding:11px 0;border-top:1px solid var(--border);align-items:start}
+.sf-row:first-of-type{border-top:0}.sf-row.ch{background:var(--amber-soft);margin:0 -18px;padding:11px 18px}
+.sf-l b{font-size:13px}.sf-h{font-size:12px;color:var(--ink-faint);line-height:1.5;margin-top:2px}.sf-d{font-size:11.5px;color:var(--ink-faint);margin-top:3px}.sf-e{font-size:12px;color:var(--red);margin-top:3px;font-weight:600}
+.sf-i input[type=text],.sf-i input[type=number],.sf-i select,#page-settings .set-lock input,.pm-loc input,.pm-map select{width:100%;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;background:#fff;box-sizing:border-box}
+.sf-lb{display:block;font-size:12px;font-weight:700;margin:10px 0 4px;color:var(--ink-soft)}
+.sf-sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-right:14px}.sf-sw input{position:absolute;opacity:0}.sf-sw span{width:34px;height:20px;border-radius:99px;background:#cbd2e0;position:relative;transition:.15s}.sf-sw span:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}.sf-sw input:checked+span{background:var(--green)}.sf-sw input:checked+span:after{left:16px}.sf-sw input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.sf-act{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.sf-bar{position:sticky;bottom:0;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:0 -4px 18px rgba(20,30,60,.10);margin:0 0 14px}
+.sf-bar .n{font-weight:700;font-size:13px}.sf-bar #setNote{flex:1;min-width:180px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px}
+.sf-live{flex-basis:100%;background:var(--red-soft);color:var(--red);border-radius:9px;padding:8px 12px;font-size:12.5px}.sf-live input{margin-left:8px;border:1px solid var(--red);border-radius:7px;padding:5px 8px;width:120px}
+.set-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.set-top .x-tabs{flex:1}
+.set-lock{max-width:460px;display:flex;flex-direction:column;gap:10px}
+.pm{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;margin-top:10px;align-items:start}.pm-l{padding:8px 0}
+.pm-g{font-size:11.5px;font-weight:700;color:var(--ink-faint);padding:10px 12px 4px}.pm-i{padding:8px 12px;cursor:pointer;display:flex;flex-direction:column;border-left:3px solid transparent}.pm-i span{font-size:11.5px;color:var(--ink-faint)}.pm-i:hover{background:var(--bg)}.pm-i.on{background:var(--brand-soft);border-left-color:var(--brand)}
+.pm-v{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:12.5px}
+.pm-map{display:grid;grid-template-columns:150px minmax(0,220px);gap:8px 12px;align-items:center;font-size:13px}
+.st-big{font-size:34px;font-weight:800;letter-spacing:-.02em}.st-big small{font-size:13px;font-weight:600;color:var(--ink-faint)}
+.st-t{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}.st-t td,.st-t th{padding:7px 4px;border-top:1px solid var(--border);text-align:left}
+.hs-r{padding:11px 0;border-top:1px solid var(--border)}.hs-r:first-child{border-top:0}.hs-r.rv{opacity:.55}.hs-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hs-t{margin-left:auto;font-size:12px;color:var(--ink-faint)}.hs-d{font-size:12.5px;margin:4px 0;word-break:break-word}.hs-d .o{color:var(--red);text-decoration:line-through}.hs-d .n{color:var(--green);font-weight:600}.hs-r .x-btn{margin-top:6px}
+.in-tot{display:flex;gap:26px;flex-wrap:wrap;margin:6px 0 12px}.in-tot b{display:block;font-size:22px}.in-tot span{font-size:12px;color:var(--ink-faint)}
+.in-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;margin-top:10px}.in-d h4{margin:0 0 6px;font-size:13px}
+.in-r{display:grid;grid-template-columns:minmax(80px,1.1fr) minmax(60px,1.6fr) 62px minmax(110px,1.3fr);gap:8px;align-items:center;font-size:12.5px;padding:3px 0}.in-r .bar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden}.in-r .bar i{display:block;height:100%;background:var(--brand);border-radius:99px}.in-r .num{color:var(--ink-faint);text-align:right}.in-r.early{opacity:.7}.in-r .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:900px){.sf-row,.pm{grid-template-columns:1fr}.in-r{grid-template-columns:1fr 1fr}.in-r .bar{display:none}}
+
 .x-panel,.x-kpi,.x-bar,.x-tbl,.x-card,.x-todo,.x-note,.x-ev{font-size:13px}
 .x-bar .lab{font-size:13px}.x-kpi .v{font-size:28px}.x-tbl td{font-size:13px}
 
@@ -764,6 +813,7 @@
 
       <div class="oh-subtabs" style="margin-bottom:14px;" id="lcTabs">
         <div class="oh-subtab active" data-lctab="review" onclick="setLcTab('review')">🔎 Review<span class="lc-tab-n alert" id="lcN_review">0</span></div>
+        <div class="oh-subtab" data-lctab="channel" onclick="setLcTab('channel')">🧭 Channel check<span class="lc-tab-n alert" id="lcN_channel">0</span></div>
         <div class="oh-subtab" data-lctab="all" onclick="setLcTab('all')">📋 All<span class="lc-tab-n" id="lcN_all">0</span></div>
         <div class="oh-subtab" data-lctab="parked" onclick="setLcTab('parked')">📌 Parked<span class="lc-tab-n" id="lcN_parked">0</span></div>
         <div class="oh-subtab" data-lctab="rejected" onclick="setLcTab('rejected')">🚫 Rejected<span class="lc-tab-n" id="lcN_rejected">0</span></div>
@@ -792,6 +842,10 @@
           <div>
             <div class="field-label" style="margin-top:0;">Channel check</div>
             <select class="assign-select" id="lcFilterFlag" onchange="renderLeads()"><option value="">All leads</option><option value="flag">Channel may be wrong</option></select>
+          </div>
+          <div>
+            <div class="field-label" style="margin-top:0;">Contact status</div>
+            <select class="assign-select" id="lcFilterContact" onchange="renderLeads()"><option value="">All leads</option><option value="has_email">Has email</option><option value="no_email_any">No email yet</option><option value="no_email_li">No email, LinkedIn found</option><option value="pending">Not searched yet</option></select>
           </div>
           <div>
             <div class="field-label" style="margin-top:0;">Search</div>
@@ -831,7 +885,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="pipeline_title">Pipeline</h1>
-          <p class="desc">Leads that have been contacted, by stage. Change the stage from the lead panel. Amber = no movement for a while.</p>
+          <p class="desc">What needs you today, where leads drop off, and what is working. Click any lead to open it.</p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <span class="live-dot" id="pipeUpdated"><span class="d"></span> Loading…</span>
@@ -978,98 +1032,19 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="settings_title">Settings</h1>
-          <p class="desc">Adjust prompts, keywords, and markets — without touching n8n.</p>
+          <p class="desc">Sending rules, scoring, prompts and system status. Every change is logged and can be undone.</p>
         </div>
       </div>
 
       <div class="mi-tabs">
-        <div class="mi-tab active" data-set="prompt" onclick="showSetTab('prompt')">✉️ Prompt Manager</div>
+        <div class="mi-tab active" data-set="v11" onclick="showSetTab('v11')">🎛️ Controls &amp; Prompts</div>
         <div class="mi-tab" data-set="keywords" onclick="showSetTab('keywords')">🔑 Search Keywords</div>
         <div class="mi-tab" data-set="countries" onclick="showSetTab('countries')">🌍 Countries &amp; Cities</div>
-        <div class="mi-tab" data-set="limits" onclick="showSetTab('limits')">📊 Sending Limits</div>
         <div class="mi-tab" data-set="tools" onclick="showSetTab('tools')">🧰 Tools</div>
       </div>
 
-      <!-- PROMPT MANAGER -->
-      <div class="set-page active" id="set-prompt">
-        <div class="dpanel" style="margin-bottom:14px;">
-          <h3>1. Channel</h3>
-          <div class="fu-pill-row" style="margin-bottom:14px;">
-            <div class="fu-pill active" data-channel="distributor" onclick="setChannel(this,'distributor')">🚚 Distributor</div>
-            <div class="fu-pill" data-channel="salon" onclick="setChannel(this,'salon')">💇 Salon</div>
-            <div class="fu-pill" data-channel="hotel" onclick="setChannel(this,'hotel')">🏨 Hotel Amenities</div>
-          </div>
-
-          <div id="tierRow">
-            <h3>2. Tier</h3>
-            <div class="fu-pill-row" style="margin-bottom:14px;">
-              <div class="fu-pill active" data-tier="oright" onclick="setTier(this,'oright')">Distributor O'right</div>
-              <div class="fu-pill" data-tier="pro" onclick="setTier(this,'pro')">Distributor O'right PRO</div>
-            </div>
-          </div>
-
-          <h3>3. ESG approach</h3>
-          <div class="fu-pill-row" style="margin-bottom:14px;">
-            <div class="fu-pill active" data-esg="high" onclick="setEsg(this,'high')">🟢 High ESG — affirm &amp; align</div>
-            <div class="fu-pill" data-esg="low" onclick="setEsg(this,'low')">⚪ Low ESG — invite to start</div>
-          </div>
-
-          <h3>4. Outreach type</h3>
-          <div class="oh-subtabs" style="margin-bottom:14px;">
-            <div class="oh-subtab active" data-ptype="personal" onclick="setPromptType('personal')">👤 Personal</div>
-            <div class="oh-subtab" data-ptype="generic" onclick="setPromptType('generic')">📢 Generic</div>
-          </div>
-
-          <h3>5. Follow-up number</h3>
-          <div class="fu-pill-row" id="fuPillRow">
-            <div class="fu-pill active" onclick="setFuPill(this,1)">1</div>
-            <div class="fu-pill" onclick="setFuPill(this,2)">2</div>
-            <div class="fu-pill" onclick="setFuPill(this,3)">3</div>
-            <div class="fu-pill" onclick="setFuPill(this,4)">4</div>
-            <div class="fu-pill" onclick="setFuPill(this,5)">5</div>
-            <div class="fu-pill" onclick="setFuPill(this,6)">6</div>
-            <div class="fu-pill" onclick="setFuPill(this,7)">7 (final)</div>
-          </div>
-        </div>
-
-        <div class="row-2" style="grid-template-columns:1.6fr 1fr;">
-          <div class="dpanel">
-            <h3 id="promptEditingLabel">Editing: Distributor O'right · High ESG · Personal · Follow-up 1</h3>
-            <textarea class="body-textarea" id="promptEditor" style="min-height:280px;">You are writing a founder-to-founder cold outreach email from Winda at O'right, a Taiwan-based sustainable premium haircare brand, to {{company_name}}, a distributor that already shows strong sustainability alignment.
-
-Tone: warm, direct, sit as equals — they're already doing the work, position O'right as a natural fit for their existing values, not a pitch to convince them. Question-based subject line. Keep body 150-190 words. Introduce O'right late, after showing genuine understanding of their business.
-
-Context about this lead:
-- Fit reason: {{fit_score_reason}}
-- ESG reason: {{esg_score_reason}}
-- Competitor brands they carry: {{matched_competitor_brands}}
-- Latest research: {{research_findings}}
-
-Write the email now.</textarea>
-            <div style="display:flex; gap:8px; margin-top:12px;">
-              <button class="btn-regenerate" onclick="testPromptOnSample()">🧪 Test on sample lead</button>
-              <button class="btn-primary" style="flex:none; padding:9px 18px;" onclick="savePromptConfig()">Save changes</button>
-            </div>
-            <div id="promptTestResult" style="display:none; margin-top:12px; padding:12px; background:var(--brand-soft); border-radius:9px; font-size:12.5px;"></div>
-          </div>
-          <div class="dpanel">
-            <h3>Available variables</h3>
-            <p style="font-size:11.5px; color:var(--ink-faint); margin:-6px 0 12px;">Click to copy, paste into the prompt on the left.</p>
-            <div class="var-chip" onclick="copyVar('{{company_name}}')">{{company_name}}</div>
-            <div class="var-chip" onclick="copyVar('{{contact_name}}')">{{contact_name}}</div>
-            <div class="var-chip" onclick="copyVar('{{fit_score_reason}}')">{{fit_score_reason}}</div>
-            <div class="var-chip" onclick="copyVar('{{esg_score_reason}}')">{{esg_score_reason}}</div>
-            <div class="var-chip" onclick="copyVar('{{matched_competitor_brands}}')">{{matched_competitor_brands}}</div>
-            <div class="var-chip" onclick="copyVar('{{research_findings}}')">{{research_findings}}</div>
-            <div class="var-chip" onclick="copyVar('{{previous_emails_summary}}')">{{previous_emails_summary}}</div>
-            <div class="var-chip" onclick="copyVar('{{country}}')">{{country}}</div>
-
-            <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border);">
-              <p style="font-size:11px; color:var(--ink-faint); line-height:1.6;">💡 Any combination left unedited automatically falls back to a sensible default — you don't have to fill in all 100+ combinations by hand, only override the ones that need a different approach.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- CONTROLS (v11) -->
+      <div class="set-page active" id="set-v11"><div id="setV11"></div></div>
 
       <!-- SEARCH KEYWORDS -->
       <div class="set-page" id="set-keywords" style="display:none;">
@@ -1130,20 +1105,7 @@ Write the email now.</textarea>
         </div>
       </div>
 
-      <div class="set-page" id="set-limits" style="display:none;">
-        <div class="row-2">
-          <div class="dpanel">
-            <h3>Daily send limit</h3>
-            <input class="subj-input" value="35" style="width:120px; display:inline-block;"> <span style="font-size:12px; color:var(--ink-faint);">emails / day (auto warm-up)</span>
-            <p style="font-size:11.5px; color:var(--ink-faint); margin-top:10px; line-height:1.6;">Ramps automatically: Week 1 ~25/day → Week 4 ~50/day → steady state once domain reputation is healthy. Hard cap: <b>1,000/month</b>, agreed with leadership.</p>
-          </div>
-          <div class="dpanel">
-            <h3>🛑 Circuit breaker</h3>
-            <input class="subj-input" value="20" style="width:120px; display:inline-block;"> <span style="font-size:12px; color:var(--ink-faint);">max emails per single run</span>
-            <p style="font-size:11.5px; color:var(--ink-faint); margin-top:10px; line-height:1.6;">If a run ever tries to send more than this in one go, it auto-stops and alerts — protects against runaway bugs sending hundreds by mistake.</p>
-          </div>
-        </div>
-      </div>
+      
     </div>
 
   </div><!-- /.main -->
@@ -1368,6 +1330,7 @@ function showPage(name){
   if(name==='executive') loadTeamOverview();
   if(name==='pipeline') pipeLoad();
   if(name==='market') loadMarketNews();
+  if(name==='settings' && document.getElementById('set-v11').style.display!=='none') setLoad();
 }
 
 let allLeadsData = [];
@@ -1399,7 +1362,7 @@ function lsSet(k,v){ try { if(v==null) localStorage.removeItem(k); else localSto
 
 /* ---------------- UPLOAD ---------------- */
 const UP = { CHUNK:10, SOFT_MAX:50, HARD_MAX:200, POLL_MS:45000, STALE_MS:3000000, LS:'oright_active_batch' };
-const OFFICIAL_CHANNELS = ['Distributor','Retail','Amenities','OEM','Corporate Gifting'];
+const OFFICIAL_CHANNELS = ['Distributor','Retail','Amenities','OEM','Corporate Gifting','Salon'];
 const INBOX_COLS = ['Source','Registry_ID','Name','Country','City','Address','Phone','Website','General_Email','Registry_Email','Industry','Channel','Searched',
   'C1_Name','C1_Title','C1_Email','C2_Name','C2_Title','C2_Email','C3_Name','C3_Title','C3_Email','Follow_Up_Count','Last_Contact_Date','Email_Status'];
 const ACRA_CHANNEL_MAP = { 'retail - personal care products':'Retail', 'wholesale - personal care products':'Distributor', 'hotel':'Amenities', 'massage/spa wellness':'Amenities' };
@@ -1777,6 +1740,7 @@ const UP_STAGES = [
   ['score','Scoring','Fit and ESG scores'],
   ['contacts','Contacts','Emails from websites (only leads above the Fit threshold)']
 ];
+const UP_CHIP_NAMES = { 'Apify_NoEmail':'No email found (kept)', 'Apify_Done':'Contacts found' };
 function upRenderStages(d){
   const st = d.stages || {}; let html = '';
   const cleanDone = !!(st.clean && st.clean.total > 0 && st.clean.done >= st.clean.total);
@@ -1796,7 +1760,8 @@ function upRenderStages(d){
     const pct = s.total > 0 ? Math.min(100, Math.round(s.done / s.total * 100)) : (finished ? 100 : 0);
     let chips = '';
     if(k === 'clean' && s.total > 0) chips = 'Accepted ' + (s.accepted || 0) + ' · Rejected ' + (s.rejected || 0) + ' (duplicates / no contact)';
-    else if(s.by_status && Object.keys(s.by_status).length) chips = Object.entries(s.by_status).map(([a,b]) => escH(a.replace(/_/g,' ')) + ' ' + b).join(' · ');
+    else if(s.by_status && Object.keys(s.by_status).length) chips = Object.entries(s.by_status).map(([a,b]) => escH(UP_CHIP_NAMES[a] || a.replace(/_/g,' ')) + ' ' + b).join(' · ');
+    if(k === 'score' && s.held_channel) chips += (chips ? ' · ' : '') + 'Waiting for your channel decision ' + s.held_channel;
     html += '<div class="stg ' + cls + '"><div class="ic">' + (finished ? '✓' : (i+1)) + '</div><div><div class="nm">' + name + '</div><div class="ds">' + desc + '</div></div><div><div class="bar"><i style="width:' + pct + '%"></i></div>' + (chips ? '<div class="chips">' + chips + '</div>' : '') + '</div><div class="cnt">' + s.done + ' / ' + s.total + '</div></div>';
   });
   document.getElementById('upStages').innerHTML = html;
@@ -1852,6 +1817,8 @@ function ldDomainWarn(l){
   const tld = h.split('.').pop(), exp = LD_CC[tld]; if(!exp) return '';
   return ldNormCountry(l.Country) === exp ? '' : 'Website ends in .' + tld + ' (' + exp.replace(/\b\w/g, c => c.toUpperCase()) + ') but this lead is listed in ' + l.Country + '. Check that it is the right company.';
 }
+// Channel gate: the pipeline holds a lead before scoring when the website does not support its channel. It waits here for a decision.
+function ldChanHeld(l){ return l.Data_Status === 'Verified' && String(l.Channel_Check || '') === 'Hold' && !['ChannelConfirmed','ChannelChanged'].includes(String(l.Human_Verdict || '')) && String(l.Fit_Score == null ? '' : l.Fit_Score) === ''; }
 function ldChanFlag(l){ return l.Data_Status === 'Verified' && (l.Type_Match === 'none' || (String(l.Alt_Channel || '').trim() && String(l.Alt_Channel).trim().toLowerCase() !== String(l.Channel || '').trim().toLowerCase())); }
 function ldNotFound(l){ return !String(l.Website || '').trim() && !String(l.Suggested_Website || '').trim() && !String(l.Verify_Judge_Quote || '').trim(); }
 
@@ -1878,18 +1845,33 @@ function lcFillFilters(){
 function lcInTab(l, tab){
   const rej = REJECTED_SET.includes(l.Data_Status);
   if(tab === 'review') return l.Data_Status === 'Needs_Review';
+  if(tab === 'channel') return ldChanHeld(l);
   if(tab === 'parked') return l.Data_Status === 'Parked';
   if(tab === 'rejected') return rej;
   return !rej;
 }
 function lcSyncTabs(){
-  ['review','all','parked','rejected'].forEach(t => { const el = document.getElementById('lcN_' + t); if(el) el.textContent = poolLeads.filter(l => lcInTab(l, t)).length; });
+  ['review','channel','all','parked','rejected'].forEach(t => { const el = document.getElementById('lcN_' + t); if(el) el.textContent = poolLeads.filter(l => lcInTab(l, t)).length; });
   document.querySelectorAll('#lcTabs .oh-subtab').forEach(t => t.classList.toggle('active', t.dataset.lctab === lcTab));
   const n = poolLeads.filter(l => l.Data_Status === 'Needs_Review').length; const nav = document.getElementById('navReviewCnt');
   if(nav){ nav.textContent = n; nav.style.display = n ? '' : 'none'; }
 }
 function setLcTab(t){ lcTab = t; lcSyncTabs(); renderLeads(); }
-function resetLcFilters(){ ['lcFilterBatch','lcFilterCountry','lcFilterChannel'].forEach(id => document.getElementById(id).value = ''); document.getElementById('lcFilterFit').value = '0'; document.getElementById('lcFilterFlag').value = ''; document.getElementById('lcSearch').value = ''; renderLeads(); }
+function resetLcFilters(){ ['lcFilterBatch','lcFilterCountry','lcFilterChannel'].forEach(id => document.getElementById(id).value = ''); document.getElementById('lcFilterFit').value = '0'; document.getElementById('lcFilterFlag').value = ''; document.getElementById('lcFilterContact').value = ''; document.getElementById('lcSearch').value = ''; renderLeads(); }
+// Contact status: a lead without an email is never dropped. It shows "No email yet" and a LinkedIn link when the website had one.
+function lcContactState(l){
+  if(l.contacts_count) return 'has_email';
+  if(l.Data_Status !== 'Verified') return 'na';
+  if(l.Apify_Status) return l.linkedin ? 'no_email_li' : 'no_email';
+  return 'pending';
+}
+function lcContactCell(l){
+  const st = lcContactState(l), li = l.linkedin ? ' <a href="' + escH(l.linkedin) + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="Open LinkedIn page">in ↗</a>' : '';
+  if(st === 'has_email') return l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '');
+  if(st === 'na') return '<span style="color:var(--ink-faint);">—</span>';
+  if(st === 'pending') return '<span style="color:var(--ink-faint);">not searched yet</span>';
+  return '<span class="ld-dw" style="margin-left:0;" title="No email found on the website. The lead is kept for LinkedIn outreach.">No email yet</span>' + li;
+}
 function renderLeads(){
   const body = document.getElementById('leadsListBody');
   const batch = document.getElementById('lcFilterBatch').value, country = document.getElementById('lcFilterCountry').value, channel = document.getElementById('lcFilterChannel').value;
@@ -1899,21 +1881,23 @@ function renderLeads(){
   if(country) rows = rows.filter(l => l.Country === country);
   if(channel) rows = rows.filter(l => l.Channel === channel);
   if(document.getElementById('lcFilterFlag').value === 'flag') rows = rows.filter(ldChanFlag);
+  { const cf = document.getElementById('lcFilterContact').value; if(cf) rows = rows.filter(l => { const st = lcContactState(l); return cf === 'no_email_any' ? (st === 'no_email' || st === 'no_email_li') : st === cf; }); }
   if(minFit) rows = rows.filter(l => (parseInt(l.Fit_Score) || 0) >= minFit);
   if(q) rows = rows.filter(l => String(l.Name || '').toLowerCase().includes(q));
   lcVisible = rows.map(l => l.Match_Key);
-  if(!rows.length){ body.innerHTML = '<div style="padding:26px;text-align:center;color:var(--ink-faint);font-size:13px;">' + (lcTab === 'review' ? 'Nothing waiting for review 🎉' : 'No leads match these filters.') + '</div>'; return; }
+  if(!rows.length){ body.innerHTML = '<div style="padding:26px;text-align:center;color:var(--ink-faint);font-size:13px;">' + (lcTab === 'review' ? 'Nothing waiting for review 🎉' : lcTab === 'channel' ? 'No leads are waiting for a channel decision 🎉' : 'No leads match these filters.') + '</div>'; return; }
   const sc = v => (v === '' || v == null || isNaN(Number(v))) ? '<span style="color:var(--ink-faint);">—</span>' : '<span class="fit-tag ' + fitClass(v) + '" style="margin-left:0;">' + escH(v) + '</span>';
   const why = l => {
     if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Needs your decision.' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
+    if(lcTab === 'channel') return '<div class="co-why">' + escH(l.Channel_Suggest ? 'Website suggests ' + l.Channel_Suggest + ', currently ' + (l.Channel || 'no channel') + '. Needs your decision.' : 'Could not confirm the ' + (l.Channel || 'channel') + ' from the website. Needs your decision.') + '</div>';
     if(lcTab === 'parked' || lcTab === 'rejected') return l.Reject_Reason ? '<div class="co-why" style="color:var(--ink-faint);">' + escH(String(l.Reject_Reason).slice(0, 120)) + '</div>' : '';
     return '';
   };
   body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : '', cf = ldChanFlag(l); return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
-    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : '') + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
+    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (ldChanHeld(l) ? '<span class="ld-dw" title="Scoring is paused until you confirm or change the channel.">⏸ channel on hold</span>' : (String(l.Human_Verdict || '') === 'AutoChannel' ? '<span class="ld-dw" title="The pipeline changed the channel from ' + escH(l.Channel_Prev || 'none') + ' based on the website. Open the lead to check.">↻ channel auto-changed</span>' : (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : ''))) + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
     '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status, l) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
-    '<div style="font-size:12px;">' + (l.contacts_count ? l.contacts_count + (l.contacts_named ? ' <span style="color:var(--ink-faint);">(' + l.contacts_named + ' named)</span>' : '') : '<span style="color:var(--ink-faint);">' + (l.Data_Status !== 'Verified' ? '—' : (l.Apify_Status ? 'none found' : 'not searched yet')) + '</span>') + '</div></div>'; }).join('');
+    '<div style="font-size:12px;">' + lcContactCell(l) + '</div></div>'; }).join('');
 }
 document.addEventListener('click', e => { const row = e.target.closest && e.target.closest('#leadsListBody .lead-row[data-mk]'); if(row) openLeadDrawer(row.dataset.mk); });
 
@@ -2032,9 +2016,12 @@ function ldChannelHTML(L){
   let rows = [['Current channel', '<b>' + escH(cur || '—') + '</b>']];
   if(tmTxt) rows.push(['Business type fit', escH(tmTxt) + ' <span style="color:var(--ink-faint);">(from scoring)</span>']);
   if(ldClean(L.Sub_Segment)) rows.push(['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')]);
+  if(String(L.Human_Verdict || '') === 'AutoChannel') rows.push(['Auto-changed', 'From <b>' + escH(L.Channel_Prev || 'no channel') + '</b> to <b>' + escH(cur) + '</b> based on the website.' + (ldClean(L.Channel_Check_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Channel_Check_Evidence) + '”</div>' : '')]);
+  if(ldChanHeld(L)) rows.push(['Scoring paused', (L.Channel_Suggest ? 'The website points to <b>' + escH(L.Channel_Suggest) + '</b>.' : 'The website does not confirm this channel.') + (ldClean(L.Channel_Check_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Channel_Check_Evidence) + '”</div>' : '')]);
   if(alt) rows.push(['Website suggests', '<b>' + escH(alt) + '</b>' + (ldClean(L.Alt_Channel_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Alt_Channel_Evidence) + '”</div>' : '')]);
-  const opts = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === (alt || cur).toLowerCase() && c.toLowerCase() !== cur.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
+  const opts = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === (String(L.Channel_Suggest || '') || alt || cur).toLowerCase() && c.toLowerCase() !== cur.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
   return '<div class="ld-sec"><h4>Channel' + (flag ? ' <span class="ld-dw">⚠ worth checking</span>' : '') + '</h4>' + ldKV(rows) +
+    (ldChanHeld(L) && cur ? '<div style="margin-top:10px;"><button class="btn-primary full" onclick="ldConfirmChannel()">Keep ' + escH(cur) + ' and start scoring</button></div>' : '') +
     '<div class="row" style="display:flex; gap:8px; margin-top:10px;"><select class="ld-input" id="ldChSel" style="flex:1;">' + opts + '</select><button class="btn-secondary" onclick="ldChangeChannel()">Change channel</button></div>' +
     '<div style="font-size:11px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">Changing the channel clears the Fit and ESG scores and queues the lead for scoring again with that channel’s rubric. Emails already sent keep the channel they were sent under.</div></div>';
 }
@@ -2043,7 +2030,7 @@ function renderLeadDrawer(){
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
   document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status, L);
   let h = ldDecisionHTML(L, status);
-  if(status !== 'Needs_Search') h += ldChannelHTML(L);
+  if(status !== 'Needs_Search') h += ldChannelHTML(L) + ldBrandHTML(L);
   h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
   const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
   h += '<div class="ld-sec"><h4>Scores</h4>' +
@@ -2117,6 +2104,18 @@ async function ldReview(action){
     sumCache = null;
   } catch(err){ showToast('Could not save: ' + err.message); }
 }
+async function ldConfirmChannel(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return;
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'confirm_channel' });
+    const l = poolLeads.find(x => x.Match_Key === mk), upd = { Human_Verdict:'ChannelConfirmed' };
+    if(l) Object.assign(l, upd); if(ldCurrent.lead) Object.assign(ldCurrent.lead, upd);
+    showToast('Channel confirmed. Scoring starts with the next run.');
+    const idx = lcVisible.indexOf(mk); lcSyncTabs(); renderLeads();
+    if(lcTab === 'channel'){ const next = lcVisible[Math.min(idx, lcVisible.length - 1)]; if(next && next !== mk) openLeadDrawer(next); else closeLeadDrawer(); } else renderLeadDrawer();
+    sumCache = null;
+  } catch(err){ showToast('Could not save: ' + err.message); }
+}
 async function ldChangeChannel(){
   const mk = ldCurrent && ldCurrent.mk; if(!mk) return;
   const L = ldCurrent.lead || {}, sel = document.getElementById('ldChSel'), ch = sel ? sel.value : '';
@@ -2129,7 +2128,10 @@ async function ldChangeChannel(){
     const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, clr);
     Object.assign(L, clr);
     showToast('Channel changed to ' + ch + '. The lead will be scored again' + (reenrich ? ' after a fresh enrichment.' : '.'));
-    lcSyncTabs(); renderLeads(); renderLeadDrawer(); sumCache = null;
+    Object.assign(L, { Human_Verdict:'ChannelChanged', Channel_Prev:old }); if(l) Object.assign(l, { Human_Verdict:'ChannelChanged', Channel_Prev:old });
+    const idx = lcVisible.indexOf(mk); lcSyncTabs(); renderLeads();
+    if(lcTab === 'channel'){ const next = lcVisible[Math.min(idx, lcVisible.length - 1)]; if(next && next !== mk) openLeadDrawer(next); else closeLeadDrawer(); } else renderLeadDrawer();
+    sumCache = null;
   } catch(err){ showToast('Could not change channel: ' + err.message); }
 }
 async function ldSpinSubmit(){
@@ -2220,7 +2222,7 @@ let sumCache = null, sumAt = 0, sumBusy = null, lcPendingOpen = null, lcPendingF
 async function loadSummary(force){
   if(!force && sumCache && Date.now() - sumAt < 60000) return sumCache;
   if(sumBusy) return sumBusy;
-  sumBusy = n8nGet('/dashboard-summary').then(d => { sumCache = d; sumAt = Date.now(); return d; }).finally(() => { sumBusy = null; });
+  sumBusy = n8nGet('/dashboard-summary' + (parseInt(lsGet('oright_fit_min'), 10) > 0 ? '?min_fit=' + parseInt(lsGet('oright_fit_min'), 10) : '')).then(d => { sumCache = d; sumAt = Date.now(); return d; }).finally(() => { sumBusy = null; });
   return sumBusy;
 }
 function hmPct(v){ return v == null ? '—' : v + '%'; }
@@ -2712,6 +2714,7 @@ function showSetTab(name){
   document.querySelector('.mi-tab[data-set="'+name+'"]').classList.add('active');
   document.querySelectorAll('.set-page').forEach(p=>p.style.display='none');
   document.getElementById('set-'+name).style.display='block';
+  if(name==='v11') setLoad();
 }
 
 let currentPromptType='personal', currentFu=1, currentChannel='distributor', currentTier='oright', currentEsg='high';
@@ -3613,31 +3616,385 @@ async function bRun(){
 }
 function bCopy(){ const b = HUB.brief; if(!b) return; const txt = b.sections.map(s => s.title.toUpperCase() + '\n' + (s.kind === 'ai' ? '[AI] ' : '') + (s.body || '') + ((s.sources || []).length ? '\nSources:\n' + s.sources.map(x => '- ' + (x.title || '') + ' ' + (x.url || '')).join('\n') : '')).join('\n\n'); try { navigator.clipboard.writeText(txt).then(() => showToast('Copied')); } catch(e){ showToast('Copy failed'); } }
 
-/* ---------- PIPELINE ---------- */
+/* ---------- SETTINGS v11 (talks to /hub-settings, /hub-settings-save) ---------- */
+const SET = { data:null, err:null, tok:null, tab:'send', draft:{}, busy:false, pk:'EMAIL_PROMPT', pv:null, rk:'', ch:'' };
+const SET_TABS = [['send','Sending & safety'],['score','Scoring'],['prompts','Prompts'],['status','System status'],['hist','Change history']];
+function setTok(){ return lsGet('oright_admin_token') || ''; }
+async function setLoad(){
+  const t = setTok(); const box = $x('setV11'); if(!box) return;
+  box.innerHTML = '<div class="x-empty">Loading…</div>';
+  try { SET.data = await n8nGet('/hub-settings' + (t ? '?token=' + encodeURIComponent(t) : '')); SET.err = null; }
+  catch(e){ SET.data = null; SET.err = e; }
+  if(SET.data && SET.data.authed && SET.data.values && Number(SET.data.values.FIT_MIN) > 0) lsSet('oright_fit_min', String(SET.data.values.FIT_MIN));
+  SET.draft = {}; setDraw();
+}
+function setUnlock(){
+  const v = ($x('setTokIn').value || '').trim(); if(!v) return; lsSet('oright_admin_token', v); setLoad();
+}
+function setLock(){ lsSet('oright_admin_token', null); setLoad(); }
+function setTab(t){ SET.tab = t; setDraw(); }
+function setField(r, v){
+  const id = 'sf_' + r.k, cur = (SET.data.values || {})[r.k], dv = SET.draft[r.k] !== undefined ? SET.draft[r.k] : cur, changed = SET.draft[r.k] !== undefined && String(SET.draft[r.k]) !== String(cur);
+  let inp;
+  if(r.type === 'bool') inp = '<label class="sf-sw"><input type="checkbox" id="' + id + '" ' + (String(dv).toUpperCase() === 'TRUE' ? 'checked' : '') + ' onchange="setEdit(\'' + r.k + '\',this.checked?\'TRUE\':\'FALSE\')"><span></span>' + (String(dv).toUpperCase() === 'TRUE' ? 'On' : 'Off') + '</label>';
+  else if(r.type === 'enum') inp = '<select id="' + id + '" onchange="setEdit(\'' + r.k + '\',this.value)">' + r.options.map(o => '<option' + (o === dv ? ' selected' : '') + '>' + escH(o) + '</option>').join('') + '</select>';
+  else inp = '<input id="' + id + '" type="' + (r.type === 'int' || r.type === 'float' ? 'number' : 'text') + '" value="' + escH(dv) + '" ' + (r.min != null ? 'min="' + r.min + '" ' : '') + (r.max != null && (r.type === 'int' || r.type === 'float') ? 'max="' + r.max + '" ' : '') + 'oninput="setEdit(\'' + r.k + '\',this.value,1)">';
+  return '<div class="sf-row' + (changed ? ' ch' : '') + '"><div class="sf-l"><b>' + escH(r.label) + '</b>' + (r.risk ? ' <span class="x-pill ' + (r.risk === 'high' ? 'red' : 'amber') + '">' + (r.risk === 'high' ? 'important' : 'check first') + '</span>' : '') + (r.help ? '<div class="sf-h">' + escH(r.help) + '</div>' : '') + '</div><div class="sf-i">' + inp + (SET.data.sources && SET.data.sources[r.k] === 'default' ? '<div class="sf-d">not in the sheet yet, showing default</div>' : '') + '<div class="sf-e" id="sfe_' + r.k + '"></div></div></div>';
+}
+function setEdit(k, v, quiet){ SET.draft[k] = v; if(String(v) === String((SET.data.values || {})[k])) delete SET.draft[k]; if(!quiet) setDraw(); else setBarDraw(); }
+function setBarDraw(){
+  const n = Object.keys(SET.draft).length, b = $x('setBar'); if(!b) return;
+  b.style.display = n ? 'flex' : 'none';
+  b.querySelector('.n').textContent = n + ' unsaved change' + (n > 1 ? 's' : '');
+  const live = SET.draft.TEST_MODE === 'FALSE' && (SET.data.values || {}).TEST_MODE === 'TRUE';
+  $x('setLive').style.display = live ? 'block' : 'none';
+}
+function setDiscard(){ SET.draft = {}; setDraw(); }
+/* the shared n8nPost drops the errors map, so read it ourselves for field-level messages */
+async function setPost(body){
+  const res = await fetch(N8N_BASE + '/hub-settings-save', { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body:JSON.stringify(Object.assign({ token:setTok() }, body)) });
+  let d = null; try { d = await res.json(); } catch(e){}
+  if(!res.ok || !d || d.ok === false){ const err = new Error((d && (d.error || d.message)) || ('HTTP ' + res.status)); err.errors = d && d.errors; throw err; }
+  return d;
+}
+async function setSave(){
+  if(SET.busy) return; const ch = Object.assign({}, SET.draft); if(!Object.keys(ch).length) return;
+  const body = { action:'set', changes:ch, note:($x('setNote').value || '').trim() };
+  if(ch.TEST_MODE === 'FALSE' && SET.data.values.TEST_MODE === 'TRUE'){ body.confirm = ($x('setConfirm').value || '').trim(); if(body.confirm !== 'GO LIVE'){ showToast('Type GO LIVE to switch test mode off'); return; } }
+  document.querySelectorAll('.sf-e').forEach(e => e.textContent = '');
+  SET.busy = true; $x('setSaveBtn').disabled = true;
+  try { const r = await setPost(body); showToast('Saved ' + (r.changed || []).length + ' change' + ((r.changed || []).length === 1 ? '' : 's')); if((r.warnings || []).length) alert(r.warnings.join('\n\n')); await setLoad(); }
+  catch(e){
+    const er = e.errors || {}; Object.keys(er).forEach(k => { const el = $x('sfe_' + k); if(el) el.textContent = er[k]; });
+    showToast('Not saved: ' + (Object.keys(er).length ? 'fix the red messages' : e.message));
+  }
+  SET.busy = false; const b = $x('setSaveBtn'); if(b) b.disabled = false;
+}
+function setGroupHtml(groups){
+  const S = SET.data.schema || [], G = SET.data.groups || {}; let h = '';
+  groups.forEach(g => {
+    const rows = S.filter(r => r.group === g); if(!rows.length) return;
+    const adv = g === 'adv';
+    h += '<div class="x-panel" style="margin-bottom:14px">' + (adv ? '<details><summary><h3 style="display:inline">' + escH(G[g]) + '</h3> <span class="x-sub">Used by the scoring workflow. Leave alone unless the scores look wrong.</span></summary>' : '<h3>' + escH(G[g]) + '</h3>') + rows.map(r => setField(r)).join('') + (adv ? '</details>' : '') + '</div>';
+  });
+  return h;
+}
+function setSaveBar(){
+  return '<div class="sf-bar" id="setBar" style="display:none"><span class="n"></span><input id="setNote" placeholder="Why? (saved in Change history)"><div id="setLive" style="display:none" class="sf-live">Real emails will be able to go to real leads. Type <b>GO LIVE</b> to confirm: <input id="setConfirm" placeholder="GO LIVE"></div><button class="x-btn" onclick="setDiscard()">Discard</button><button class="x-btn p" id="setSaveBtn" onclick="setSave()">Save changes</button></div>';
+}
+function setWarnHtml(){ return ((SET.data.warnings) || []).map(w => '<div class="x-note amber">' + escH(w) + '</div>').join(''); }
+/* ----- tab: sending & safety / scoring ----- */
+function setTabSend(){ return setWarnHtml() + setGroupHtml(['send','sig','draft','dash']) + setSaveBar(); }
+function setTabScore(){
+  let h = setWarnHtml() + setGroupHtml(['fit','enrich','apify','adv']) + setSaveBar();
+  h += '<div class="x-panel"><h3>Channel profiles</h3><div class="x-sub">What the scorer is told each channel is. Saved as a new log entry. Applies to leads scored from now on.</div>' + setChannelsHtml() + '</div>';
+  h += '<div class="x-panel" style="margin-top:14px"><h3>Scoring rubrics</h3><div class="x-sub">Each save creates a new version. The highest active version is used. Old scores stay.</div>' + setRubricHtml() + '</div>';
+  return h;
+}
+function setChannelsHtml(){
+  const C = SET.data.channels || []; if(!C.length) return '<div class="x-empty">No channels found in the Channels tab.</div>';
+  const cur = C.find(c => c.Channel === SET.ch) || C[0]; SET.ch = cur.Channel;
+  return '<div class="fu-pill-row" style="margin-bottom:10px">' + C.map(c => '<div class="fu-pill' + (c.Channel === cur.Channel ? ' active' : '') + '" onclick="SET.ch=\'' + escH(c.Channel) + '\';setDraw()">' + escH(c.Channel) + (c.Active ? '' : ' (off)') + '</div>').join('') + '</div>' +
+    [['Description','Description'],['Target_Company_Types','Target company types'],['Ideal_Business_Profile','Ideal business profile']].map(f => '<label class="sf-lb">' + f[1] + '</label><textarea class="body-textarea" id="chf_' + f[0] + '" style="min-height:90px">' + escH(cur[f[0]]) + '</textarea>').join('') +
+    '<div class="sf-act"><label class="sf-sw"><input type="checkbox" id="chf_Active" ' + (cur.Active ? 'checked' : '') + '><span></span>Channel active</label><label class="sf-sw"><input type="checkbox" id="chf_Scoring_Enabled" ' + (cur.Scoring_Enabled ? 'checked' : '') + '><span></span>Scoring on</label><button class="x-btn p" onclick="setChannelSave()">Save channel</button></div>';
+}
+async function setChannelSave(){
+  const f = { Description:$x('chf_Description').value, Target_Company_Types:$x('chf_Target_Company_Types').value, Ideal_Business_Profile:$x('chf_Ideal_Business_Profile').value, Active:$x('chf_Active').checked ? 'TRUE' : 'FALSE', Scoring_Enabled:$x('chf_Scoring_Enabled').checked ? 'TRUE' : 'FALSE' };
+  const note = prompt('Why are you changing this channel? (saved in Change history)', ''); if(note === null) return;
+  try { const r = await setPost({ action:'channel', channel:SET.ch, fields:f, note }); showToast((r.changed || []).length ? 'Channel saved' : 'Nothing changed'); await setLoad(); } catch(e){ showToast('Not saved: ' + e.message); }
+}
+function setRubricHtml(){
+  const R = (SET.data.prompts && SET.data.prompts.rubrics) || {}, keys = Object.keys(R).sort(); if(!keys.length) return '<div class="x-empty">No rubrics found in Scoring_Prompts.</div>';
+  if(!R[SET.rk]) SET.rk = keys[0]; const cur = R[SET.rk];
+  return '<select onchange="SET.rk=this.value;setDraw()">' + keys.map(k => '<option' + (k === SET.rk ? ' selected' : '') + '>' + escH(k) + '</option>').join('') + '</select> <span class="x-sub">active version ' + cur.version + ' · ' + cur.text.length + ' characters</span>' +
+    '<textarea class="body-textarea" id="rubText" style="min-height:240px;margin-top:8px">' + escH(cur.text) + '</textarea>' +
+    '<div class="sf-act"><button class="x-btn p" onclick="setRubricSave()">Save as new version</button>' + (cur.versions.length > 1 ? '<select id="rubVer">' + cur.versions.map(v => '<option value="' + v.version + '">v' + v.version + (v.active ? ' (active)' : '') + ' · ' + v.chars + ' chars</option>').join('') + '</select><button class="x-btn" onclick="setRubricRestore()">Restore this version</button>' : '') + '</div>';
+}
+async function setRubricSave(){ const note = prompt('What did you change and why?', ''); if(note === null) return; try { const r = await setPost({ action:'rubric', key:SET.rk, text:$x('rubText').value, note }); showToast(r.version ? 'Saved as v' + r.version : 'Nothing changed'); if((r.warnings || []).length) alert(r.warnings.join('\n')); await setLoad(); } catch(e){ showToast('Not saved: ' + e.message); } }
+async function setRubricRestore(){ const v = $x('rubVer').value; if(!confirm('Restore v' + v + ' as a new version?')) return; try { const r = await setPost({ action:'rubric', key:SET.rk, from_version:v, note:'Restore v' + v }); showToast(r.version ? 'Restored as v' + r.version : 'Already active'); await setLoad(); } catch(e){ showToast('Not restored: ' + e.message); } }
+/* ----- tab: prompts (Prompt Manager) ----- */
+const PK_NAMES = { EMAIL_PROMPT:'Main email prompt', BRAND_ORIGHT:"Brand voice: O'right", BRAND_PRO:"Brand voice: O'right PRO", VERIFIED_FACTS:"Verified facts: O'right", VERIFIED_FACTS_PRO:"Verified facts: O'right PRO", OFFER:"Offer: O'right", OFFER_PRO:"Offer: O'right PRO" };
+const PK_HELP = { EMAIL_PROMPT:'The base instructions every email follows. Brand and language layers are added on top.', BRAND_ORIGHT:"Added when the lead's brand is O'right.", BRAND_PRO:"Added when the lead's brand is O'right PRO.", VERIFIED_FACTS:"The only facts the writer may state about O'right. Anything not here is flagged.", VERIFIED_FACTS_PRO:"The only facts the writer may state about O'right PRO. Take them from the PRO green book, do not guess.", OFFER:"What O'right offers a first-time partner.", OFFER_PRO:"What O'right PRO offers a first-time partner." };
+function setPromptsList(){
+  const P = (SET.data.prompts && SET.data.prompts.email) || {}, loc = Object.keys(P).filter(k => /^LOCALE_/.test(k)).sort();
+  const row = k => '<div class="pm-i' + (k === SET.pk ? ' on' : '') + '" onclick="SET.pk=\'' + k + '\';SET.pv=null;setDraw()"><b>' + escH(PK_NAMES[k] || k.replace('LOCALE_', 'Language: ')) + '</b><span>' + ((P[k] && P[k].text) ? 'v' + P[k].version + ' · ' + P[k].text.length + ' chars' : '<i>empty</i>') + '</span></div>';
+  return '<div class="pm-g">Base</div>' + row('EMAIL_PROMPT') + '<div class="pm-g">Brand layers</div>' + ['BRAND_ORIGHT','BRAND_PRO','VERIFIED_FACTS','VERIFIED_FACTS_PRO','OFFER','OFFER_PRO'].map(row).join('') + '<div class="pm-g">Languages</div>' + (loc.map(row).join('') || '<div class="sf-d" style="padding:4px 10px">No language yet.</div>') + '<button class="x-btn" style="margin:8px 10px" onclick="setNewLocale()">+ Add language</button>';
+}
+function setNewLocale(){
+  const code = (prompt('Language code, e.g. ES, PT, TH, VI, ID, AR, DE, FR, JA, ZH_TW', '') || '').trim().toUpperCase(); if(!/^[A-Z]{2,3}(_[A-Z]{2})?$/.test(code)){ if(code) showToast('Use letters like ES or ZH_TW'); return; }
+  SET.pk = 'LOCALE_' + code; SET.pv = null; SET.newLoc = true; setDraw();
+}
+function setLocaleForm(P, k){
+  const L = (P[k] && P[k].locale) || { language:'', greeting:'', greeting_team:'', closing:'', guidance:'' };
+  return '<div class="pm-loc"><label class="sf-lb">Language name</label><input id="lc_language" value="' + escH(L.language) + '" placeholder="Spanish"><label class="sf-lb">Greeting to a person (use {name})</label><input id="lc_greeting" value="' + escH(L.greeting) + '" placeholder="Hola {name},"><label class="sf-lb">Greeting to a team (use {company})</label><input id="lc_greeting_team" value="' + escH(L.greeting_team) + '" placeholder="Estimado equipo de {company},"><label class="sf-lb">Closing line</label><input id="lc_closing" value="' + escH(L.closing) + '" placeholder="Saludos cordiales,"><label class="sf-lb">Style guidance for the writer (formality, local business habits)</label><textarea class="body-textarea" id="lc_guidance" style="min-height:130px">' + escH(L.guidance) + '</textarea></div>';
+}
+function setLocaleText(){ const v = id => ($x(id).value || '').replace(/\n/g, ' ').trim(); return '@language: ' + v('lc_language') + '\n@greeting: ' + v('lc_greeting') + '\n@greeting_team: ' + v('lc_greeting_team') + '\n@closing: ' + v('lc_closing') + '\n' + ($x('lc_guidance').value || '').trim(); }
+function setPromptEditor(){
+  const P = (SET.data.prompts && SET.data.prompts.email) || {}, k = SET.pk, cur = P[k] || { text:'', versions:[], version:0, locale:null }, isLoc = /^LOCALE_/.test(k);
+  const vers = (cur.versions || []);
+  let h = '<h3>' + escH(PK_NAMES[k] || k.replace('LOCALE_', 'Language: ')) + (cur.version ? ' <span class="x-pill grey">live v' + cur.version + '</span>' : '') + '</h3><div class="x-sub">' + escH(isLoc ? 'English stays below the local text in every email. This block tells the writer how to write the local part.' : (PK_HELP[k] || '')) + '</div>';
+  if(isLoc) h += setLocaleForm(P, k); else h += '<textarea class="body-textarea" id="pmText" style="min-height:340px">' + escH(SET.pv != null ? ((vers.find(v => v.version === SET.pv) || {}).text || '') : cur.text) + '</textarea>';
+  if(SET.pv != null) h += '<div class="x-note blue">Showing version ' + SET.pv + '. Saving makes it a new live version.</div>';
+  h += '<div class="sf-act"><button class="x-btn p" onclick="setPromptSave()">Save as new version</button>' + (SET.pv != null ? '<button class="x-btn" onclick="SET.pv=null;setDraw()">Back to live</button>' : '') + '</div>';
+  if(vers.length) h += '<details style="margin-top:12px"><summary>Version history (' + vers.length + ')</summary>' + vers.map(v => '<div class="pm-v"><div><b>v' + v.version + '</b> · ' + xDate(v.at, true) + ' · ' + v.chars + ' chars<div class="sf-h">' + escH(v.note) + '</div></div><div><button class="x-btn" onclick="SET.pv=' + v.version + ';setDraw()">View</button> <button class="x-btn" onclick="setPromptRestore(' + v.version + ')">Restore</button></div></div>').join('') + '</details>';
+  return h;
+}
+async function setPromptSave(){
+  const k = SET.pk, isLoc = /^LOCALE_/.test(k); const text = isLoc ? setLocaleText() : $x('pmText').value;
+  const note = prompt('What did you change and why? (saved with the version)', ''); if(note === null) return;
+  try { const r = await setPost({ action:'prompt', key:k, text, note }); showToast(r.version ? 'Saved as v' + r.version : 'Nothing changed'); if((r.warnings || []).length) alert(r.warnings.join('\n\n')); SET.pv = null; SET.newLoc = false; await setLoad(); }
+  catch(e){ alert('Not saved:\n' + e.message); }
+}
+async function setPromptRestore(v){ if(!confirm('Restore version ' + v + ' as the live prompt? It is saved as a new version, nothing is lost.')) return; try { const r = await setPost({ action:'prompt', key:SET.pk, from_version:v, note:'Restore v' + v }); showToast('Restored as v' + r.version); SET.pv = null; await setLoad(); } catch(e){ alert('Not restored:\n' + e.message); } }
+function setMapHtml(){
+  const P = SET.data.prompts || {}, lm = P.locale_map || {}, bc = P.brand_by_channel || {}, loc = Object.keys(P.email || {}).filter(k => /^LOCALE_/.test(k) && P.email[k].text).map(k => k.replace('LOCALE_', ''));
+  const countries = Array.from(new Set(((HUB.hist && HUB.hist.leads) || []).map(l => l.country).filter(Boolean))).sort(); Object.keys(lm).forEach(c => { if(countries.indexOf(c) < 0) countries.push(c); });
+  let h = '<div class="x-panel" style="margin-top:14px"><h3>Which language for which country</h3><div class="x-sub">A country with no language gets English only. Pick from the languages you have added.</div><div class="pm-map">';
+  h += countries.map(c => '<label>' + escH(c) + '</label><select data-c="' + escH(c) + '" class="lmSel"><option value="">English only</option>' + loc.map(o => '<option' + (lm[c] === o ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>').join('') || '<div class="sf-d">No countries yet.</div>';
+  h += '</div><div class="sf-act"><button class="x-btn p" onclick="setMapSave(\'EMAIL_LOCALE_MAP\')">Save language map</button></div></div>';
+  const chans = (SET.data.channels || []).map(c => c.Channel);
+  h += '<div class="x-panel" style="margin-top:14px"><h3>Default brand for each channel</h3><div class="x-sub">Used when a lead has no brand of its own. A lead can always be moved to the other brand from its panel.</div><div class="pm-map">';
+  h += chans.map(c => '<label>' + escH(c) + '</label><select data-c="' + escH(c) + '" class="bcSel"><option value="">No default</option>' + Object.keys(P.brands || {}).map(b => '<option value="' + b + '"' + (bc[c] === b ? ' selected' : '') + '>' + escH(P.brands[b]) + '</option>').join('') + '</select>').join('');
+  h += '</div><div class="sf-act"><button class="x-btn p" onclick="setMapSave(\'BRAND_BY_CHANNEL\')">Save brand defaults</button></div></div>';
+  return h;
+}
+async function setMapSave(name){
+  const m = {}; document.querySelectorAll(name === 'BRAND_BY_CHANNEL' ? '.bcSel' : '.lmSel').forEach(s => { if(s.value) m[s.getAttribute('data-c')] = s.value; });
+  try { const r = await setPost({ action:'map', name, map:m, note:'' }); showToast((r.changed || []).length ? 'Saved' : 'Nothing changed'); await setLoad(); } catch(e){ alert('Not saved:\n' + e.message); }
+}
+function setTabPrompts(){
+  const lay = SET.data.prompts && SET.data.prompts.email; if(!lay) return '<div class="x-empty">No prompts found.</div>';
+  return '<div class="x-note blue">Every email is built in layers: <b>main prompt</b> + <b>brand</b> (O\'right or O\'right PRO) + <b>language</b>. The local language goes on top, English below. Each save is a new version you can restore.</div>' +
+    '<div class="pm"><div class="x-panel pm-l">' + setPromptsList() + '</div><div class="x-panel">' + setPromptEditor() + '</div></div>' + setMapHtml();
+}
+/* ----- tab: system status ----- */
+function setTabStatus(){
+  const S = SET.data.status || {}, T = S.tavily || [];
+  let h = '<div class="x-grid x-g2e"><div class="x-panel"><h3>Tavily search credit</h3><div class="x-sub">Each lead check uses about 3 credits (counted from the workflow code).</div>' +
+    '<div class="st-big">' + (S.tavily_remaining != null ? S.tavily_remaining.toLocaleString() : '—') + '<small> credits left</small></div><div class="x-sub">Enough for about <b>' + (S.tavily_leads_left != null ? S.tavily_leads_left.toLocaleString() : '—') + '</b> more leads.</div>' +
+    (T.length ? '<table class="st-t"><tr><th>Key</th><th>Left</th><th></th></tr>' + T.map(t => '<tr><td>' + escH(t.label) + '</td><td>' + (t.remaining != null ? t.remaining : '—') + (t.limit ? ' / ' + t.limit : '') + '</td><td>' + (t.exhausted ? '<span class="x-pill red">used up</span>' : t.active ? '<span class="x-pill green">in use</span>' : '<span class="x-pill grey">off</span>') + '</td></tr>').join('') + '</table>' : '<div class="x-empty">No Tavily keys found.</div>') + '</div>';
+  const lst = (title, rows, note) => '<div class="x-panel"><h3>' + title + '</h3><div class="x-sub">' + note + '</div>' + ((rows || []).length ? '<table class="st-t">' + rows.map(t => '<tr><td>' + escH(t.label) + '</td><td>' + (t.active ? '<span class="x-pill green">active</span>' : '<span class="x-pill grey">off</span>') + '</td><td class="sf-h">' + escH(t.notes || '') + '</td></tr>').join('') + '</table>' : '<div class="x-empty">None found.</div>') + '</div>';
+  h += '<div>' + lst('Apify keys', S.apify, 'Apify credit is not stored in a sheet, so only the label and on/off state show here. Check the balance in the Apify console.') + '<div style="height:14px"></div>' + lst('Groq keys', S.groq, 'Used for drafting and scoring. Key values are never shown.') + '</div></div>';
+  h += '<div class="x-panel" style="margin-top:14px"><h3>Switches</h3><div class="x-sub">These are normal settings, change them on the Sending & safety or Scoring tabs.</div><table class="st-t">' +
+    [['Test mode', S.test_mode ? 'On: only test addresses can receive email' : 'Off: real emails can go out'], ['Switch channel automatically', (SET.data.values.AUTO_SWITCH === 'TRUE') ? 'On' : 'Off'], ['Hold unclear channels for review', (SET.data.values.HOLD_UNCLEAR === 'TRUE') ? 'On' : 'Off']].map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') + '</table></div>';
+  return h;
+}
+/* ----- tab: change history ----- */
+function setTabHist(){
+  const L = SET.data.log || []; if(!L.length) return '<div class="x-empty"><b>No changes yet.</b><br>Every change made here is listed with the old and the new value.</div>';
+  return '<div class="x-panel">' + L.map(r => {
+    const long = r.kind === 'eprompt' || r.kind === 'rubric', fmt = v => long ? (v ? v.length + ' characters' : 'empty') : (v === '' ? '(empty)' : v);
+    return '<div class="hs-r' + (r.reverted ? ' rv' : '') + '"><div class="hs-h"><b>' + escH(r.target + (r.field ? ' / ' + r.field : '')) + '</b> <span class="x-pill grey">' + escH(r.kind) + '</span>' + (r.reverted ? ' <span class="x-pill amber">reverted</span>' : '') + (r.is_revert ? ' <span class="x-pill blue">revert</span>' : '') + '<span class="hs-t">' + xDate(r.at) + '</span></div><div class="hs-d"><span class="o">' + escH(fmt(r.old)) + '</span> → <span class="n">' + escH(fmt(r.new)) + '</span></div>' + (r.note ? '<div class="sf-h">' + escH(r.note) + '</div>' : '') +
+      (!r.reverted && !r.is_revert ? '<button class="x-btn" onclick="setRevert(\'' + escH(r.id) + '\')">Undo this change</button>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+async function setRevert(id){ if(!confirm('Undo this change? The old value is put back and the undo is logged.')) return; try { const r = await setPost({ action:'revert', log_id:id }); showToast('Undone'); if((r.warnings || []).length) alert(r.warnings.join('\n')); await setLoad(); } catch(e){ alert('Could not undo:\n' + e.message); } }
+/* ----- shell ----- */
+function setDraw(){
+  const box = $x('setV11'); if(!box) return;
+  if(SET.err){ box.innerHTML = xErrBox('settings', '/hub-settings', SET.err); return; }
+  const D = SET.data; if(!D) return;
+  if(!D.authed){
+    box.innerHTML = '<div class="x-panel set-lock"><h3>Unlock settings</h3>' + (D.setup_needed ? '<div class="x-note amber"><b>No admin token is set yet.</b> Add a row <code>ADMIN_TOKEN</code> in the Hub_Config sheet (a long random text, 24+ characters), then enter it here. Nobody can change settings until it exists.</div>' : '<div class="x-sub">Enter the admin token from the Hub_Config sheet. It is kept in this browser only.</div>') +
+      (setTok() ? '<div class="x-note red">That token was not accepted.</div>' : '') + '<input id="setTokIn" type="password" placeholder="Admin token" onkeydown="if(event.key===\'Enter\')setUnlock()"><button class="x-btn p" onclick="setUnlock()">Unlock</button></div>';
+    return;
+  }
+  box.innerHTML = '<div class="set-top"><div class="x-tabs">' + SET_TABS.map(t => '<div class="x-tab' + (SET.tab === t[0] ? ' on' : '') + '" onclick="setTab(\'' + t[0] + '\')">' + t[1] + '</div>').join('') + '</div><button class="x-btn" onclick="setLock()">Lock</button></div>' +
+    ({ send:setTabSend, score:setTabScore, prompts:setTabPrompts, status:setTabStatus, hist:setTabHist }[SET.tab])();
+  setBarDraw();
+}
+
+/* ---------- PIPELINE LAYER 4: what works (reads /hub-insights) ---------- */
+const INS_DIMS = [['channel','Channel'],['brand','Brand'],['country','Country'],['email_no','Email number'],['fit_band','Fit score band'],['kind','Recipient'],['prompt','Prompt version'],['language','Language']];
+function insBar(g){
+  if(g.early) return '<div class="in-r early"><div class="nm">' + escH(g.key) + '</div><div class="bar"><i style="width:0"></i></div><div class="num">' + g.sent + ' sent</div><div class="rt"><span class="x-pill grey">too early</span></div></div>';
+  const w = Math.min(100, g.reply_rate * 4); // 25% fills the bar
+  return '<div class="in-r"><div class="nm">' + escH(g.key) + '</div><div class="bar"><i style="width:' + Math.max(2, w) + '%"></i></div><div class="num">' + g.replied + ' / ' + g.base + '</div><div class="rt"><b>' + g.reply_rate + '%</b> replied' + (g.clicked ? ' · ' + (g.click_rate != null ? g.click_rate + '%' : g.clicked) + ' clicked' : '') + '</div></div>';
+}
+function insDimHtml(D, key, label){
+  const rows = (D.dims && D.dims[key]) || []; if(!rows.length) return '';
+  const real = rows.filter(g => g.key !== '(not recorded)' && g.key !== '(not scored)'); if(!real.length) return '';
+  return '<div class="in-d"><h4>' + label + '</h4>' + rows.map(insBar).join('') + '</div>';
+}
+function pipeInsDraw(){
+  const el = $x('pipeInsights'); if(!el) return;
+  if(HUB.errs.ins){ el.innerHTML = '<div class="x-panel" style="margin-top:14px"><h3>What works</h3>' + xErrBox('the results analysis', '/hub-insights', HUB.errs.ins.e) + '</div>'; return; }
+  const D = HUB.ins; if(!D) return;
+  const T = D.totals || {}, C = D.caveats || {}, RP = C.recorded_pct || {};
+  let h = '<div class="x-panel" style="margin-top:14px"><h3>What works</h3><div class="x-sub">Reply rate = replies ÷ emails that were delivered (sent minus bounced). Groups with fewer than ' + D.min_n + ' delivered emails are marked "too early" and never compared.</div>';
+  if(!T.sent){ el.innerHTML = h + '<div class="x-empty">Results appear here after the first emails are sent.</div></div>'; return; }
+  h += '<div class="in-tot"><div><b>' + T.sent + '</b><span>emails sent</span></div><div><b>' + T.leads_contacted + '</b><span>leads contacted</span></div><div><b>' + T.replies_logged + '</b><span>replies logged</span></div><div><b>' + T.bounced + '</b><span>bounced</span></div></div>';
+  const ins = D.insights || [];
+  if(ins.length) h += '<div class="in-ins">' + ins.map(i => '<div class="x-note ' + ({ good:'green', warn:'amber', info:'blue', muted:'' }[i.level] || 'blue') + '">' + escH(i.text) + '</div>').join('') + '</div>';
+  h += '<div class="x-note amber"><b>Read before acting:</b> these tables look at one thing at a time. A country can look strong only because it has more salons. Compare inside one channel before changing anything. Replies are logged by hand and email opens are not tracked, so real interest is higher than shown.</div>';
+  h += '<div class="in-grid">' + INS_DIMS.map(d => insDimHtml(D, d[0], d[1])).join('') + '</div>';
+  const miss = [['Prompt version', RP.prompt], ['Recipient type', RP.kind], ['Brand', RP.brand], ['Language', RP.language]].filter(m => m[1] != null && m[1] < 100);
+  if(miss.length) h += '<div class="sf-d">Recorded on only part of the emails (older emails were sent before these were tracked): ' + miss.map(m => m[0] + ' ' + m[1] + '%').join(', ') + '.</div>';
+  if((D.lost || []).length) h += '<div class="in-d" style="margin-top:14px"><h4>Why deals were lost</h4>' + D.lost.map(l => '<div class="in-r"><div class="nm">' + escH(l.reason) + '</div><div class="bar"><i style="width:' + Math.max(4, Math.round(l.n / D.lost[0].n * 100)) + '%"></i></div><div class="num">' + l.n + '</div><div class="rt"></div></div>').join('') + '</div>';
+  const tr = (D.transitions || []).filter(t => t.n > 0);
+  if(tr.length) h += '<div class="in-d" style="margin-top:14px"><h4>How long each step takes (median days)</h4>' + tr.map(t => '<div class="in-r"><div class="nm">' + escH(t.step) + '</div><div class="bar"></div><div class="num">' + t.median_days + ' d</div><div class="rt">' + (t.n < 5 ? '<span class="x-pill grey">only ' + t.n + '</span>' : 'from ' + t.n + ' leads') + '</div></div>').join('') + '</div>';
+  el.innerHTML = h + '</div>';
+}
+
+/* ---------- BRAND on a lead (O'right <-> O'right PRO) ---------- */
+const BRAND_NAME = { ORIGHT:"O'right", PRO:"O'right PRO" };
+const BR_SRC = { manual:'set by you', website:'from the website', channel:'guess from channel', default:'default guess' };
+function ldBrandHTML(L){
+  const cur = String(L.Brand || '').toUpperCase(), prev = String(L.Brand_Prev || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase();
+  const other = cur === 'PRO' ? 'ORIGHT' : 'PRO';
+  const mk = L.Match_Key || (ldCurrent && ldCurrent.mk) || '';
+  const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === mk && /^(scheduled|queued)$/i.test(r.status || '')).length;
+  return '<div class="ld-sec"><h4>Brand</h4>' + ldKV([['Current brand', cur ? '<b>' + escH(BRAND_NAME[cur] || cur) + '</b> <span class="x-pill ' + (src === 'manual' || src === 'website' ? 'green' : 'amber') + '">' + escH(BR_SRC[src] || 'rough guess') + '</span>' + (L.Brand_Evidence ? '<div class="ld-quote" style="margin-top:6px">“' + escH(L.Brand_Evidence) + '”</div>' : '') : '<span style="color:var(--ink-faint)">Not set yet. The channel default is used (Settings → Prompts).</span>']].concat(prev && String(L.Human_Verdict || '') === 'BrandChanged' ? [['Moved from', escH(BRAND_NAME[prev] || prev)]] : [])) +
+    '<div class="row" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><select class="ld-input" id="ldBrSel" style="flex:1;min-width:150px"><option value="ORIGHT"' + (other === 'ORIGHT' ? ' selected' : '') + '>' + BRAND_NAME.ORIGHT + '</option><option value="PRO"' + (other === 'PRO' ? ' selected' : '') + '>' + BRAND_NAME.PRO + '</option></select><button class="btn-secondary" onclick="ldChangeBrand()">Move to this brand</button></div>' +
+    '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;margin-top:8px;line-height:1.5"><input type="checkbox" id="ldBrRescore" style="margin-top:3px"><span>Score again with the new brand\'s rubric. Only tick this if you have created a rubric for that brand; otherwise the score stays the same anyway.</span></label>' +
+    (sched ? '<div class="x-note amber"><b>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled</b> for this lead and will go out with the old brand\'s wording. Cancel or rewrite them in the Outreach Hub.</div>' : '') +
+    '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;line-height:1.5">New drafts use the new brand\'s voice, facts and offer. Emails already sent are not changed. The channel stays as it is.</div></div>';
+}
+async function ldChangeBrand(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {};
+  const br = ($x('ldBrSel') || {}).value, old = String(L.Brand || '').toUpperCase(), rescore = !!($x('ldBrRescore') || {}).checked;
+  if(!br || br === old){ showToast('Pick a different brand first'); return; }
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'set_brand', brand:br, old_brand:old, rescore });
+    const clr = rescore ? { Fit_Score:'', Fit_Score_Reason:'', ESG_Score:'', ESG_Score_Reason:'', Score_Status:'' } : {};
+    const patch = Object.assign({ Brand:br, Brand_Prev:old, Brand_Source:'manual', Human_Verdict:'BrandChanged' }, clr);
+    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, patch); Object.assign(L, patch);
+    showToast('Moved to ' + BRAND_NAME[br] + (rescore ? '. It will be scored again.' : '.'));
+    renderLeadDrawer(); sumCache = null;
+  } catch(err){ showToast('Could not change brand: ' + err.message); }
+}
+
+/* ---------- PIPELINE: layers 1-3 (pure logic, no DOM) ---------- */
+const PIPE_CFG = { stuck: 14, replyDue: 2, bounceRed: 0.10, bounceMin: 20, minSample: 10 };
+const PIPE_OPEN = ['Replied', 'Meeting', 'Sample', 'Quotation'];
+const PIPE_CLOSED = ['Won', 'Lost'];
+const PIPE_STEPS = ['contacted', 'replied', 'meeting', 'sample', 'quotation', 'won'];
+const PIPE_STEP_NAME = { contacted: 'Contacted', replied: 'Replied', meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation', won: 'Won' };
+function pipeMedian(a){
+  const x = a.filter(v => v != null && !isNaN(v)).sort((p, q) => p - q); if(!x.length) return null;
+  const m = Math.floor(x.length / 2); return x.length % 2 ? x[m] : Math.round((x[m - 1] + x[m]) / 2);
+}
+function pipeDaysIn(l, now){ const t = Date.parse(l.stage_since || l.last_at || ''); return isNaN(t) ? null : Math.max(0, Math.floor((now - t) / 86400000)); }
+function pipePlural(n, one, many){ return n + ' ' + (n === 1 ? one : many); }
+/* L = /hub-history leads. Each lead goes into ONE lane only (first match wins). */
+function pipeCompute(L, now, cfg){
+  cfg = Object.assign({}, PIPE_CFG, cfg || {}); now = now || Date.now();
+  const lanes = { reply: [], hot: [], followup: [], stuck: [], bounced: [] };
+  const live = L.filter(l => !PIPE_CLOSED.includes(l.stage));
+  live.forEach(l => {
+    const d = pipeDaysIn(l, now), stage = l.stage || 'Contacted';
+    const due = Date.parse(l.next_step_due || ''), dueNow = !isNaN(due) && due <= now;
+    const item = { l, d, stage, why: '', sort: 0 };
+    if(stage === 'Replied'){ item.why = 'They replied' + (d != null ? ' ' + (d === 0 ? 'today' : d + ' d ago') : '') + '. Log the next step.'; item.sort = d || 0; item.overdue = d != null && d > cfg.replyDue; lanes.reply.push(item); }
+    else if(l.status === 'Bounced' || l.signal === 'bounced'){ item.why = 'Email bounced. Find another contact.'; item.sort = d || 0; lanes.bounced.push(item); }
+    else if(l.signal === 'hot'){ item.why = l.signal_why || 'Engaged: replied or clicked several times.'; item.sort = Number(l.priority) || 0; lanes.hot.push(item); }
+    else if(l.signal === 'followup' || (dueNow && !PIPE_OPEN.includes(stage))){ item.why = l.signal_why || ('Revisit date reached' + (l.next_step ? ': ' + l.next_step : '')); item.sort = l.days_since_sent != null ? l.days_since_sent : (d || 0); lanes.followup.push(item); }
+    else if(PIPE_OPEN.includes(stage) && d != null && d > cfg.stuck){ item.why = d + ' days in ' + stage + (l.next_step ? '. Next: ' + l.next_step : '. No next step set.'); item.sort = d; lanes.stuck.push(item); }
+  });
+  Object.keys(lanes).forEach(k => lanes[k].sort((a, b) => b.sort - a.sort));
+  // ---- layer 1: one sentence + light ----
+  const total = L.length, nB = lanes.bounced.length;
+  const overdue = lanes.reply.filter(x => x.overdue);
+  let light = 'green';
+  if(!total) light = 'grey';
+  else if(overdue.length || lanes.stuck.length >= 3 || (total >= cfg.bounceMin && nB / total >= cfg.bounceRed)) light = 'red';
+  else if(lanes.reply.length || lanes.hot.length || lanes.followup.length || lanes.stuck.length || nB) light = 'amber';
+  const parts = [];
+  if(lanes.reply.length){ const o = Math.max.apply(null, lanes.reply.map(x => x.d || 0)); parts.push(pipePlural(lanes.reply.length, 'reply is', 'replies are') + ' waiting for you' + (o > 0 ? ' (oldest ' + o + ' d)' : '')); }
+  if(lanes.hot.length) parts.push(pipePlural(lanes.hot.length, 'lead is', 'leads are') + ' hot');
+  if(lanes.followup.length) parts.push(pipePlural(lanes.followup.length, 'follow-up is', 'follow-ups are') + ' due');
+  if(lanes.stuck.length) parts.push(pipePlural(lanes.stuck.length, 'deal has', 'deals have') + ' not moved in ' + cfg.stuck + '+ days');
+  if(nB) parts.push(pipePlural(nB, 'email', 'emails') + ' bounced');
+  const waiting = live.filter(l => (l.stage || 'Contacted') === 'Contacted').length;
+  let sentence;
+  if(!total) sentence = 'No outreach yet. Send your first emails from the Outreach Hub and this page fills in.';
+  else if(!parts.length) sentence = 'Nothing needs you right now. ' + pipePlural(waiting, 'lead is', 'leads are') + ' out waiting for a reply.';
+  else sentence = parts.map((p, i) => i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join(', ') + '.';
+  // ---- layer 3: time sitting in each current stage ----
+  const sit = {}; ['Contacted', 'Replied', 'Meeting', 'Sample', 'Quotation'].forEach(s => { sit[s] = pipeMedian(live.filter(l => (l.stage || 'Contacted') === s).map(l => pipeDaysIn(l, now))); });
+  const count = {}; L.forEach(l => { const s = l.stage || 'Contacted'; count[s] = (count[s] || 0) + 1; });
+  return { lanes, light, sentence, total, sit, count, overdue: overdue.length };
+}
+/* F = dashboard-summary funnel (cumulative: a lead that reached Meeting also counts under Replied). */
+function pipeFunnel(F, minSample){
+  minSample = minSample || PIPE_CFG.minSample; if(!F || F.contacted == null) return null;
+  const rows = PIPE_STEPS.map((k, i) => {
+    const n = F[k] == null ? null : Number(F[k]), prev = i ? (F[PIPE_STEPS[i - 1]] == null ? null : Number(F[PIPE_STEPS[i - 1]])) : null;
+    return { key: k, name: PIPE_STEP_NAME[k], n, conv: i && prev ? Math.round(n / prev * 100) : null, small: i ? (prev != null && prev < minSample) : (n != null && n < minSample) };
+  });
+  let leak = null;   // biggest drop among steps that have enough sample
+  rows.forEach(r => { if(r.conv != null && !r.small && (leak == null || r.conv < leak.conv)) leak = r; });
+  return { rows, leak, overall: F.contacted ? Math.round((F.won || 0) / F.contacted * 1000) / 10 : null };
+}
+
+/* ---------- PIPELINE: rendering ---------- */
+HUB.pipeMore = {};
 async function pipeLoad(force){
   $x('pipeUpdated').innerHTML = '<span class="d"></span> Loading…';
-  try { HUB.hist = await n8nGet('/hub-history'); HUB.errs.hist = null; } catch(e){ HUB.errs.hist = { e, ep:'/hub-history' }; }
+  const jobs = [
+    n8nGet('/hub-history').then(d => { HUB.hist = d; HUB.errs.hist = null; }).catch(e => { HUB.errs.hist = { e, ep:'/hub-history' }; }),
+    loadSummary(!!force).then(d => { HUB.sum = d; HUB.errs.sum = null; }).catch(e => { HUB.sum = null; HUB.errs.sum = { e, ep:'/dashboard-summary' }; }),
+    n8nGet('/hub-insights').then(d => { HUB.ins = d; HUB.errs.ins = null; }).catch(e => { HUB.ins = null; HUB.errs.ins = { e, ep:'/hub-insights' }; }),
+    n8nGet('/hub-settings').then(d => { HUB.settings = d; pipeApplySettings(); }).catch(() => {})
+  ];
+  await Promise.all(jobs);
   pipeFilters(); pipeDraw();
   $x('pipeUpdated').innerHTML = HUB.errs.hist ? '<span class="d" style="background:var(--red)"></span> Not updated' : '<span class="d"></span> Updated ' + new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
 }
+function pipeApplySettings(){
+  const v = (HUB.settings && HUB.settings.values) || {}, n = k => { const x = Number(v[k]); return isFinite(x) && x > 0 ? x : null; };
+  if(n('STUCK_DAYS')) PIPE_CFG.stuck = n('STUCK_DAYS');
+  if(n('REPLY_DUE_DAYS')) PIPE_CFG.replyDue = n('REPLY_DUE_DAYS');
+  if(n('FIT_MIN')) lsSet('oright_fit_min', String(n('FIT_MIN')));
+}
 function pipeFilters(){
-  const L = (HUB.hist && HUB.hist.leads) || [], fill = (id, key, all) => { const s = $x(id), cur = s.value, vals = Array.from(new Set(L.map(l => l[key]).filter(Boolean))).sort(); s.innerHTML = '<option value="">' + all + '</option>' + vals.map(v => '<option>' + escH(v) + '</option>').join(''); s.value = vals.includes(cur) ? cur : ''; };
+  const L = (HUB.hist && HUB.hist.leads) || [], fill = (id, key, all) => { const s = $x(id), cur = s.value, vals = Array.from(new Set(L.map(l => l[key]).filter(Boolean))).sort(); s.innerHTML = '<option value="">' + all + '</option>' + vals.map(v => '<option' + (v === cur ? ' selected' : '') + '>' + escH(v) + '</option>').join(''); };
   fill('pipeCountry', 'country', 'All countries'); fill('pipeChannel', 'channel', 'All channels');
+}
+function pipeMore(k){ HUB.pipeMore[k] = !HUB.pipeMore[k]; pipeDraw(); }
+function pipeLaneHtml(def, items){
+  const k = def[0], open = !!HUB.pipeMore[k], show = open ? items : items.slice(0, 5);
+  return '<div class="pp-lane ' + def[2] + '"><div class="pp-lh"><span class="pp-lt">' + def[1] + '</span><span class="pp-ln">' + items.length + '</span></div><div class="pp-ls">' + def[3] + '</div>' +
+    (show.map(x => '<div class="pp-li" data-k="' + escH(x.l.match_key) + '" onclick="lOpen(this.getAttribute(\'data-k\'))"><div class="n">' + escH(x.l.company) + (x.overdue ? ' <span class="x-pill red">overdue</span>' : '') + '</div><div class="s">' + escH(x.l.country || '') + (x.l.contact_name ? ' · ' + escH(x.l.contact_name) : '') + '</div><div class="w">' + escH(x.why) + '</div></div>').join('') || '<div class="pp-none">Nothing here</div>') +
+    (items.length > 5 ? '<button class="x-btn pp-more" onclick="pipeMore(\'' + k + '\')">' + (open ? 'Show fewer' : 'Show ' + (items.length - 5) + ' more') + '</button>' : '') + '</div>';
+}
+function pipeFunnelHtml(F, R){
+  if(!F) return '<div class="x-panel"><h3>Funnel</h3><div class="x-empty">The funnel needs <code>/dashboard-summary</code> with the Email_Log branch connected.</div></div>';
+  const top = Math.max(1, F.rows[0].n || 1);
+  const sitName = { contacted: 'Contacted', replied: 'Replied', meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation' };
+  let h = '<div class="x-panel"><h3>Funnel</h3><div class="x-sub">Every lead that ever reached a step. "Sitting" = median days the leads that are in that step right now have been there.</div>';
+  h += F.rows.map((r, i) => {
+    const sit = R.sit[sitName[r.key]], w = r.n ? Math.max(2, Math.round(r.n / top * 100)) : 0;
+    return '<div class="pp-fr"><div class="nm">' + r.name + '</div><div class="bar"><i style="width:' + w + '%"></i></div><div class="num">' + (r.n == null ? '—' : r.n) + '</div>' +
+      '<div class="cv">' + (i ? (r.conv == null ? '—' : '<span class="' + (r.small ? 'small' : '') + '">' + r.conv + '%</span>' + (r.small ? '<em title="Fewer than ' + PIPE_CFG.minSample + ' leads in the step before, so this percentage is not reliable yet"> early</em>' : '')) : '') + '</div>' +
+      '<div class="sit">' + (sit != null ? 'sitting ' + sit + ' d' : '') + '</div></div>';
+  }).join('');
+  h += '<div class="pp-fnote">' + (F.leak ? 'Biggest drop so far: <b>' + F.rows[F.rows.indexOf(F.leak) - 1].name + ' → ' + F.leak.name + '</b> (' + F.leak.conv + '% go through). ' : 'Not enough leads in each step to name a weak spot yet. ') +
+    (F.overall != null ? 'Contacted → Won: ' + F.overall + '%. ' : '') + 'Replies are logged by hand, so the Replied step can read lower than reality.</div></div>';
+  return h;
 }
 function pipeDraw(){
   const el = $x('pipeBody'); if(HUB.errs.hist){ el.innerHTML = xErrBox('the pipeline', HUB.errs.hist.ep, HUB.errs.hist.e); return; }
-  const c = $x('pipeCountry').value, ch = $x('pipeChannel').value, L = ((HUB.hist && HUB.hist.leads) || []).filter(l => (!c || l.country === c) && (!ch || l.channel === ch));
+  const c = $x('pipeCountry').value, ch = $x('pipeChannel').value, all = (HUB.hist && HUB.hist.leads) || [], L = all.filter(l => (!c || l.country === c) && (!ch || l.channel === ch));
   $x('pipeCount').textContent = L.length + ' leads';
-  if(!L.length){ el.innerHTML = '<div class="x-panel"><div class="x-empty"><b>No contacted leads yet.</b><br>Once you send emails (or import past ones), each lead appears here in its stage.</div></div>'; return; }
+  const R = pipeCompute(L, Date.now()), F = pipeFunnel(HUB.sum && HUB.sum.funnel);
+  const LIGHT = { red:'Needs you now', amber:'Needs attention', green:'On track', grey:'No data yet' };
+  let h = '<div class="pp-banner ' + R.light + '"><div class="dot"></div><div><div class="t">' + LIGHT[R.light] + '</div><div class="s">' + escH(R.sentence) + '</div></div></div>';
+  if(!L.length){ el.innerHTML = h + '<div class="x-panel"><div class="x-empty"><b>No contacted leads yet.</b><br>Once you send emails (or import past ones), each lead appears here in its stage.</div></div>'; return; }
+  const defs = [['reply', 'Replies waiting', 'red', 'Open it, read it, log the next step.'], ['hot', 'Hot', 'amber', 'Engaged. Write back while it is warm.'], ['followup', 'Follow-up due', 'blue', 'Gap passed with no reply, or a revisit date arrived.'], ['stuck', 'Stuck', 'grey', 'No movement for ' + PIPE_CFG.stuck + '+ days.'], ['bounced', 'Bounced', 'red', 'Needs a different contact.']];
+  h += '<div class="pp-lanes">' + defs.map(d => pipeLaneHtml(d, R.lanes[d[0]])).join('') + '</div>';
+  h += '<div class="pp-note">Each lead appears in one lane only: replies first, then bounced, hot, follow-up and stuck. Won and Lost leads are left out.' + ((c || ch) ? ' Funnel below counts all leads, filters apply to the lanes and the board.' : '') + '</div>';
+  h += pipeFunnelHtml(F, R);
+  h += '<div id="pipeInsights"></div>';
+  // existing board kept, now secondary
   const main = ['Contacted', 'Replied', 'Meeting', 'Sample', 'Quotation', 'Won'], by = s => L.filter(l => (l.stage || 'Contacted') === s);
-  const active = L.filter(l => ['Replied', 'Meeting', 'Sample', 'Quotation'].includes(l.stage)), stuck = L.filter(l => !['Won', 'Lost', 'Cold', 'Nurture'].includes(l.stage || 'Contacted') && (xDays(l.stage_since || l.last_at) || 0) > X_STUCK_DAYS);
-  const rep = L.filter(l => ['Replied', 'Meeting', 'Sample', 'Quotation', 'Won'].includes(l.stage)).length, meet = L.filter(l => ['Meeting', 'Sample', 'Quotation', 'Won'].includes(l.stage)).length;
-  const k = (l, v, f) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="f">' + f + '</div></div>';
-  let h = '<div class="x-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">' + k('Active deals', active.length, 'replied or further') + k('Stuck > ' + X_STUCK_DAYS + ' days', stuck.length, 'no movement, chase these') + k('Reply → meeting', rep ? Math.round(meet / rep * 100) + '%' : '—', rep ? meet + ' of ' + rep + ' that replied' : 'needs replies') + '</div>';
-  h += '<div class="x-kan">' + main.map(s => { const cards = by(s); return '<div class="x-col"><h5><span>' + s + '</span><span class="x-pill grey">' + cards.length + '</span></h5>' + (cards.map(l => { const d = xDays(l.stage_since || l.last_at), st = d != null && d > X_STUCK_DAYS && s !== 'Won'; return '<div class="x-card' + (st ? ' stuck' : '') + '" data-k="' + escH(l.match_key) + '" onclick="lOpen(this.getAttribute(\'data-k\'))"><div class="n">' + escH(l.company) + '</div><div class="s">' + escH(l.country) + (l.contact_name ? ' · ' + escH(l.contact_name) : '') + '</div><div class="s">' + (d != null ? d + ' days in stage' : '') + (l.next_step ? ' · next: ' + escH(l.next_step) : '') + '</div>' + (st ? '<div style="margin-top:6px"><span class="x-pill amber">stuck</span></div>' : '') + '</div>'; }).join('') || '<div style="color:var(--ink-faint);font-size:12px;padding:6px">—</div>') + '</div>'; }).join('') + '</div>';
-  h += '<div class="x-grid x-g2e" style="margin-top:14px">' + ['Nurture', 'Cold', 'Lost'].map(s => { const cards = by(s); return '<div class="x-panel"><h3>' + s + ' <span class="x-pill ' + stageColor(s) + '">' + cards.length + '</span></h3><div class="x-sub">' + ({ Nurture:'Interested but not now. Contact again on the date set.', Cold:'No response after follow-ups. Can be reached out to again later.', Lost:'Closed. The reason is recorded for later analysis.' }[s]) + '</div>' + (cards.map(l => '<div style="padding:6px 0;border-top:1px solid #F0F2F5;cursor:pointer" data-k="' + escH(l.match_key) + '" onclick="lOpen(this.getAttribute(\'data-k\'))"><b>' + escH(l.company) + '</b> <span style="color:var(--ink-faint);font-size:12px">' + escH(l.country) + '</span></div>').join('') || '<div style="color:var(--ink-faint);font-size:12px">—</div>') + '</div>'; }).join('') + '</div>';
+  h += '<details class="pp-board"' + (HUB.pipeBoardOpen ? ' open' : '') + ' ontoggle="HUB.pipeBoardOpen=this.open"><summary>Board by stage <span class="x-pill grey">' + L.length + '</span></summary>';
+  h += '<div class="x-kan">' + main.map(s => { const cards = by(s); return '<div class="x-col"><h5><span>' + s + '</span><span class="x-pill grey">' + cards.length + '</span></h5>' + (cards.map(l => { const d = xDays(l.stage_since || l.last_at), st = d != null && d > PIPE_CFG.stuck && s !== 'Won'; return '<div class="x-card' + (st ? ' stuck' : '') + '" data-k="' + escH(l.match_key) + '" onclick="lOpen(this.getAttribute(\'data-k\'))"><div class="n">' + escH(l.company) + '</div><div class="s">' + escH(l.country) + (l.contact_name ? ' · ' + escH(l.contact_name) : '') + '</div><div class="s">' + (d != null ? d + ' days in stage' : '') + (l.next_step ? ' · next: ' + escH(l.next_step) : '') + '</div>' + (st ? '<div style="margin-top:6px"><span class="x-pill amber">stuck</span></div>' : '') + '</div>'; }).join('') || '<div style="color:var(--ink-faint);font-size:12px;padding:6px">—</div>') + '</div>'; }).join('') + '</div>';
+  h += '<div class="x-grid x-g2e" style="margin-top:14px">' + ['Nurture', 'Cold', 'Lost'].map(s => { const cards = by(s); return '<div class="x-panel"><h3>' + s + ' <span class="x-pill ' + stageColor(s) + '">' + cards.length + '</span></h3><div class="x-sub">' + ({ Nurture:'Interested but not now. Contact again on the date set.', Cold:'No response after follow-ups. Can be reached out to again later.', Lost:'Closed. The reason is recorded for later analysis.' }[s]) + '</div>' + (cards.map(l => '<div style="padding:6px 0;border-top:1px solid #F0F2F5;cursor:pointer" data-k="' + escH(l.match_key) + '" onclick="lOpen(this.getAttribute(\'data-k\'))"><b>' + escH(l.company) + '</b> <span style="color:var(--ink-faint);font-size:12px">' + escH(l.country) + '</span></div>').join('') || '<div style="color:var(--ink-faint);font-size:12px">—</div>') + '</div>'; }).join('') + '</div></details>';
   el.innerHTML = h;
+  if(typeof pipeInsDraw === 'function') pipeInsDraw();
 }
+
 document.addEventListener('keydown', e => { if(e.key === 'Escape') xCloseAll(); });
 
 </script>
