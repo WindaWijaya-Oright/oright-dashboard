@@ -1734,7 +1734,7 @@ function upDriveStages(st, verifyDone){
   const en = g('enrich'), sc = g('score'), ct = g('contacts');
   if(g('verify').done > 0 && en.total > 0 && en.done < en.total) upKickStage('enrich', b);
   if(en.done > 0 && sc.total > 0 && sc.done < sc.total) upKickStage('score', b);
-  if(verifyDone && sc.total > 0 && sc.done >= sc.total && ct.total > 0 && ct.done < ct.total) upKickStage('apify', b);
+  if(verifyDone && ct.total > 0 && ct.done < ct.total) upKickStage('apify', b);
 }
 function upWatchBegin(batch, uploaded){
   document.getElementById('upProgress').style.display = 'block';
@@ -1793,7 +1793,7 @@ function upRenderStages(d){
     if(s.queued) extra.push(s.queued + ' queued');
     if(s.stuck) extra.push('<b style="color:var(--red)">' + s.stuck + ' stuck</b>');
     if(s.failed) extra.push(s.failed + ' failed');
-    if(k === 'score' && s.held_channel) extra.push(s.held_channel + ' waiting for your channel decision');
+    if(k === 'score' && s.held_channel) extra.push(s.held_channel + ' with a channel flag to check (still scored)');
     if(k === 'contacts' && s.no_website) extra.push(s.no_website + ' without a website (skipped)');
     if(k === 'enrich' && s.state === 'waiting_upstream' && s.total === 0) extra.push('starts when verification passes leads on');
     if(extra.length) chips += (chips ? ' · ' : '') + extra.join(' · ');
@@ -1838,7 +1838,7 @@ function upRenderStages(d){
     const nr = d.needs_review || 0;
     const todo = [];
     if(att.needs_review) todo.push(att.needs_review + ' to review');
-    if(att.held_channel) todo.push(att.held_channel + ' waiting for your channel decision');
+    if(att.held_channel) todo.push(att.held_channel + ' with a channel flag to check');
     if(att.enrich_failed) todo.push(att.enrich_failed + ' where enrichment failed');
     if(att.no_website) todo.push(att.no_website + ' without a website (no email search)');
     if(att.unproven) todo.push(att.unproven + ' passed verification without proof (check them)');
@@ -1879,7 +1879,7 @@ function ldDomainWarn(l){
   return ldNormCountry(l.Country) === exp ? '' : 'Website ends in .' + tld + ' (' + exp.replace(/\b\w/g, c => c.toUpperCase()) + ') but this lead is listed in ' + l.Country + '. Check that it is the right company.';
 }
 // Channel gate: the pipeline holds a lead before scoring when the website does not support its channel. It waits here for a decision.
-function ldChanHeld(l){ return l.Data_Status === 'Verified' && String(l.Channel_Check || '') === 'Hold' && !['ChannelConfirmed','ChannelChanged'].includes(String(l.Human_Verdict || '')) && String(l.Fit_Score == null ? '' : l.Fit_Score) === ''; }
+function ldChanHeld(l){ return l.Data_Status === 'Verified' && String(l.Channel_Check || '') === 'Hold' && !['ChannelConfirmed','ChannelChanged'].includes(String(l.Human_Verdict || '')); }
 function ldChanFlag(l){ return l.Data_Status === 'Verified' && (l.Type_Match === 'none' || (String(l.Alt_Channel || '').trim() && String(l.Alt_Channel).trim().toLowerCase() !== String(l.Channel || '').trim().toLowerCase())); }
 function ldNotFound(l){ return !String(l.Website || '').trim() && !String(l.Suggested_Website || '').trim() && !String(l.Verify_Judge_Quote || '').trim(); }
 
@@ -1949,13 +1949,13 @@ function renderLeads(){
   if(!rows.length){ body.innerHTML = '<div style="padding:26px;text-align:center;color:var(--ink-faint);font-size:13px;">' + (lcTab === 'review' ? 'Nothing waiting for review 🎉' : lcTab === 'channel' ? 'No leads are waiting for a channel decision 🎉' : 'No leads match these filters.') + '</div>'; return; }
   const sc = v => (v === '' || v == null || isNaN(Number(v))) ? '<span style="color:var(--ink-faint);">—</span>' : '<span class="fit-tag ' + fitClass(v) + '" style="margin-left:0;">' + escH(v) + '</span>';
   const why = l => {
-    if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Needs your decision.' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
+    if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Please confirm or change it (the lead is already scored).' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
     if(lcTab === 'channel') return '<div class="co-why">' + escH(l.Channel_Suggest ? 'Website suggests ' + l.Channel_Suggest + ', currently ' + (l.Channel || 'no channel') + '. Needs your decision.' : 'Could not confirm the ' + (l.Channel || 'channel') + ' from the website. Needs your decision.') + '</div>';
     if(lcTab === 'parked' || lcTab === 'rejected') return l.Reject_Reason ? '<div class="co-why" style="color:var(--ink-faint);">' + escH(String(l.Reject_Reason).slice(0, 120)) + '</div>' : '';
     return '';
   };
   body.innerHTML = rows.map(l => { const dw = l.Data_Status === 'Verified' ? ldDomainWarn(l) : '', cf = ldChanFlag(l); return '<div class="lead-row clickable" data-mk="' + escH(l.Match_Key) + '" style="grid-template-columns:2fr 1fr 1fr 1fr .6fr .6fr 1fr;">' +
-    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + ldBrandPill(l) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (ldChanHeld(l) ? '<span class="ld-dw" title="Scoring is paused until you confirm or change the channel.">⏸ channel on hold</span>' : (String(l.Human_Verdict || '') === 'AutoChannel' ? '<span class="ld-dw" title="The pipeline changed the channel from ' + escH(l.Channel_Prev || 'none') + ' based on the website. Open the lead to check.">↻ channel auto-changed</span>' : (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : ''))) + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
+    '<div><div class="co-name">' + escH(l.Name || l.Match_Key) + ldBrandPill(l) + (dw ? '<span class="ld-dw" title="' + escH(dw) + '">⚠ check domain</span>' : '') + (ldChanHeld(l) ? '<span class="ld-dw" title="The website does not clearly confirm this channel. The lead is still scored; confirm or change the channel when you have a minute.">⚑ channel to check</span>' : (String(l.Human_Verdict || '') === 'AutoChannel' ? '<span class="ld-dw" title="The pipeline changed the channel from ' + escH(l.Channel_Prev || 'none') + ' based on the website. Open the lead to check.">↻ channel auto-changed</span>' : (cf ? '<span class="ld-dw" title="The business type may not fit this channel. Open the lead to check.">⚠ check channel</span>' : ''))) + '</div><div class="co-sub">' + escH([l.Source, l.Match_Key].filter(Boolean).join(' · ')) + '</div>' + why(l) + '</div>' +
     '<div><span class="badge reg">' + escH(l.Channel || '—') + '</span></div><div>' + escH(l.Country || '') + '</div><div>' + lcStatusPill(l.Data_Status, l) + '</div>' +
     '<div>' + sc(l.Fit_Score) + '</div><div>' + sc(l.ESG_Score) + '</div>' +
     '<div style="font-size:12px;">' + lcContactCell(l) + '</div></div>'; }).join('');
@@ -2078,11 +2078,11 @@ function ldChannelHTML(L){
   if(tmTxt) rows.push(['Business type fit', escH(tmTxt) + ' <span style="color:var(--ink-faint);">(from scoring)</span>']);
   if(ldClean(L.Sub_Segment)) rows.push(['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')]);
   if(String(L.Human_Verdict || '') === 'AutoChannel') rows.push(['Auto-changed', 'From <b>' + escH(L.Channel_Prev || 'no channel') + '</b> to <b>' + escH(cur) + '</b> based on the website.' + (ldClean(L.Channel_Check_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Channel_Check_Evidence) + '”</div>' : '')]);
-  if(ldChanHeld(L)) rows.push(['Scoring paused', (L.Channel_Suggest ? 'The website points to <b>' + escH(L.Channel_Suggest) + '</b>.' : 'The website does not confirm this channel.') + (ldClean(L.Channel_Check_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Channel_Check_Evidence) + '”</div>' : '')]);
+  if(ldChanHeld(L)) rows.push(['Channel to check', (L.Channel_Suggest ? 'The website points to <b>' + escH(L.Channel_Suggest) + '</b>.' : 'The website does not confirm this channel.') + (ldClean(L.Channel_Check_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Channel_Check_Evidence) + '”</div>' : '')]);
   if(alt) rows.push(['Website suggests', '<b>' + escH(alt) + '</b>' + (ldClean(L.Alt_Channel_Evidence) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(L.Alt_Channel_Evidence) + '”</div>' : '')]);
   const opts = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === (String(L.Channel_Suggest || '') || alt || cur).toLowerCase() && c.toLowerCase() !== cur.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
   return '<div class="ld-sec"><h4>Channel' + (flag ? ' <span class="ld-dw">⚠ worth checking</span>' : '') + '</h4>' + ldKV(rows) +
-    (ldChanHeld(L) && cur ? '<div style="margin-top:10px;"><button class="btn-primary full" onclick="ldConfirmChannel()">Keep ' + escH(cur) + ' and start scoring</button></div>' : '') +
+    (ldChanHeld(L) && cur ? '<div style="margin-top:10px;"><button class="btn-primary full" onclick="ldConfirmChannel()">Keep ' + escH(cur) + ' (clear the flag)</button></div>' : '') +
     '<div class="row" style="display:flex; gap:8px; margin-top:10px;"><select class="ld-input" id="ldChSel" style="flex:1;">' + opts + '</select><button class="btn-secondary" onclick="ldChangeChannel()">Change channel</button></div>' +
     '<div style="font-size:11px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">Changing the channel clears the Fit and ESG scores and queues the lead for scoring again with that channel’s rubric. Emails already sent keep the channel they were sent under.</div></div>';
 }
