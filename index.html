@@ -391,6 +391,27 @@
   .stg.done .bar > i{background:var(--green);}
   .stg .chips{font-size:11px; color:var(--ink-soft); margin-top:5px;}
   .stg .cnt{text-align:right; font-weight:700; font-size:13px; font-variant-numeric:tabular-nums;}
+  .stg .st{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border-radius:20px; padding:2px 8px; margin-left:8px; vertical-align:middle;}
+  .stg.running .ic{background:var(--brand-soft); color:var(--brand);}
+  .stg.running .ic::after{content:''; width:12px; height:12px; border:2px solid var(--brand); border-right-color:transparent; border-radius:50%; animation:stgSpin .8s linear infinite;}
+  .stg.running .ic span{display:none;}
+  .stg.running .st{background:var(--brand-soft); color:var(--brand);}
+  .stg.queued .st,.stg.waiting_upstream .st{background:#EDEFF3; color:var(--ink-soft);}
+  .stg.waiting_user .ic{background:var(--amber-soft); color:var(--amber);}
+  .stg.waiting_user .st{background:var(--amber-soft); color:var(--amber);}
+  .stg.stuck .ic{background:var(--red-soft); color:var(--red);}
+  .stg.stuck .st{background:var(--red-soft); color:var(--red);}
+  .stg.stuck .bar > i{background:var(--red);}
+  .stg.skipped{opacity:.55;}
+  .stg.done .st{background:var(--green-soft); color:var(--green);}
+  .stg.running .bar > i{background-image:linear-gradient(90deg,rgba(255,255,255,0) 0,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 100%); background-size:60px 100%; animation:stgSlide 1.2s linear infinite;}
+  @keyframes stgSpin{to{transform:rotate(360deg)}}
+  @keyframes stgSlide{from{background-position:-60px 0}to{background-position:200px 0}}
+  .up-live{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; margin:10px 0 2px;}
+  .up-live .dot{width:9px; height:9px; border-radius:50%; background:var(--brand); animation:stgPulse 1.2s ease-in-out infinite;}
+  .up-live.stuck .dot{background:var(--red); animation:none;}
+  .up-live.fin .dot{background:var(--green); animation:none;}
+  @keyframes stgPulse{0%,100%{opacity:1}50%{opacity:.3}}
   .lc-tab-n{margin-left:6px; font-size:10.5px; background:#EDEFF3; color:var(--ink-soft); border-radius:20px; padding:1px 7px;}
   .oh-subtab.active .lc-tab-n{background:var(--brand-soft); color:var(--brand);}
   .oh-subtab .lc-tab-n.alert{background:var(--amber-soft); color:var(--amber);}
@@ -1606,7 +1627,7 @@ async function upOnFile(file){
   }
 }
 function upRenderPreview(){
-  const box = document.getElementById('upPreview'); const skipNo = document.getElementById('upSkipNo') ? document.getElementById('upSkipNo').checked : true;
+  const box = document.getElementById('upPreview'); const skipNo = document.getElementById('upSkipNo') ? document.getElementById('upSkipNo').checked : false;
   const b = upBuild(upState.raw, upState.fmt, skipNo); upState.built = b;
   const n = b.rows.length, withWeb = b.rows.filter(r => r.Website).length, withMail = b.rows.filter(r => r.General_Email || r.Registry_Email || r.C1_Email).length;
   const skippedTotal = Object.values(b.skipped).reduce((a,c)=>a+c,0);
@@ -1737,62 +1758,95 @@ const UP_STAGES = [
   ['verify','Verification','AI checks the company really matches the website'],
   ['enrich','Enrichment','Business information gathered from the web'],
   ['score','Scoring','Fit and ESG scores'],
-  ['contacts','Contacts','Emails from websites (only leads above the Fit threshold)']
+  ['contacts','Contacts','Emails from websites (every verified lead that has a website)']
 ];
-const UP_CHIP_NAMES = { 'Apify_NoEmail':'No email found (kept)', 'Apify_Done':'Contacts found' };
+const UP_CHIP_NAMES = { 'Apify_NoEmail':'No email found (kept)', 'Apify_Done':'Contacts found', 'Apify_Running':'Searching now', 'Apify_Failed':'Failed' };
+const UP_STATE_LABEL = { running:'Running', queued:'Queued', waiting_upstream:'Waiting for previous step', waiting_user:'Waiting for you', stuck:'Stuck', done:'Done', skipped:'Nothing to do' };
+const UP_SETTLED = ['done','skipped','waiting_user'];
+// Fallback when n8n still runs the OLD Build_Batch_Status (no "state" field): never claims more than the counts prove.
+function upLegacyState(s){ return (s.total > 0 && s.done >= s.total) ? 'done' : (s.done > 0 ? 'running' : 'queued'); }
 function upRenderStages(d){
   const st = d.stages || {}; let html = '';
-  const cleanDone = !!(st.clean && st.clean.total > 0 && st.clean.done >= st.clean.total);
-  const verifyDone = cleanDone && (st.clean.accepted === 0 || !!(st.verify && st.verify.total > 0 && st.verify.done >= st.verify.total));
-  const finishedOf = k => {
-    const s = st[k] || { total:0, done:0 };
-    if(k === 'upload' || k === 'clean') return s.total > 0 && s.done >= s.total;
-    if(k === 'verify') return verifyDone;
-    if(!verifyDone) return false;            // enrich / score / contacts depend on how many leads were verified
-    return s.total === 0 || s.done >= s.total;
-  };
-  let allDone = true;
+  const hasState = !!(d.overall);
+  const stateOf = k => { const s = st[k] || { total:0, done:0 }; return hasState && s.state ? s.state : upLegacyState(s); };
+  const finished = hasState ? !!d.finished : UP_STAGES.every(([k]) => k === 'contacts' || stateOf(k) === 'done');
+  const overall = hasState ? d.overall : (finished ? 'finished' : 'running');
+  const cleanDone = UP_SETTLED.includes(stateOf('clean'));
+  const verifyDone = cleanDone && UP_SETTLED.includes(stateOf('verify'));
+  let busy = [];
   UP_STAGES.forEach(([k, name, desc], i) => {
-    const s = st[k] || { total:0, done:0 }; const finished = finishedOf(k);
-    if(k !== 'contacts' && !finished) allDone = false;      // contacts only covers leads above the Fit threshold, so it never blocks "finished"
-    const cls = finished ? 'done' : (s.done > 0 ? 'active' : '');
-    const pct = s.total > 0 ? Math.min(100, Math.round(s.done / s.total * 100)) : (finished ? 100 : 0);
+    const s = st[k] || { total:0, done:0 }; const state = stateOf(k);
+    const pct = s.total > 0 ? Math.min(100, Math.round(s.done / s.total * 100)) : (state === 'done' ? 100 : 0);
     let chips = '';
-    if(k === 'clean' && s.total > 0) chips = 'Accepted ' + (s.accepted || 0) + ' · Rejected ' + (s.rejected || 0) + ' (duplicates / no contact)';
+    if(k === 'clean' && s.total > 0) chips = 'Accepted ' + (s.accepted || 0) + ' · Rejected ' + (s.rejected || 0) + ' (duplicates / missing name)';
     else if(s.by_status && Object.keys(s.by_status).length) chips = Object.entries(s.by_status).map(([a,b]) => escH(UP_CHIP_NAMES[a] || a.replace(/_/g,' ')) + ' ' + b).join(' · ');
-    if(k === 'score' && s.held_channel) chips += (chips ? ' · ' : '') + 'Waiting for your channel decision ' + s.held_channel;
-    html += '<div class="stg ' + cls + '"><div class="ic">' + (finished ? '✓' : (i+1)) + '</div><div><div class="nm">' + name + '</div><div class="ds">' + desc + '</div></div><div><div class="bar"><i style="width:' + pct + '%"></i></div>' + (chips ? '<div class="chips">' + chips + '</div>' : '') + '</div><div class="cnt">' + s.done + ' / ' + s.total + '</div></div>';
+    const extra = [];
+    if(s.running) extra.push(s.running + ' running now');
+    if(s.queued) extra.push(s.queued + ' queued');
+    if(s.stuck) extra.push('<b style="color:var(--red)">' + s.stuck + ' stuck</b>');
+    if(s.failed) extra.push(s.failed + ' failed');
+    if(k === 'score' && s.held_channel) extra.push(s.held_channel + ' waiting for your channel decision');
+    if(k === 'contacts' && s.no_website) extra.push(s.no_website + ' without a website (skipped)');
+    if(k === 'enrich' && s.state === 'waiting_upstream' && s.total === 0) extra.push('starts when verification passes leads on');
+    if(extra.length) chips += (chips ? ' · ' : '') + extra.join(' · ');
+    if(!UP_SETTLED.includes(state)) busy.push(name + ': ' + (UP_STATE_LABEL[state] || state).toLowerCase());
+    const icon = state === 'done' ? '✓' : (state === 'stuck' ? '!' : (state === 'waiting_user' ? '?' : '<span>' + (i+1) + '</span>'));
+    const badge = '<span class="st">' + (UP_STATE_LABEL[state] || state) + '</span>';
+    html += '<div class="stg ' + state + '"><div class="ic">' + icon + '</div><div><div class="nm">' + name + badge + '</div><div class="ds">' + desc + '</div></div><div><div class="bar"><i style="width:' + pct + '%"></i></div>' + (chips ? '<div class="chips">' + chips + '</div>' : '') + '</div><div class="cnt">' + s.done + ' / ' + s.total + '</div></div>';
   });
-  document.getElementById('upStages').innerHTML = html;
+  const live = overall === 'stuck' ? '<div class="up-live stuck"><span class="dot"></span>Something is stuck: see below</div>'
+    : (finished ? '<div class="up-live fin"><span class="dot"></span>All automatic steps finished</div>'
+    : '<div class="up-live"><span class="dot"></span>Still working · ' + escH(busy.slice(0,3).join(' · ')) + '</div>');
+  document.getElementById('upStages').innerHTML = live + html;
   upDriveStages(st, verifyDone);
-  const sig = JSON.stringify(Object.values(st).map(x => [x.done, x.total]));
+  const sig = JSON.stringify(Object.values(st).map(x => [x.done, x.total, x.running || 0, x.queued || 0, x.stuck || 0]));
   if(sig !== upWatch.lastSig){ upWatch.lastSig = sig; upWatch.lastChange = Date.now(); }
   const notes = document.getElementById('upNotes');
   const schedFut = upSchedFuture(upWatch.id), schedAny = lsGet('oright_sched_' + upWatch.id);
+  const att = d.attention || {};
   if(schedFut){
     upWatch.lastChange = Date.now();
     notes.innerHTML = '<div class="up-note info">Scheduled for <b>' + twLabel(schedFut) + '</b> Taiwan time. Nothing runs before then. After that, about 15 leads are processed every 30 minutes.</div>';
-  } else if(!allDone && Date.now() - upWatch.lastChange > UP.STALE_MS){
+  } else if(overall === 'stuck'){
+    const names = (d.stuck_leads || []).map(x => escH(x.name) + ' (' + escH(x.stage) + ')').join(', ');
+    notes.innerHTML = '<div class="up-note err"><b>Stuck:</b> ' + (names || 'some leads') + ' have not moved for longer than normal. Check Executions in n8n for the matching workflow (an error, or the schedule is off). The page keeps checking and updates by itself once they move.</div>';
+  } else if(!finished && Date.now() - upWatch.lastChange > UP.STALE_MS){
     notes.innerHTML = '<div class="up-note warn">Nothing has moved for a while. Check in n8n that the next workflow is active and that its schedule has fired.</div>';
-  } else if(!allDone && schedAny && !cleanDone){
+  } else if(!finished && schedAny && !cleanDone){
     notes.innerHTML = '<div class="up-note info">Running in small steps: about 15 leads every 30 minutes, so Google and Tavily limits are not hit. The numbers update on their own.</div>';
-  } else if(!allDone){
+  } else if(!finished){
     const nextAt = (mins) => { const n = new Date(); const m = n.getMinutes(); let c = mins.find(x => x > m); const d2 = new Date(n); if(c === undefined){ c = mins[0]; d2.setHours(d2.getHours() + 1); } d2.setMinutes(c, 0, 0); return d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); };
     let msg = '';
-    if(!cleanDone) msg = 'Waiting for the next cleaning run (it runs automatically at :00 and :30 of every hour, next around ' + nextAt([0,30]) + '). Nothing is stuck.';
+    if(!cleanDone) msg = 'Waiting for the next cleaning run (automatic at :00 and :30 of every hour, next around ' + nextAt([0,30]) + '). Nothing is stuck.';
     else if(!verifyDone) msg = 'Verification is running or waiting for its next run (:10 and :40 of every hour, next around ' + nextAt([10,40]) + ').';
     else msg = 'Enrichment, scoring and contact search start by themselves as each step finishes. Keep this page open for the fastest result; otherwise each step runs about every 10 minutes.';
     notes.innerHTML = '<div class="up-note info">' + msg + '</div>';
   } else notes.innerHTML = '';
   const done = document.getElementById('upDone');
-  if(allDone){
+  if(finished){
     upStopWatch(false); lsSet(UP.LS, null);
     const v = (st.verify && st.verify.by_status) || {};
     const rej = (st.clean && st.clean.rejected) || 0;
-    done.innerHTML = '<div class="up-note info" style="margin-top:14px;"><b>Batch finished.</b> ' + (v.Verified || 0) + ' verified · ' + (d.needs_review || 0) + ' need review · ' + rej + ' rejected on cleaning.</div>' +
-      '<div class="up-actions"><button class="btn-primary" onclick="upViewBatch(false)">View this batch\'s leads</button>' + ((d.needs_review || 0) > 0 ? '<button class="btn-secondary" onclick="upViewBatch(true)">Review ' + d.needs_review + ' leads</button>' : '') + '</div>';
+    const nr = d.needs_review || 0;
+    const todo = [];
+    if(att.needs_review) todo.push(att.needs_review + ' to review');
+    if(att.held_channel) todo.push(att.held_channel + ' waiting for your channel decision');
+    if(att.enrich_failed) todo.push(att.enrich_failed + ' where enrichment failed');
+    if(att.no_website) todo.push(att.no_website + ' without a website (no email search)');
+    if(att.unproven) todo.push(att.unproven + ' passed verification without proof (check them)');
+    const head = overall === 'finished_waiting_user' ? '<b>Automatic steps finished.</b> ' + todo.length + ' item type' + (todo.length > 1 ? 's' : '') + ' need you: ' + escH(todo.join(' · ')) + '.' : '<b>Batch finished.</b>';
+    done.innerHTML = '<div class="up-note ' + (overall === 'finished' ? 'info' : 'warn') + '" style="margin-top:14px;">' + head + '<br>' + (v.Verified || 0) + ' verified · ' + nr + ' need review · ' + rej + ' rejected on cleaning.</div>' +
+      '<div class="up-actions"><button class="btn-primary" onclick="upViewBatch(false)">View this batch\'s leads</button>' + (nr > 0 ? '<button class="btn-secondary" onclick="upViewBatch(true)">Review ' + nr + ' leads</button>' : '') + '<button class="btn-secondary" onclick="upRecheck()">Check again</button></div>';
   } else done.innerHTML = '';
 }
+// Re-arm polling after a finished batch (e.g. after you decided a channel or fixed a lead)
+function upRecheck(){
+  const id = (document.getElementById('upBatchTitle').textContent || '').replace('Batch ', '').trim();
+  if(!id) return;
+  lsSet(UP.LS, id); upWatch.id = id; upWatch.lastSig = ''; upWatch.lastChange = Date.now();
+  clearInterval(upWatch.timer); upPoll(); upWatch.timer = setInterval(upPoll, UP.POLL_MS); upWatch.every = UP.POLL_MS;
+}
+
 function upViewBatch(review){
   const id = (document.getElementById('upBatchTitle').textContent || '').replace('Batch ', '');
   lcPendingBatch = id; lcTab = review ? 'review' : 'all'; showPage('leads');
