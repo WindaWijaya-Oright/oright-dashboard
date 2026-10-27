@@ -1476,12 +1476,20 @@ function upMapInbox(r){
     const found = Object.keys(r).map(k => offi(r[k])).find(Boolean);
     if(found){ ch = found; upState.rescued = (upState.rescued || 0) + 1; }
   }
+  if(!ch){ // guess the channel from the category text (Industry / any "channel" or "category" column)
+    const txt = [row.Industry].concat(Object.keys(r).filter(k => /^(channel|leadcategory|orightchannelmatch)$/.test(upNorm(k))).map(k => r[k])).map(v => String(v == null ? '' : v).toLowerCase()).join(' | ');
+    const g = /hotel|resort|massage|\bspa\b|wellness/.test(txt) ? 'Amenities'
+      : /wholesale|distribut|import/.test(txt) ? 'Distributor'
+      : /salon|hairdress|barber|fris[oø]r|beauty care|hair/.test(txt) ? 'Salon'
+      : /retail|shop|store|pharmac/.test(txt) ? 'Retail' : '';
+    if(g){ ch = g; upState.guessed = (upState.guessed || 0) + 1; }
+  }
   if(!ch && upState.defChan) { ch = upState.defChan; upState.defaulted = (upState.defaulted || 0) + 1; }
   if(!ch) return { skip:'Channel out of scope', detail: row.Channel || '(blank channel)' };
   row.Channel = ch; return { row };
 }
 function upBuild(raw, fmt, skipNoContact){
-  const skipped = {}, details = {}; const rows = []; const seen = new Set(); upState.rescued = 0; upState.defaulted = 0;
+  const skipped = {}, details = {}; const rows = []; const seen = new Set(); upState.rescued = 0; upState.defaulted = 0; upState.guessed = 0;
   const bump = (reason, detail) => { skipped[reason] = (skipped[reason] || 0) + 1; if(detail){ details[detail] = (details[detail] || 0) + 1; } };
   raw.forEach(r => {
     const m = fmt === 'acra' ? upMapAcra(r) : upMapInbox(r);
@@ -1644,7 +1652,7 @@ function upRenderPreview(){
     const usedH = new Set(Object.values(mp)); const ignored = hs.filter(h => !usedH.has(h));
     const sel = f => '<label style="font-size:12px; display:flex; flex-direction:column; gap:3px;"><span style="color:var(--ink-soft); font-weight:600;">' + f.replace(/_/g,' ') + (f==='Name'||f==='Channel' ? ' *' : '') + '</span><select onchange="upSetMap(\'' + f + '\', this.value)" style="padding:5px; border:1px solid var(--line,#ddd); border-radius:6px; background:var(--bg,#fff); color:inherit;"><option value="">— none —</option>' + hs.map(h => '<option value="' + escH(h) + '"' + (mp[f] === h ? ' selected' : '') + '>' + escH(h) + '</option>').join('') + '</select></label>';
     const chanSel = '<label style="font-size:12px; display:flex; flex-direction:column; gap:3px;"><span style="color:var(--ink-soft); font-weight:600;">Channel for rows without one</span><select onchange="upSetDefChan(this.value)" style="padding:5px; border:1px solid var(--line,#ddd); border-radius:6px; background:var(--bg,#fff); color:inherit;"><option value="">— none (skip those rows) —</option>' + OFFICIAL_CHANNELS.map(c => '<option' + (upState.defChan === c ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></label>';
-    const extra = (upState.rescued ? ' · ' + upState.rescued + ' channel(s) found in another column' : '') + (upState.defaulted ? ' · ' + upState.defaulted + ' set to default channel' : '');
+    const extra = (upState.rescued ? ' · ' + upState.rescued + ' channel(s) found in another column' : '') + (upState.guessed ? ' · ' + upState.guessed + ' channel(s) guessed from the category text, please check below' : '') + (upState.defaulted ? ' · ' + upState.defaulted + ' set to default channel' : '');
     return '<details ' + (upState.mapOpen ? 'open' : '') + ' ontoggle="upState.mapOpen=this.open" style="font-size:12px; margin:10px 0;"><summary style="cursor:pointer; color:var(--ink-soft);">Column mapping: ' + Object.keys(mp).length + ' of your columns matched' + (ignored.length ? ', ' + ignored.length + ' ignored' : '') + escH(extra) + ' (click to check or change)</summary>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px; margin-top:8px;">' + UP_MAP_FIELDS.map(sel).join('') + chanSel + '</div>' +
       (ignored.length ? '<div style="margin-top:6px; color:var(--ink-faint);">Ignored columns: ' + ignored.map(escH).join(', ') + '</div>' : '') +
