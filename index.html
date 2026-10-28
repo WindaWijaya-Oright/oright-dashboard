@@ -1234,6 +1234,7 @@
 <div class="x-slide" id="xDraft">
   <div class="hd"><div style="min-width:0;flex:1"><h2 id="dTitle">Draft</h2><div id="dScores" class="x-scores"></div><div id="dSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:8px;line-height:1.5"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
+    <div id="dHol"></div>
     <div id="dDossier"></div>
     <div id="dPick"></div>
     <div id="dCompose">
@@ -3525,6 +3526,7 @@ async function dOpenItem(q, email){
   dTypeStop();
   $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose();
   dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); xOpen('xDraft');
+  holLoad(q.country);
 }
 async function dWriteGo(){
   const q = HUB.qItem, r = document.querySelector('#dPick input[name="dPickR"]:checked'); if(!q || !r) return;
@@ -3580,6 +3582,7 @@ function dSchedCalc(){   // -> {ms, tz, wall, warn[], err}
   const wd = tzWeekday(date), fs = tzIsFriSat(q.country), we = fs ? (wd === 5 || wd === 6) : (wd === 0 || wd === 6), hh = +time.slice(0, 2);
   if(we) r.warn.push('That day is usually a weekend in ' + (q.country || 'the recipient country') + '. B2B emails sent then are less likely to be read.');
   if(hh < 7 || hh >= 19) r.warn.push('That is outside normal office hours (07:00-19:00) for the recipient.');
+  const hol = holOn(date); if(hol) r.warn.unshift('PUBLIC HOLIDAY: ' + hol + '. Pick another day.');
   return r;
 }
 function dAtHint(){
@@ -3594,6 +3597,7 @@ async function dSend(mode, confirmRisky){
   { const S = HUB.queue && HUB.queue.safety;
     if(S && S.blocked_by_bounce){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> Sending is paused because the bounce rate is too high (' + S.bounce.bounced_30d + ' of ' + S.bounce.sent_30d + ' in 30 days).</div>'; return; }
     if(S && !later && S.daily_level === 'limit'){ $x('dMode').innerHTML = '<div class="x-err"><b>Not sent.</b> Daily limit reached (' + S.sent_today + ' of ' + S.limit + '). Use Schedule and pick tomorrow.</div>'; return; } }
+  if(!later && !confirmRisky){ const h = holOn(new Date().toISOString().slice(0, 10)) || holOn(new Date(Date.now() + 864e5).toISOString().slice(0, 10)); if(h){ $x('dMode').innerHTML = '<div class="x-warn"><span>🎌</span><span><b>Public holiday:</b> ' + escH(h) + ' (today or tomorrow there, depending on the time zone). Emails sent on a holiday are rarely read. <a href="#" onclick="dSend(\'now\', true); return false;">Send anyway</a> or use Schedule and pick another day.</span></div>'; return; } }
   if(later){ const r = dSchedCalc(); if(r.err){ dAtHint(); showToast(r.err); return; } at = new Date(r.ms).toISOString(); }
   const b1 = $x('dSend'), b2 = $x('dSchedBtn'); b1.disabled = b2.disabled = true; (later ? b2 : b1).textContent = later ? 'Scheduling…' : 'Sending…';
   try {
@@ -4099,6 +4103,30 @@ async function ldRescore(){
     const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, clr); Object.assign(L, clr);
     showToast('Queued for scoring. A new score usually shows within 10 to 20 minutes.'); renderLeadDrawer(); renderLeads(); sumCache = null;
   } catch(err){ showToast('Could not queue scoring: ' + err.message); }
+}
+
+/* ---------- PUBLIC HOLIDAYS of the recipient's country (n8n GET /hub-holidays, data from Nager.Date) ---------- */
+const HOL_ISO = { 'australia':'AU','new zealand':'NZ','singapore':'SG','malaysia':'MY','indonesia':'ID','thailand':'TH','vietnam':'VN','philippines':'PH','japan':'JP','south korea':'KR','korea':'KR','china':'CN','hong kong':'HK','taiwan':'TW','india':'IN','united kingdom':'GB','ireland':'IE','france':'FR','germany':'DE','spain':'ES','italy':'IT','portugal':'PT','netherlands':'NL','belgium':'BE','luxembourg':'LU','switzerland':'CH','austria':'AT','norway':'NO','sweden':'SE','denmark':'DK','finland':'FI','iceland':'IS','poland':'PL','czech republic':'CZ','czechia':'CZ','slovakia':'SK','hungary':'HU','romania':'RO','bulgaria':'BG','greece':'GR','croatia':'HR','slovenia':'SI','estonia':'EE','latvia':'LV','lithuania':'LT','turkey':'TR','united arab emirates':'AE','saudi arabia':'SA','qatar':'QA','united states':'US','canada':'CA','mexico':'MX','brazil':'BR','argentina':'AR','chile':'CL','colombia':'CO','peru':'PE','south africa':'ZA','egypt':'EG','morocco':'MA','israel':'IL','ukraine':'UA','serbia':'RS','cyprus':'CY','malta':'MT' };
+const HOL = { cache:{}, cur:null };
+const holCode = c => { const s = String(c || '').trim(); return HOL_ISO[ldNormCountry(s)] || HOL_ISO[s.toLowerCase()] || (/^[A-Za-z]{2}$/.test(s) ? s.toUpperCase() : ''); };
+const holWhen = d => { const n = Math.round((Date.parse(d) - Date.parse(new Date().toISOString().slice(0, 10))) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : 'in ' + n + ' days'; };
+const holDay = d => new Intl.DateTimeFormat('en-GB', { timeZone:'UTC', weekday:'short', day:'numeric', month:'short' }).format(new Date(d + 'T00:00:00Z'));
+const holRegion = h => (!h.global && h.counties && h.counties.length) ? ' (only in ' + h.counties.map(x => String(x).replace(/^[A-Z]{2}-/, '')).join(', ') + ')' : (h.global === false ? ' (some regions only)' : '');
+function holOn(date){ const c = HOL.cur; if(!c || !date) return ''; const h = c.items.find(x => x.date === date); return h ? (c.country || c.code) + ': ' + h.name + holRegion(h) : ''; }
+async function holLoad(country){
+  const box = $x('dHol'); if(!box) return; box.innerHTML = ''; HOL.cur = null;
+  const code = holCode(country); if(!code) return;
+  try {
+    let e = HOL.cache[code];
+    if(!e || Date.now() - e.at > 6 * 3600000){ const d = await n8nGet('/hub-holidays?countries=' + code + '&days=21'); e = HOL.cache[code] = { at:Date.now(), items:(d.holidays && d.holidays[code]) || [], err:(d.errors && d.errors[code]) || '' }; }
+    HOL.cur = { code, country, items:e.items };
+    if(e.err){ box.innerHTML = '<div class="x-note" style="margin-bottom:10px">No public-holiday data for ' + escH(country) + ' (' + escH(code) + '). Check the calendar yourself before sending.</div>'; return; }
+    const soon = e.items.filter(h => Math.round((Date.parse(h.date) - Date.parse(new Date().toISOString().slice(0, 10))) / 864e5) <= 21);
+    if(!soon.length){ box.innerHTML = '<div class="x-note" style="margin-bottom:10px">🎌 No public holiday in ' + escH(country) + ' in the next 3 weeks.</div>'; return; }
+    const first = soon[0], n = Math.round((Date.parse(first.date) - Date.parse(new Date().toISOString().slice(0, 10))) / 864e5);
+    const cls = n <= 1 ? 'x-warn' : (n <= 7 ? 'x-warn amber' : 'x-note');
+    box.innerHTML = '<div class="' + cls + '" style="margin-bottom:10px"><span>🎌</span><span><b>Public holidays in ' + escH(country) + ':</b> ' + soon.slice(0, 4).map(h => escH(holDay(h.date)) + ' ' + escH(h.name) + escH(holRegion(h)) + ' (' + holWhen(h.date) + ')').join(' · ') + '.' + (n <= 1 ? ' Better not send today.' : (n <= 7 ? ' Schedule the email for a normal working day.' : '')) + '</span></div>';
+  } catch(err){ box.innerHTML = '<div class="x-note" style="margin-bottom:10px">Could not check public holidays (' + escH(err.message) + '). The n8n workflow Hub_Holidays may not be active yet.</div>'; }
 }
 
 /* ---------- PIPELINE: layers 1-3 (pure logic, no DOM) ---------- */
