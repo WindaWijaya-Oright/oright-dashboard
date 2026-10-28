@@ -599,6 +599,10 @@
 
 .x-slide .x-pickc input[type=radio]{width:auto;height:auto;padding:0;margin:9px 0 0;flex:none}
 .x-pickc .tx em i{font-style:normal}
+.x-pickc.mis{border-color:var(--red);background:var(--red-soft)}.x-pickc.mis.on{box-shadow:0 0 0 2px var(--red)}
+.x-warn{display:flex;gap:8px;align-items:flex-start;margin-top:7px;padding:8px 11px;border-radius:8px;background:var(--red);color:#fff;font-size:12.5px;font-weight:700;line-height:1.4}
+.x-warn>span:first-child{flex:none;font-size:15px;line-height:1.2}
+.x-warn.amber{background:var(--amber-soft);color:var(--amber);font-weight:600}
 
 .x-dos{border:1px solid var(--border);border-radius:12px;background:#FAFBFC;padding:12px 14px;margin:12px 0}
 .x-dos .top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
@@ -756,6 +760,7 @@
         </div>
       </div>
 
+      <div id="upRecent" style="display:none; margin-bottom:12px;"></div>
       <!-- progress of the batch being processed (shown only when there is one) -->
       <div class="dpanel" id="upProgress" style="display:none; margin-bottom:16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -763,7 +768,7 @@
             <h3 class="af-h3" id="upBatchTitle">Batch</h3>
             <div style="font-size:12px; color:var(--ink-faint);" id="upBatchSub"></div>
           </div>
-          <button class="btn-secondary" style="flex:none; padding:8px 14px; font-size:12px;" onclick="upStopWatch(true)">Hide</button>
+          <button class="btn-secondary" style="flex:none; padding:8px 14px; font-size:12px;" onclick="upStopWatch(true); upRenderRecent();" title="Hide this panel. You can reopen it from Recent batches.">Hide</button>
         </div>
         <div id="upUploadBar" style="display:none; margin:10px 0 4px;">
           <div style="font-size:12px; font-weight:700; margin-bottom:5px;" id="upUploadTxt"></div>
@@ -1599,7 +1604,7 @@ async function fnAdd(){
   const batch = upMakeBatchId();
   try {
     await n8nPost('/upload-leads', { batch_id:batch, rows:[{ Source:'Lead Finder', Name:name, Country:country, Website:FN.pick ? FN.pick.url : '', Channel:channel, Searched:'', Process_After:'' }] });
-    lsSet('oright_last_batch', batch); lsSet(UP.LS, batch);
+    lsSet('oright_last_batch', batch); lsSet(UP.LS, batch); upRemember(batch);
     upKick(batch); upWatchBegin(batch, true);
     fnEl('fnQ').value = ''; fnEl('fnC').value = ''; fnEl('fnOut').innerHTML = ''; FN.pick = null; FN.results = [];
     showToast('Added. Cleaning starts now.');
@@ -1702,7 +1707,7 @@ async function upStart(){
       fill.style.width = Math.round(sent / rows.length * 100) + '%';
     }
     txt.textContent = (later ? 'Saved ' : 'Uploaded ') + rows.length + ' of ' + rows.length + ' ✓';
-    lsSet('oright_last_batch', batch); lsSet(UP.LS, batch);
+    lsSet('oright_last_batch', batch); lsSet(UP.LS, batch); upRemember(batch);
     if(later){ lsSet('oright_sched_' + batch, schedAt); showToast('Scheduled for ' + twLabel(schedAt) + ' (Taiwan time)'); } else upKick(batch);
     upWatchBegin(batch, true);
     upReset();
@@ -1741,7 +1746,7 @@ function upWatchBegin(batch, uploaded){
   document.getElementById('upBatchTitle').textContent = 'Batch ' + batch;
   if(!upWatch.started || upWatch.id !== batch) upWatch.started = new Date();
   const sf = upSchedFuture(batch), every = sf ? 600000 : UP.POLL_MS;
-  document.getElementById('upBatchSub').textContent = sf ? 'Scheduled for ' + twLabel(sf) + ' Taiwan time' : 'Started ' + upWatch.started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · updates on its own';
+  document.getElementById('upBatchSub').textContent = sf ? 'Scheduled for ' + twLabel(sf) + ' Taiwan time' : upStartedText(batch) + ' · updates on its own';
   upWatch.id = batch; upWatch.every = every;
   if(!uploaded){ document.getElementById('upStages').innerHTML = ''; document.getElementById('upDone').innerHTML = ''; document.getElementById('upNotes').innerHTML = ''; return; }
   upWatch.lastSig = ''; upWatch.lastChange = Date.now();
@@ -1751,6 +1756,37 @@ function upStopWatch(clear){ clearInterval(upWatch.timer); upWatch.timer = null;
 function upResume(){
   const id = lsGet(UP.LS);
   if(id && !upWatch.timer && !upState.running){ upWatch.started = null; upWatchBegin(id, true); }
+  upRenderRecent();
+}
+/* Recent batches: reopen the status of any batch from the last uploads, even after Hide / reload */
+const UP_RECENT_LS = 'oright_recent_batches';
+function upRecentList(){
+  let a = []; try { a = JSON.parse(lsGet(UP_RECENT_LS) || '[]'); } catch(e){}
+  if(!Array.isArray(a)) a = [];
+  const last = lsGet('oright_last_batch'); if(last && !a.includes(last)) a.unshift(last);
+  return a.filter(x => typeof x === 'string' && x).slice(0, 8);
+}
+function upRemember(batch){
+  const a = upRecentList().filter(x => x !== batch); a.unshift(batch);
+  lsSet(UP_RECENT_LS, JSON.stringify(a.slice(0, 8))); upRenderRecent();
+}
+function upStartedText(batch){
+  const m = /^UP-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(String(batch));
+  if(m) return 'Started ' + m[1] + '-' + m[2] + '-' + m[3] + ' ' + m[4] + ':' + m[5];
+  return 'Started ' + (upWatch.started || new Date()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+function upRenderRecent(){
+  const el = document.getElementById('upRecent'); if(!el) return;
+  const a = upRecentList();
+  if(!a.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+  el.innerHTML = '<div style="font-size:11px; font-weight:700; letter-spacing:.5px; color:var(--ink-faint); text-transform:uppercase; margin-bottom:6px;">Recent batches (click to see its status)</div><div style="display:flex; flex-wrap:wrap; gap:6px;">' +
+    a.map(id => '<button class="btn-secondary" style="flex:none; padding:6px 11px; font-size:12px;' + (upWatch.id === id ? ' border-color:var(--brand); color:var(--brand);' : '') + '" onclick="upOpenBatch(\'' + escH(id) + '\')">' + escH(id) + '</button>').join('') + '</div>';
+}
+function upOpenBatch(id){
+  if(upState.running) return;
+  upWatch.started = null; lsSet(UP.LS, id); upWatchBegin(id, true); upRenderRecent();
+  const p = document.getElementById('upProgress'); if(p && p.scrollIntoView) p.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 async function upPoll(){
   if(upWatch.busy || !upWatch.id) return; upWatch.busy = true;
@@ -1949,8 +1985,8 @@ function renderLeads(){
   if(!rows.length){ body.innerHTML = '<div style="padding:26px;text-align:center;color:var(--ink-faint);font-size:13px;">' + (lcTab === 'review' ? 'Nothing waiting for review 🎉' : lcTab === 'channel' ? 'No leads are waiting for a channel decision 🎉' : 'No leads match these filters.') + '</div>'; return; }
   const sc = v => (v === '' || v == null || isNaN(Number(v))) ? '<span style="color:var(--ink-faint);">—</span>' : '<span class="fit-tag ' + fitClass(v) + '" style="margin-left:0;">' + escH(v) + '</span>';
   const why = l => {
-    if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Please confirm or change it (the lead is already scored).' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
-    if(lcTab === 'channel') return '<div class="co-why">' + escH(l.Channel_Suggest ? 'Website suggests ' + l.Channel_Suggest + ', currently ' + (l.Channel || 'no channel') + '. Needs your decision.' : 'Could not confirm the ' + (l.Channel || 'channel') + ' from the website. Needs your decision.') + '</div>';
+    if(lcTab === 'review') return '<div class="co-why">' + escH(ldNotFound(l) ? 'No website found. Needs your decision.' : (String(l.Verify_Judge_Reason || l.Reject_Reason || '').slice(0, 120) || 'Needs your decision.')) + '</div>';
+    if(lcTab === 'channel') return '<div class="co-why">' + escH(l.Channel_Suggest ? 'Website suggests ' + l.Channel_Suggest + ', currently ' + (l.Channel || 'no channel') + '. Please confirm or change it (the lead is still scored).' : 'Could not confirm the ' + (l.Channel || 'channel') + ' from the website. Please confirm or change it (the lead is still scored).') + '</div>';
     if(lcTab === 'parked' || lcTab === 'rejected') return l.Reject_Reason ? '<div class="co-why" style="color:var(--ink-faint);">' + escH(String(l.Reject_Reason).slice(0, 120)) + '</div>' : '';
     return '';
   };
@@ -3355,7 +3391,7 @@ function hubQueueRows(){
   $x('qfCount').textContent = 'Showing ' + rows.length + ' of ' + items.length + ' leads · ' + flat.length + ' contacts';
   body.innerHTML = flat.length ? flat.map(r => {
     const q = r.q, c = r.c;
-    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (q.lead && q.lead.employees ? ' · ' + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">Company address</span>') + '</td><td>' + escH(c.email || '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
+    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (q.lead && q.lead.employees ? ' · ' + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">' + (c.kind === 'Personal' ? 'Personal mailbox · role unknown' : 'Company address') + '</span>') + '</td><td>' + escH(c.email || '') + (c.dom === 'mismatch' ? '<div><span class="x-pill red">⚠ DIFFERENT DOMAIN (site: ' + escH(c.site || '?') + ')</span></div>' : '') + (c.role ? '<div><span class="x-pill amber">Not a buying mailbox</span></div>' : '') + (c.email_status === 'Unapproved' ? '<div><span class="x-pill amber">Not approved yet</span></div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
   }).join('') : '<tr><td colspan="7" class="x-empty">No lead matches these filters. Press Reset.</td></tr>';
 }
 function hubDrawSent(){
@@ -3425,16 +3461,16 @@ function dToVal(){ const sel = $x('dToSel').value; if(sel === '__other') return 
 function dGreet(){ const g = $x('dName').value.trim(), co = (HUB.qItem && HUB.qItem.name) || '', b = $x('dBody').value; if(/^Hi [^\n,]*,/.test(b)) $x('dBody').value = b.replace(/^Hi [^\n,]*,/, 'Hi ' + (g || co + ' team') + ','); }
 function dDeliverText(){
   const sel = $x('dToSel').value; $x('dTo').style.display = sel === '__other' ? '' : 'none';
-  const c = (HUB.recips || []).find(x => x.email === sel), named = !!(c && c.name);
-  const head = sel === '__other' ? 'Other address' : (named ? escH(c.name) + (c.title ? ' <span style="color:var(--ink-soft);font-weight:500">· ' + escH(c.title) + '</span>' : '') : 'Generic company email');
+  const c = (HUB.recips || []).find(x => x.email === sel), named = !!(c && (c.name || c.kind === 'Personal'));
+  const head = sel === '__other' ? 'Other address' : (c ? cHead(c) : 'Generic company email');
   const sub = sel === '__other' ? escH($x('dTo').value.trim() || 'type the address below') : escH(sel);
-  $x('dToCard').innerHTML = '<span class="ic">' + (named ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>') + '</span><span class="tx"><b>' + head + '</b><span>' + sub + '</span></span><a href="#" onclick="dToChange();return false">Change</a>';
+  $x('dToCard').innerHTML = '<span class="ic">' + (named ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>') + '</span><span class="tx"><b>' + head + '</b><span>' + sub + '</span>' + ((c && sel !== '__other') ? cWarn(c) : '') + '</span><a href="#" onclick="dToChange();return false">Change</a>';
   $x('dDeliver').innerHTML = (HUB.testMode && HUB.testAddr && sel !== '__other') ? 'Test mode: this will be delivered to <b>' + escH(HUB.testAddr) + '</b>, not to ' + escH(sel) + '.' : '';
 }
 function dToChange(){ $x('dToCard').style.display = 'none'; $x('dToSel').style.display = ''; $x('dToSel').focus(); }
 function dFillRecip(q, d){
   const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
-  $x('dToSel').innerHTML = list.map(c => '<option value="' + escH(c.email) + '">' + escH((c.name || 'Company address') + (c.title ? ' · ' + c.title : '') + ' · ' + c.email) + '</option>').join('') + '<option value="__other">Other address…</option>';
+  $x('dToSel').innerHTML = list.map(c => '<option value="' + escH(c.email) + '">' + escH((c.name || (c.kind === 'Personal' ? 'Personal mailbox' : 'Company address')) + (c.title ? ' · ' + c.title : '') + (c.dom === 'mismatch' ? ' ⚠ DIFFERENT DOMAIN' : '') + ' · ' + c.email) + '</option>').join('') + '<option value="__other">Other address…</option>';
   const want = ((d && d.to_email) || (list[0] && list[0].email) || '').toLowerCase();
   $x('dToSel').value = list.some(c => c.email === want) ? want : (list.length ? list[0].email : '__other'); dDeliverText();
 }
@@ -3447,14 +3483,23 @@ function dRecipChange(){
 }
 function dOpen(i, email){ return dOpenItem(HUB.queue.items[i], email); }
 const REL_ROLE = /(buy|purchas|procure|sourc|category|merchandis|product|brand|retail|partner|business dev|supply|sales|commercial|amenit|f&b|housekeeping|rooms|operations|distribut|import)/i;
-const recipKind = c => !c.name ? 'Generic' : (REL_ROLE.test(c.title || '') ? 'Direct' : 'Senior');   // same rule as Prepare_Generate in n8n
-const KIND_TAG = { Direct:['green', 'Direct pitch: a relevant fact and an offer of the catalogue'], Senior:['amber', 'Senior or other team: short note asking who handles sourcing'], Generic:['grey', 'Generic inbox: short note asking to pass it to the right person'] };
+const recipKind = c => { const k = c.kind || (c.name ? 'Named' : 'Generic'); return k === 'Named' ? (REL_ROLE.test(c.title || '') ? 'Direct' : 'Senior') : k; };   // same rule as Prepare_Generate in n8n
+const KIND_TAG = { Direct:['green', 'Direct pitch: a relevant fact and an offer of the catalogue'], Senior:['amber', 'Senior or other team: short note asking who handles sourcing'], Personal:['blue', 'Personal-looking address, name and role unknown: short note asking who handles sourcing'], Generic:['grey', 'Generic inbox: short note asking to pass it to the right person'] };
+const cDomain = c => String(c.email || '').split('@')[1] || '';
+const cWarn = c => {   // red = domain differs from the company website · amber = free email / not a buying mailbox
+  let h = '';
+  if(c.dom === 'mismatch') h += '<div class="x-warn"><span>⚠</span><span>DIFFERENT DOMAIN: this address is @' + escH(cDomain(c)) + ' but the company website is ' + escH(c.site || 'unknown') + '. It could be an accountant, an agent or a registry contact. Check before you send.</span></div>';
+  else if(c.dom === 'free' && (c.kind || 'Generic') !== 'Generic') h += '<div class="x-warn amber"><span>!</span><span>Free email (' + escH(cDomain(c)) + '): cannot confirm this mailbox belongs to the company.</span></div>';
+  if(c.role) h += '<div class="x-warn amber"><span>!</span><span>Not a buying mailbox (legal, accounting, HR or similar). Better to pick another address.</span></div>';
+  return h;
+};
+const cHead = c => c.name ? escH(c.name) + (c.title ? ' <span style="color:var(--ink-soft);font-weight:500">· ' + escH(c.title) + '</span>' : '') : (c.kind === 'Personal' ? 'Personal mailbox <span style="color:var(--ink-soft);font-weight:500">· name and role unknown</span>' : 'Generic company email');
 function dState(s){ const pick = s === 'pick'; $x('dPick').style.display = pick ? '' : 'none'; $x('dCompose').style.display = pick ? 'none' : ''; ['dRegen', 'dSchedBtn', 'dSend'].forEach(id => { $x(id).style.display = pick ? 'none' : ''; }); $x('dWrite').style.display = pick ? '' : 'none'; }
 function dPickSync(){
   const r = document.querySelector('#dPick input[name="dPickR"]:checked'); if(!r) return;
   document.querySelectorAll('#dPick .x-pickc').forEach(e => e.classList.toggle('on', e.contains(r)));
   const c = (HUB.recips || []).find(x => x.email === r.value) || {};
-  $x('dWrite').textContent = 'Write draft for ' + (c.name ? c.name.split(/\s+/)[0] : 'the company inbox');
+  $x('dWrite').textContent = c.dom === 'mismatch' ? 'Write draft anyway (different domain)' : 'Write draft for ' + (c.name ? c.name.split(/\s+/)[0] : (c.kind === 'Personal' ? 'this mailbox' : 'the company inbox'));
 }
 function dPickRender(q, pre){
   const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
@@ -3462,7 +3507,7 @@ function dPickRender(q, pre){
   const person = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>', mail = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
   $x('dPick').innerHTML = '<label class="f" style="margin-top:14px">Who do you want to write to?</label><div style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 10px">The email is written differently for each kind of recipient. Nothing is written until you click <b>Write draft</b>.</div>' + list.map(c => {
     const k = recipKind(c), t = KIND_TAG[k];
-    return '<label class="x-pickc"><input type="radio" name="dPickR" value="' + escH(c.email) + '"' + (c.email === sel ? ' checked' : '') + ' onchange="dPickSync()"><span class="ic">' + (c.name ? person : mail) + '</span><span class="tx"><b>' + (c.name ? escH(c.name) + (c.title ? ' <span style="color:var(--ink-soft);font-weight:500">· ' + escH(c.title) + '</span>' : '') : 'Generic company email') + '</b><span>' + escH(c.email) + '</span><em><i class="x-pill ' + t[0] + '">' + k + '</i> ' + escH(t[1]) + '</em></span></label>';
+    return '<label class="x-pickc' + (c.dom === 'mismatch' ? ' mis' : '') + '"><input type="radio" name="dPickR" value="' + escH(c.email) + '"' + (c.email === sel ? ' checked' : '') + ' onchange="dPickSync()"><span class="ic">' + ((c.name || c.kind === 'Personal') ? person : mail) + '</span><span class="tx"><b>' + cHead(c) + '</b><span>' + escH(c.email) + (c.email_status === 'Unapproved' ? ' <i class="x-pill amber" style="font-style:normal">Not approved yet</i>' : '') + '</span><em><i class="x-pill ' + t[0] + '">' + (k === 'Personal' ? 'Personal' : k) + '</i> ' + escH(t[1]) + '</em>' + cWarn(c) + '</span></label>';
   }).join('');
   dPickSync();
 }
