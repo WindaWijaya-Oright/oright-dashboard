@@ -1475,6 +1475,7 @@ function upMapAcra(r){
 function upMapInbox(r){
   const row = {}; const mp = upState.map || {};
   INBOX_COLS.forEach(c => { row[c] = mp[c] ? upNA(r[mp[c]]) : ''; });
+  if(/\bleads?\b/i.test(row.Industry) && row.Industry.trim().split(/\s+/).length <= 3) row.Industry = '';   // a list label such as "NZ Leads" is not an industry
   const offi = v => OFFICIAL_CHANNELS.find(x => x.toLowerCase() === String(v).trim().toLowerCase());
   let ch = offi(row.Channel);
   if(!ch){ // channel word sitting in another column (e.g. Industry)
@@ -1850,14 +1851,14 @@ function upRenderStages(d){
   const att = d.attention || {};
   if(schedFut){
     upWatch.lastChange = Date.now();
-    notes.innerHTML = '<div class="up-note info">Scheduled for <b>' + twLabel(schedFut) + '</b> Taiwan time. Nothing runs before then. After that, about 15 leads are processed every 30 minutes.</div>';
+    notes.innerHTML = '<div class="up-note info">Scheduled for <b>' + twLabel(schedFut) + '</b> Taiwan time. Nothing runs before then. After that, up to 50 leads are processed every 30 minutes.</div>';
   } else if(overall === 'stuck'){
     const names = (d.stuck_leads || []).map(x => escH(x.name) + ' (' + escH(x.stage) + ')').join(', ');
     notes.innerHTML = '<div class="up-note err"><b>Stuck:</b> ' + (names || 'some leads') + ' have not moved for longer than normal. Check Executions in n8n for the matching workflow (an error, or the schedule is off). The page keeps checking and updates by itself once they move.</div>';
   } else if(!finished && Date.now() - upWatch.lastChange > UP.STALE_MS){
     notes.innerHTML = '<div class="up-note warn">Nothing has moved for a while. Check in n8n that the next workflow is active and that its schedule has fired.</div>';
   } else if(!finished && schedAny && !cleanDone){
-    notes.innerHTML = '<div class="up-note info">Running in small steps: about 15 leads every 30 minutes, so Google and Tavily limits are not hit. The numbers update on their own.</div>';
+    notes.innerHTML = '<div class="up-note info">Running in steps: up to 50 leads every 30 minutes, so Google and Tavily limits are not hit. The numbers update on their own.</div>';
   } else if(!finished){
     const nextAt = (mins) => { const n = new Date(); const m = n.getMinutes(); let c = mins.find(x => x > m); const d2 = new Date(n); if(c === undefined){ c = mins[0]; d2.setHours(d2.getHours() + 1); } d2.setMinutes(c, 0, 0); return d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); };
     let msg = '';
@@ -2127,14 +2128,10 @@ function renderLeadDrawer(){
   document.getElementById('ldTitle').textContent = L.Name || ldCurrent.mk;
   document.getElementById('ldSub').innerHTML = escH([L.Channel, L.City, L.Country].filter(Boolean).join(' · ')) + ' &nbsp;' + lcStatusPill(status, L);
   let h = ldDecisionHTML(L, status);
-  h += ldEditHTML(L);
-  if(status !== 'Needs_Search') h += ldChannelHTML(L) + ldBrandHTML(L);
-  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + '</div>';
-  const hasScore = v => v !== '' && v != null && !isNaN(Number(v));
-  h += '<div class="ld-sec"><h4>Scores</h4>' +
-    '<div class="ld-score"><div class="h">Fit ' + (hasScore(L.Fit_Score) ? '<span class="fit-tag ' + fitClass(L.Fit_Score) + '" style="margin-left:0;">' + escH(L.Fit_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + (L.Score_Category ? ' <span class="badge reg">' + escH(L.Score_Category) + '</span>' : '') + '</div>' + ldReason(L.Fit_Score_Reason) + '</div>' +
-    '<div class="ld-score"><div class="h">ESG ' + (hasScore(L.ESG_Score) ? '<span class="fit-tag ' + fitClass(L.ESG_Score) + '" style="margin-left:0;">' + escH(L.ESG_Score) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>') + '</div>' + ldReason(L.ESG_Score_Reason) + '</div></div>';
+  if(status !== 'Needs_Search') h += ldClsHTML(L);
+  h += ldScoreHTML(L, status);
   h += '<div class="ld-sec"><h4>Business information</h4>' + ldKV([['Description', ldT(L.Business_Description)], ['Founded', ldT(L.Business_Founded_Year)], ['Employees', ldT(L.Business_Employee_Count)], ['Target markets', ldT(L.Business_Target_Markets)], ['Brands carried', ldT(L.Business_Brands_Carried)], ['Countries served', ldT(L.Business_Countries_Served)], ['Rooms', ldT(L.Room_Count)], ['Stores', ldT(L.Store_Count)], ['Online channels', ldT(L.Online_Channels)], ['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')], ['ESG signals', ldEsg(L.ESG_Signals)], ['Risk signals', ldEsg(L.Risk_Signals)]]) + '</div>';
+  h += '<div class="ld-sec"><h4>Company</h4>' + ldKV([['Website', L.Website ? ldLink(L.Website) : ''], ['Address', ldT(L.Address)], ['Phone', ldT(L.Phone)], ['Industry', ldT(L.Industry)], ['Registry ID', ldT(L.Registry_ID)], ['Source', ldT(L.Source)], ['Notes', ldT(L.Clean_Notes)], ['Duplicate status', L.Dup_Status && L.Dup_Status !== 'New' ? escH(L.Dup_Status + (L.Dup_Of ? ' of ' + L.Dup_Of : '')) : ''], ['Social links', ldSocials(L.Apify_Socials)]]) + ldEditHTML(L) + '</div>';
   h += '<div class="ld-sec"><h4>Contacts (' + ldCurrent.contacts.length + ')</h4><div id="ldContacts">' + ldContactsHTML() + '</div>' +
     '<div class="ld-find"><button class="btn-secondary" disabled title="Coming soon: will search for people and emails at this company">🔎 Find contacts <span class="tag" style="margin-left:4px;">SOON</span></button><span>Automatic search, coming soon</span></div>' +
     '<div style="font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-top:14px;">Add a contact manually</div>' +
@@ -3436,7 +3433,7 @@ const FLAG_TXT = { PLACEHOLDER_LEFT:'A [placeholder] is still in the text. Repla
 const FIT_BANDS = [[85, 'green', 'Strong'], [70, 'blue', 'Good'], [0, 'amber', 'Low']];     // Fit: >=85 green, 70-84 blue, below 70 amber
 const ESG_BANDS = [[70, 'green', 'High'], [40, 'amber', 'Medium'], [0, 'red', 'Low']];             // ESG (assumed scale 0-100): >=70 green, 40-69 amber, below 40 red
 function scoreTile(label, v, bands){
-  let cls = 'grey', w = 'No data'; if(v != null && isFinite(v)){ const b = bands.find(x => v >= x[0]) || bands[bands.length - 1]; cls = b[1]; w = b[2]; }
+  let cls = 'grey', w = 'Not scored yet'; if(v != null && isFinite(v)){ const b = bands.find(x => v >= x[0]) || bands[bands.length - 1]; cls = b[1]; w = b[2]; }
   return '<div class="x-sc ' + cls + '"><div class="n">' + (v == null ? '–' : escH(Math.round(v))) + '</div><div><div class="l">' + label + ' score</div><div class="w">' + w + '</div></div></div>';
 }
 const cleanWhy = v => String(v == null ? '' : v).replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
@@ -3484,7 +3481,7 @@ function dRecipChange(){
 function dOpen(i, email){ return dOpenItem(HUB.queue.items[i], email); }
 const REL_ROLE = /(buy|purchas|procure|sourc|category|merchandis|product|brand|retail|partner|business dev|supply|sales|commercial|amenit|f&b|housekeeping|rooms|operations|distribut|import)/i;
 const recipKind = c => { const k = c.kind || (c.name ? 'Named' : 'Generic'); return k === 'Named' ? (REL_ROLE.test(c.title || '') ? 'Direct' : 'Senior') : k; };   // same rule as Prepare_Generate in n8n
-const KIND_TAG = { Direct:['green', 'Direct pitch: a relevant fact and an offer of the catalogue'], Senior:['amber', 'Senior or other team: short note asking who handles sourcing'], Personal:['blue', 'Personal-looking address, name and role unknown: short note asking who handles sourcing'], Generic:['grey', 'Generic inbox: short note asking to pass it to the right person'] };
+const KIND_TAG = { Direct:['green', 'Buying or product contact: intro note about their company, ends with an offer to send the catalogue'], Senior:['amber', 'Other role: same intro note, plus a line asking them to pass it to whoever looks after partnerships'], Personal:['blue', 'Personal-looking address, name and role unknown: intro note, plus a request to forward it to the partnerships person'], Generic:['grey', 'Shared inbox: intro note about their company, plus a request to forward it to the partnerships person'] };
 const cDomain = c => String(c.email || '').split('@')[1] || '';
 const cWarn = c => {   // red = domain differs from the company website · amber = free email / not a buying mailbox
   let h = '';
@@ -3981,12 +3978,12 @@ async function ldChangeBrand(){
 /* ---------- edit lead details (name, source, country, city, industry) ---------- */
 const LD_EDIT = [['Name','Company name'],['Source','Source (where the data came from)'],['Country','Country'],['City','City'],['Industry','Industry']];
 function ldEditHTML(L){
-  return '<div class="ld-sec"><details open><summary><h4 style="display:inline">Edit details</h4></summary><div style="margin-top:10px" oninput="ldEditDirty()">' +
+  return '<div class="ld-sec"><details><summary><h4 style="display:inline">Edit company details</h4></summary><div style="margin-top:10px" oninput="ldEditDirty()">' +
     LD_EDIT.map(f => '<label class="sf-lb">' + f[1] + '</label><input class="ld-input" id="ldE_' + f[0] + '"' + (f[0] === 'Source' ? ' list="upSourceList"' : '') + ' value="' + escH(L[f[0]] || '') + '" maxlength="150">').join('') +
-    '<div style="margin-top:12px"><button id="ldEditSave" class="btn-primary" style="width:100%;padding:10px 16px;font-size:13px" onclick="ldSaveEdit()">Save changes</button></div>' +
-    '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;line-height:1.5">The lead keeps its ID, so contacts and emails stay linked. If you change the company name a lot, use "Check website again" so the website is re-verified for the new name. Website and channel are changed in their own sections.</div></div></details></div>';
+    '<div style="margin-top:12px"><button id="ldEditSave" class="btn-primary" style="width:100%;padding:10px 16px;font-size:13px" disabled onclick="ldSaveEdit()">Save details</button></div>' +
+    '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;line-height:1.5">Saving details does not touch the scores. The lead keeps its ID, so contacts and emails stay linked. If you change the company name a lot, use "Re-check website" at the top. Channel and brand are changed in the Channel &amp; brand section.</div></div></details></div>';
 }
-function ldEditDirty(){ const b = $x('ldEditSave'); if(!b) return; const L = (ldCurrent && ldCurrent.lead) || {}; const d = LD_EDIT.some(f => { const e = $x('ldE_' + f[0]); return e && String(e.value).trim() !== String(L[f[0]] || '').trim(); }); b.textContent = d ? 'Save changes (not saved yet)' : 'Save changes'; }
+function ldEditDirty(){ const b = $x('ldEditSave'); if(!b) return; const L = (ldCurrent && ldCurrent.lead) || {}; const d = LD_EDIT.some(f => { const e = $x('ldE_' + f[0]); return e && String(e.value).trim() !== String(L[f[0]] || '').trim(); }); b.disabled = !d; b.textContent = d ? 'Save details' : 'Save details (change a field first)'; }
 async function ldSaveEdit(){
   const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {}, fields = {};
   LD_EDIT.forEach(f => { const v = ($x('ldE_' + f[0]) || {}).value; if(v !== undefined && String(v).trim() !== String(L[f[0]] || '').trim()) fields[f[0]] = String(v).trim(); });
@@ -3997,6 +3994,103 @@ async function ldSaveEdit(){
     const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, fields); Object.assign(L, fields);
     showToast('Saved'); renderLeadDrawer(); renderLeads(); sumCache = null;
   } catch(err){ showToast('Could not save: ' + err.message); }
+}
+
+/* ---------- CHANNEL + BRAND: one section, one button ---------- */
+function ldClsHTML(L){
+  const tm = String(L.Type_Match || (/\bA\d+:(clear|partial|none)\b/i.exec(String(L.Fit_Score_Reason || '')) || [])[1] || '').toLowerCase();
+  const alt = String(L.Alt_Channel || '').trim(), cur = String(L.Channel || '').trim(), br = String(L.Brand || '').toUpperCase(), src = String(L.Brand_Source || '').toLowerCase();
+  const flag = L.Data_Status === 'Verified' && (tm === 'none' || (alt && alt.toLowerCase() !== cur.toLowerCase()));
+  const tmTxt = { clear:'Clear match', partial:'Partial match', none:'No match' }[tm] || '';
+  const sugg = String(L.Channel_Suggest || '').trim() || alt;
+  const q = v => ldClean(v) ? '<div class="ld-quote" style="margin-top:6px;">“' + ldT(v) + '”</div>' : '';
+  let rows = [];
+  if(tmTxt) rows.push(['Business type fit', escH(tmTxt) + ' <span style="color:var(--ink-faint);">(from scoring)</span>']);
+  if(ldClean(L.Sub_Segment)) rows.push(['Sub-segment', ldT(L.Sub_Segment).replace(/_/g, ' ')]);
+  if(String(L.Human_Verdict || '') === 'AutoChannel') rows.push(['Auto-changed', 'From <b>' + escH(L.Channel_Prev || 'no channel') + '</b> to <b>' + escH(cur) + '</b> based on the website.' + q(L.Channel_Check_Evidence)]);
+  if(ldChanHeld(L)) rows.push(['Channel to check', (L.Channel_Suggest ? 'The website points to <b>' + escH(L.Channel_Suggest) + '</b>.' : 'The website does not confirm this channel.') + q(L.Channel_Check_Evidence)]);
+  if(alt) rows.push(['Website suggests', '<b>' + escH(alt) + '</b>' + q(L.Alt_Channel_Evidence)]);
+  if(br && L.Brand_Evidence) rows.push(['Brand evidence', q(L.Brand_Evidence)]);
+  const chOpts = OFFICIAL_CHANNELS.map(c => '<option' + (c.toLowerCase() === cur.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('') + (cur && !OFFICIAL_CHANNELS.some(c => c.toLowerCase() === cur.toLowerCase()) ? '<option selected>' + escH(cur) + '</option>' : '');
+  const brOpts = (br ? '' : '<option value="" selected>Not set (channel default is used)</option>') + ['ORIGHT', 'PRO'].map(k => '<option value="' + k + '"' + (br === k ? ' selected' : '') + '>' + BRAND_NAME[k] + '</option>').join('');
+  const mk = L.Match_Key || (ldCurrent && ldCurrent.mk) || '';
+  const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === mk && /^(scheduled|queued)$/i.test(r.status || '')).length;
+  const lab = 'font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.4px; margin:0 0 4px;';
+  return '<div class="ld-sec"><h4>Channel &amp; brand' + (flag ? ' <span class="ld-dw">⚠ worth checking</span>' : '') + '</h4>' + (rows.length ? ldKV(rows) : '') +
+    (ldChanHeld(L) && cur ? '<div style="margin:10px 0;"><button class="btn-secondary full" onclick="ldConfirmChannel()">No change needed: keep ' + escH(cur) + '</button><div style="font-size:11px; color:var(--ink-faint); margin-top:4px;">Clears the flag. The lead is scored with the ' + escH(cur) + ' rubric.</div></div>' : '') +
+    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;" onchange="ldClsDirty()">' +
+      '<div><div style="' + lab + '">Channel</div><select class="ld-input" id="ldChSel" style="width:100%;">' + chOpts + '</select></div>' +
+      '<div><div style="' + lab + '">Brand' + (br ? ' <span style="text-transform:none; letter-spacing:0; font-weight:500;">(' + escH(BR_SRC[src] || 'rough guess') + ')</span>' : '') + '</div><select class="ld-input" id="ldBrSel" style="width:100%;">' + brOpts + '</select></div>' +
+    '</div>' +
+    (sugg && sugg.toLowerCase() !== cur.toLowerCase() ? '<div style="font-size:12px; margin-top:6px;">The website points to <b>' + escH(sugg) + '</b>. <a href="#" onclick="ldClsPick(\'' + escH(sugg).replace(/'/g, '') + '\'); return false;" style="color:var(--brand);">Use ' + escH(sugg) + '</a></div>' : '') +
+    '<button id="ldClsApply" class="btn-primary full" style="margin-top:10px;" disabled onclick="ldApplyCls()">Nothing to change yet</button>' +
+    '<div id="ldClsNote" style="font-size:11px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">Pick a different channel or brand above. Both changes are applied with one button, and the lead is scored again automatically.</div>' +
+    (sched ? '<div class="x-note amber" style="margin-top:8px;"><b>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled</b> for this lead and will go out with the old brand\'s wording. Cancel or rewrite them in the Outreach Hub.</div>' : '') + '</div>';
+}
+function ldClsPick(ch){ const s = $x('ldChSel'); if(s){ const o = Array.from(s.options).find(x => x.value.toLowerCase() === String(ch).toLowerCase()); if(o){ s.value = o.value; ldClsDirty(); } } }
+function ldClsState(){
+  const L = (ldCurrent && ldCurrent.lead) || {}, cs = $x('ldChSel'), bs = $x('ldBrSel');
+  const curCh = String(L.Channel || '').trim(), curBr = String(L.Brand || '').toUpperCase();
+  return { curCh, curBr, chNew: (cs && cs.value && cs.value.toLowerCase() !== curCh.toLowerCase()) ? cs.value : '', brNew: (bs && bs.value && bs.value !== curBr) ? bs.value : '' };
+}
+function ldClsDirty(){
+  const b = $x('ldClsApply'), n = $x('ldClsNote'); if(!b) return; const s = ldClsState();
+  const amen = s.chNew && (s.curCh.toLowerCase() === 'amenities' || s.chNew.toLowerCase() === 'amenities');
+  if(!s.chNew && !s.brNew){ b.disabled = true; b.textContent = 'Nothing to change yet'; if(n) n.textContent = 'Pick a different channel or brand above. Both changes are applied with one button, and the lead is scored again automatically.'; return; }
+  b.disabled = false;
+  b.textContent = s.chNew && s.brNew ? 'Change channel and brand, then score again' : (s.chNew ? 'Change channel to ' + s.chNew + ' and score again' : 'Move to ' + BRAND_NAME[s.brNew] + ' and score again');
+  if(n) n.textContent = 'On click: ' + [s.chNew ? 'channel ' + (s.curCh || 'none') + ' becomes ' + s.chNew : '', s.brNew ? 'brand becomes ' + BRAND_NAME[s.brNew] : '', 'Fit and ESG scores are cleared', amen ? 'business information is gathered again (this channel needs different details)' : '', 'the lead is queued for scoring (a new score usually shows within 10 to 20 minutes)'].filter(Boolean).join(', ') + '. Emails already sent keep their old channel and brand.' + (s.brNew === 'PRO' ? ' A PRO-specific rubric is optional: without one, PRO leads are scored with the channel rubric.' : '');
+}
+async function ldApplyCls(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {}, s = ldClsState();
+  if(!s.chNew && !s.brNew){ showToast('Pick a different channel or brand first'); return; }
+  const b = $x('ldClsApply'); if(b){ b.disabled = true; b.textContent = 'Saving…'; }
+  const clr = { Fit_Score:'', Fit_Score_Reason:'', ESG_Score:'', ESG_Score_Reason:'', Score_Category:'', Score_Status:'', Score_Error:'' };
+  const l = poolLeads.find(x => x.Match_Key === mk);
+  const patch = o => { if(l) Object.assign(l, o); Object.assign(L, o); };
+  try {
+    if(s.chNew){
+      const reenrich = s.curCh.toLowerCase() === 'amenities' || s.chNew.toLowerCase() === 'amenities';
+      await n8nPost('/lead-review', { match_key:mk, action:'set_channel', channel:s.chNew, old_channel:s.curCh, reenrich });
+      patch(Object.assign({ Channel:s.chNew, Channel_Prev:s.curCh, Human_Verdict:'ChannelChanged', Type_Match:'', Alt_Channel:'', Alt_Channel_Evidence:'', Channel_Check:'' }, clr, reenrich ? { Enrich_Status:'', Enriched_At:'' } : {}));
+    }
+    if(s.brNew){
+      await n8nPost('/lead-review', { match_key:mk, action:'set_brand', brand:s.brNew, old_brand:s.curBr, rescore:true });
+      patch(Object.assign({ Brand:s.brNew, Brand_Prev:s.curBr, Brand_Source:'manual', Human_Verdict:'BrandChanged' }, clr));
+    }
+    showToast('Saved. ' + (s.chNew ? 'Channel is now ' + s.chNew + '. ' : '') + (s.brNew ? 'Brand is now ' + BRAND_NAME[s.brNew] + '. ' : '') + 'The lead will be scored again.');
+    const idx = lcVisible.indexOf(mk); lcSyncTabs(); renderLeads(); sumCache = null;
+    if(lcTab === 'channel' && s.chNew){ const next = lcVisible[Math.min(idx, lcVisible.length - 1)]; if(next && next !== mk) openLeadDrawer(next); else closeLeadDrawer(); } else renderLeadDrawer();
+  } catch(err){ showToast('Could not save: ' + err.message); ldClsDirty(); }
+}
+
+/* ---------- SCORES: with the reason when there is none ---------- */
+function ldScoreWhy(L, status){
+  if(status !== 'Verified') return 'Scoring starts after the company is confirmed.';
+  const en = String(L.Enrich_Status || '');
+  if(en === 'Enrich_Failed') return 'Enrichment failed, so there was nothing to score. Check the website, then use Re-check website at the top.';
+  if(en !== 'Enriched') return 'Waiting for enrichment (business information is gathered first, the step runs about every 10 minutes).';
+  if(String(L.Score_Status || '') === 'Insufficient_Data') return 'The website gave too little information to score this lead.';
+  if(String(L.Score_Error || '').trim()) return 'Scoring error: ' + escH(String(L.Score_Error).slice(0, 160)) + '. Press Score again.';
+  return 'Queued for scoring. The step runs about every 10 minutes. If this stays for more than an hour, check that the channel is active with scoring switched on, and that a rubric exists for it in the Scoring_Prompts tab.';
+}
+function ldScoreHTML(L, status){
+  const hasScore = v => v !== '' && v != null && !isNaN(Number(v)), scored = hasScore(L.Fit_Score) || hasScore(L.ESG_Score);
+  const tag = v => hasScore(v) ? '<span class="fit-tag ' + fitClass(v) + '" style="margin-left:0;">' + escH(v) + '</span>' : '<span style="color:var(--ink-faint); font-weight:500;">not scored yet</span>';
+  return '<div class="ld-sec"><h4>Scores</h4>' +
+    (scored ? '' : '<div class="x-note amber" style="margin-bottom:8px;">' + ldScoreWhy(L, status) + '</div>') +
+    '<div class="ld-score"><div class="h">Fit ' + tag(L.Fit_Score) + (L.Score_Category ? ' <span class="badge reg">' + escH(L.Score_Category) + '</span>' : '') + '</div>' + ldReason(L.Fit_Score_Reason) + '</div>' +
+    '<div class="ld-score"><div class="h">ESG ' + tag(L.ESG_Score) + '</div>' + ldReason(L.ESG_Score_Reason) + '</div>' +
+    (status === 'Verified' ? '<div style="margin-top:8px;"><button class="btn-secondary" onclick="ldRescore()">Score again</button><span style="font-size:11px; color:var(--ink-faint); margin-left:8px;">Clears these scores and queues the lead. Use it when a score looks wrong or never arrived.</span></div>' : '') + '</div>';
+}
+async function ldRescore(){
+  const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {};
+  try {
+    await n8nPost('/lead-review', { match_key:mk, action:'rescore' });
+    const clr = { Fit_Score:'', Fit_Score_Reason:'', ESG_Score:'', ESG_Score_Reason:'', Score_Category:'', Score_Status:'', Score_Error:'' };
+    const l = poolLeads.find(x => x.Match_Key === mk); if(l) Object.assign(l, clr); Object.assign(L, clr);
+    showToast('Queued for scoring. A new score usually shows within 10 to 20 minutes.'); renderLeadDrawer(); renderLeads(); sumCache = null;
+  } catch(err){ showToast('Could not queue scoring: ' + err.message); }
 }
 
 /* ---------- PIPELINE: layers 1-3 (pure logic, no DOM) ---------- */
