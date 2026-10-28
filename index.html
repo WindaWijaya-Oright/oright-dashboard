@@ -1416,7 +1416,11 @@ async function upReadFile(file){
   if(name.endsWith('.csv')) return parseCSV(await file.text());
   if(!window.XLSX) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
   const wb = XLSX.read(await file.arrayBuffer(), { type:'array' });
-  return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:'', raw:false });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const shown = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false }), exact = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
+  // Long numbers (registry numbers, phones) are shown by Excel as 9.42904E+12, which made different companies look identical. Use the exact digits.
+  shown.forEach((r, i) => { const e = exact[i] || {}; Object.keys(r).forEach(k => { const v = e[k]; if(typeof v === 'number' && Number.isInteger(v) && Math.abs(v) >= 1e9 && Math.abs(v) < 9e15) r[k] = String(v); }); });
+  return shown;
 }
 function upDetect(cols){
   const has = c => cols.includes(c);
@@ -1450,6 +1454,9 @@ function upAutoMap(headers){
     const hit = headers.find(h => h && !used.has(h) && (UP_SYN[f] || []).includes(upNorm(h)));
     if(hit){ map[f] = hit; used.add(hit); }
   });
+  // A registry file often has a generic list label (LeadCategory = "NZ Leads") next to the real business type (IndustryDescription = "Hairdressing service"). Prefer the real one.
+  const real = headers.find(h => upNorm(h) === 'industrydescription');
+  if(real && map.Industry !== real){ if(map.Industry) used.delete(map.Industry); map.Industry = real; }
   return map;
 }
 function upMapKey(headers){ return 'oright_up_map_' + headers.map(upNorm).filter(Boolean).sort().join('|').slice(0, 300); }
@@ -1485,7 +1492,7 @@ function upMapInbox(r){
   if(!ch){ // guess the channel from the category text (Industry / any "channel" or "category" column)
     const txt = [row.Industry].concat(Object.keys(r).filter(k => /^(channel|leadcategory|orightchannelmatch)$/.test(upNorm(k))).map(k => r[k])).map(v => String(v == null ? '' : v).toLowerCase()).join(' | ');
     const g = /hotel|resort|massage|\bspa\b|wellness/.test(txt) ? 'Amenities'
-      : /wholesale|distribut|import/.test(txt) ? 'Distributor'
+      : /wholesal|distribut|import/.test(txt) ? 'Distributor'
       : /salon|hairdress|barber|fris[oø]r|beauty care|hair/.test(txt) ? 'Salon'
       : /retail|shop|store|pharmac/.test(txt) ? 'Retail' : '';
     if(g){ ch = g; upState.guessed = (upState.guessed || 0) + 1; }
@@ -1503,7 +1510,8 @@ function upBuild(raw, fmt, skipNoContact){
     const row = m.row;
     if(!row.Name){ bump('No company name'); return; }
     if(skipNoContact && !row.Website && !row.General_Email && !row.Registry_Email && !row.C1_Email){ bump('No website and no email'); return; }
-    const key = (row.Source || '') + '|' + (row.Registry_ID || row.Name.toLowerCase());
+    const rid = /^\d(\.\d+)?E\+\d+$/i.test(String(row.Registry_ID || '').trim()) ? '' : row.Registry_ID;   // a number squeezed to 9.4E+12 is not an ID
+    const key = (row.Source || '') + '|' + (rid || row.Name.toLowerCase());
     if(seen.has(key)){ bump('Duplicate inside file'); return; }
     seen.add(key); row.Searched = ''; rows.push(row);
   });
