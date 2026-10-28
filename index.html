@@ -3542,7 +3542,7 @@ async function dGenerate(body, label){
 }
 function dCount(){
   const d = HUB.draft || {}, body = $x('dBody').value, subj = $x('dSubj').value, tg = d.target || { min:90, max:130 };
-  const text = body.replace(/^Hi [^\n]*,\n+/, '').replace(/\n+Best regards,?\s*$/i, ''), n = text.trim().split(/\s+/).filter(Boolean).length;
+  const text = body.replace(/^Hi [^\n]*,\n+/, '').replace(/\n+(?:Best|Warm|Kind|Many|With) (?:regards|wishes|thanks),?(\n+[^\n]{1,40})?\s*$/i, ''), n = text.trim().split(/\s+/).filter(Boolean).length;
   const ok = n >= tg.min && n <= tg.max; $x('dWc').textContent = '· ' + n + ' words (target ' + tg.min + '–' + tg.max + ')'; $x('dWc').style.color = ok ? 'var(--green)' : 'var(--amber)';
   const flags = Array.from(new Set((d.flags || []).filter(f => !['TOO_LONG', 'TOO_SHORT', 'PLACEHOLDER_LEFT', 'HAS_LINK'].includes(f)).concat(dFlagsClient(subj, body), n > tg.max + 40 ? ['TOO_LONG'] : [], (n < tg.min - 40 && n > 0) ? ['TOO_SHORT'] : [], !subj.trim() ? ['NO_SUBJECT'] : [], !body.trim() ? ['NO_BODY'] : [])));
   $x('dFlags').innerHTML = flags.map(f => '<span class="x-pill amber x-flag">' + escH(FLAG_TXT[f] || f) + '</span>').join('');
