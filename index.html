@@ -255,15 +255,43 @@
   .ai-panel-head .pulse-dot{width:7px;height:7px;border-radius:50%; background:#4ADE80; animation:pulse 1.6s infinite;}
   .ai-panel-head .role{font-size:10px; color:#B8C0D9; margin-top:4px;}
   .ai-body{flex:1; overflow-y:auto; padding:16px;}
-  .adv-chat{padding:12px 16px 14px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px; max-height:62vh; overflow-y:auto;}
-  .adv-answer{font-size:12.5px; line-height:1.55; background:var(--bg,#F5F6FA); border:1px solid var(--border); border-radius:10px; padding:10px 12px; max-height:34vh; overflow-y:auto;}
-  .adv-note{font-size:11px; color:var(--ink-faint); line-height:1.5;}
-  .adv-chat textarea,.adv-chat input[type=password]{width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font:inherit; font-size:12.5px; resize:vertical;}
-  .adv-send,.adv-btn{border:none; background:#10182B; color:#fff; border-radius:8px; padding:8px 14px; font-weight:700; font-size:12.5px; cursor:pointer;}
-  .adv-send:disabled{opacity:.5; cursor:wait;}
-  .adv-quick{display:flex; gap:6px; flex-wrap:wrap;}
-  .adv-chip{border:1px solid var(--border); background:var(--panel); border-radius:999px; padding:4px 10px; font-size:11px; cursor:pointer;}
-  .adv-mode{display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--ink-faint);}
+  .ai-panel.wide{width:460px;}
+  @media(max-width:520px){.ai-panel.wide,.ai-panel{width:100%;}}
+  .ai-tabs{display:flex; gap:4px; padding:8px 12px 0; border-bottom:1px solid var(--border); background:var(--panel);}
+  .ai-tab{border:none; background:none; padding:8px 12px; font-size:12.5px; font-weight:700; color:var(--ink-faint); cursor:pointer; border-bottom:2px solid transparent; font-family:inherit;}
+  .ai-tab.on{color:var(--ink); border-bottom-color:var(--ink);}
+  .adv-pane{flex:1; min-height:0; display:flex; flex-direction:column;}
+  .adv-top{display:flex; align-items:center; gap:8px; padding:8px 14px; border-bottom:1px solid var(--border); font-size:11px; color:var(--ink-faint);}
+  .adv-top .sp{flex:1;}
+  .adv-seg{display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden;}
+  .adv-seg button{border:none; background:var(--panel); padding:4px 11px; font-size:11px; font-weight:700; color:var(--ink-soft); cursor:pointer; font-family:inherit;}
+  .adv-seg button.on{background:var(--ink); color:#fff;}
+  .adv-link{border:none; background:none; color:var(--ink-soft); font-size:11px; cursor:pointer; text-decoration:underline; font-family:inherit;}
+  .adv-msgs{flex:1; min-height:0; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; background:var(--bg);}
+  .adv-m{max-width:88%; font-size:13px; line-height:1.55; padding:9px 12px; border-radius:14px; word-wrap:break-word; overflow-wrap:anywhere;}
+  .adv-m.u{align-self:flex-end; background:var(--ink); color:#fff; border-bottom-right-radius:4px;}
+  .adv-m.a{align-self:flex-start; background:var(--panel); border:1px solid var(--border); border-bottom-left-radius:4px;}
+  .adv-m.e{align-self:stretch; max-width:100%; background:var(--red-soft); color:var(--red); font-size:12px;}
+  .adv-m .meta{display:flex; gap:10px; align-items:center; margin-top:6px; font-size:10.5px; color:var(--ink-faint);}
+  .adv-m code{background:#EEF1F5; border-radius:4px; padding:0 4px; font-size:12px;}
+  .adv-empty{margin:auto; text-align:center; color:var(--ink-soft); font-size:13px; max-width:300px;}
+  .adv-empty b{display:block; font-family:'Manrope',sans-serif; font-size:15px; color:var(--ink); margin-bottom:6px;}
+  .adv-sugs{display:flex; flex-direction:column; gap:6px; margin-top:14px;}
+  .adv-sug{border:1px solid var(--border); background:var(--panel); border-radius:10px; padding:8px 11px; font-size:12px; text-align:left; cursor:pointer; color:var(--ink); font-family:inherit;}
+  .adv-sug:hover{border-color:var(--ink-faint);}
+  .adv-dots{display:inline-flex; gap:4px; padding:4px 0;}
+  .adv-dots i{width:6px; height:6px; border-radius:50%; background:var(--ink-faint); animation:advb 1.2s infinite;}
+  .adv-dots i:nth-child(2){animation-delay:.15s;} .adv-dots i:nth-child(3){animation-delay:.3s;}
+  @keyframes advb{0%,60%,100%{opacity:.25; transform:translateY(0);}30%{opacity:1; transform:translateY(-3px);}}
+  .adv-tok{padding:10px 14px; border-bottom:1px solid var(--border); background:var(--amber-soft); font-size:12px;}
+  .adv-tok input{width:100%; box-sizing:border-box; margin-top:6px; border:1px solid var(--border); border-radius:8px; padding:7px 10px; font:inherit;}
+  .adv-comp{border-top:1px solid var(--border); padding:10px 12px 8px; background:var(--panel);}
+  .adv-box{display:flex; align-items:flex-end; gap:8px; border:1px solid var(--border); border-radius:14px; padding:6px 6px 6px 12px; background:var(--panel);}
+  .adv-box:focus-within{border-color:var(--ink-soft);}
+  .adv-box textarea{flex:1; border:none; outline:none; resize:none; font:inherit; font-size:13px; line-height:1.45; max-height:140px; padding:6px 0; background:transparent; color:var(--ink);}
+  .adv-go{width:32px; height:32px; border:none; border-radius:50%; background:var(--ink); color:#fff; cursor:pointer; font-size:15px; flex-shrink:0;}
+  .adv-go:disabled{opacity:.35; cursor:default;}
+  .adv-foot{font-size:10.5px; color:var(--ink-faint); text-align:center; margin-top:6px;}
   .ai-section-label{font-size:10px; font-weight:700; color:var(--ink-faint); letter-spacing:.7px; margin:4px 0 10px;}
   .ai-action{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
   .ai-action:last-child{border-bottom:none;}
@@ -1151,30 +1179,39 @@
       <div class="title"><span class="pulse-dot"></span> AI Advisor</div>
       <div class="role">Calculated from your lead data</div>
     </div>
-    <div class="ai-body">
+    <div class="ai-tabs">
+      <button class="ai-tab on" id="aiTabInsights" onclick="advTab('insights')">Insights</button>
+      <button class="ai-tab" id="aiTabChat" onclick="advTab('chat')">Chat</button>
+    </div>
+    <div class="ai-body" id="aiPaneInsights">
       <div class="ai-section-label">TODAY'S TOP ACTIONS</div>
       <div id="aiTopActions"><div class="ai-action"><div class="txt" style="color:var(--ink-faint);">Loading real data...</div></div></div>
       <div class="ai-insight" id="aiProactiveInsight"><p style="color:var(--ink-faint);">Loading insight...</p></div>
     </div>
-    <div class="adv-chat" id="advChat">
-      <div id="advTokRow" style="display:none;">
-        <div class="adv-note">Enter your Admin token (same as in Settings). Stored in this browser only.</div>
-        <div style="display:flex;gap:6px;"><input id="advTokIn" type="password" placeholder="Admin token" onkeydown="if(event.key==='Enter')advSaveTok()"><button class="adv-btn" onclick="advSaveTok()">Save</button></div>
+    <div class="adv-pane" id="aiPaneChat" style="display:none;">
+      <div class="adv-top">
+        <div class="adv-seg" title="Smart = deep analysis with your data (limited per day). Fast = quick tasks like translation.">
+          <button id="advModeThink" class="on" onclick="advSetMode('think')">Smart</button>
+          <button id="advModeLight" onclick="advSetMode('light')">Fast</button>
+        </div>
+        <span class="sp"></span>
+        <button class="adv-link" onclick="advNew()">New chat</button>
       </div>
-      <div id="aiAdvisorAnswer" class="adv-answer" style="display:none;"></div>
-      <div class="adv-quick">
-        <button class="adv-chip" onclick="advQuick('Analyze my outreach performance so far. Start with the most important finding and separate FACTS, HYPOTHESES and TEST IDEAS.')">Analyze outreach</button>
-        <button class="adv-chip" onclick="advQuick('What are the 3 operational things I should check today, based on the data?')">Check operations</button>
+      <div class="adv-tok" id="advTokRow" style="display:none;">
+        Enter your Admin token to use the advisor (stored in this browser only).
+        <input id="advTokIn" type="password" placeholder="Admin token" onkeydown="if(event.key==='Enter')advSaveTok()">
       </div>
-      <div class="adv-mode">
-        <label><input type="radio" name="advMode" value="think" checked> Analysis (smartest, ~18/day)</label>
-        <label><input type="radio" name="advMode" value="light"> Quick (translate / light tasks)</label>
+      <div class="adv-msgs" id="advMsgs"></div>
+      <div class="adv-comp">
+        <div class="adv-box">
+          <textarea id="advInput" rows="1" placeholder="Message the advisor... (any language)" oninput="advGrow(this)" onkeydown="advKey(event)"></textarea>
+          <button class="adv-go" id="advSendBtn" onclick="askAiAdvisor()" title="Send (Enter)">&#10148;</button>
+        </div>
+        <div class="adv-foot">Enter to send · Shift+Enter for a new line · Uses your weekly sheet summary; small samples = weak conclusions.</div>
       </div>
-      <textarea id="aiAdvisorInput" rows="3" placeholder="Ask or request advice... (Ctrl+Enter to send)" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();askAiAdvisor();}"></textarea>
-      <button class="adv-send" id="advSendBtn" onclick="askAiAdvisor()">Send</button>
-      <div class="adv-note">Answers use the weekly summary from your sheets. Small samples = weak conclusions.</div>
     </div>
   </div>
+
   <button class="ai-fab" id="aiFab" onclick="toggleAiPanel()">🤖 AI Advisor <span class="n" id="aiFabN" style="display:none;"></span></button>
 
   </div><!-- /.content-row -->
@@ -2985,53 +3022,106 @@ async function loadHolidays(){
   } catch(err){ banner.style.display = 'none'; console.error('Holiday check failed:', err); }
 }
 
+let ADV_HIST = [], ADV_MODE = 'think', ADV_BUSY = false;
 function advFmt(h){
   return String(h||'')
+    .replace(/(^|<br>)\s*[*-]\s+/g,'$1&bull; ')
     .replace(/(^|<br>)#{1,4}\s*(.*?)(?=<br>|$)/g,'$1<b>$2</b>')
-    .replace(/\*([^*<]+?)\*/g,'<i>$1</i>');
+    .replace(/\*([^*<]+?)\*/g,'<i>$1</i>')
+    .replace(/`([^`<]+?)`/g,'<code>$1</code>')
+    .replace(/(<br>){3,}/g,'<br><br>');
+}
+function advLoad(){
+  try { ADV_HIST = JSON.parse(lsGet('oright_adv_chat') || '[]'); } catch(e){ ADV_HIST = []; }
+  ADV_MODE = lsGet('oright_adv_mode') === 'light' ? 'light' : 'think';
+}
+function advSave(){ lsSet('oright_adv_chat', JSON.stringify(ADV_HIST.filter(m=>m.role!=='err').slice(-30))); }
+function advTab(name){
+  const chat = name === 'chat';
+  $x('aiPaneInsights').style.display = chat ? 'none' : 'block';
+  $x('aiPaneChat').style.display = chat ? 'flex' : 'none';
+  $x('aiTabInsights').classList.toggle('on', !chat);
+  $x('aiTabChat').classList.toggle('on', chat);
+  $x('aiPanel').classList.toggle('wide', chat);
+  if(chat){ advLoad(); advSyncMode(); advRender(); setTimeout(()=>{ const t=$x('advInput'); if(t) t.focus(); }, 50); }
+}
+function advSyncMode(){
+  $x('advModeThink').classList.toggle('on', ADV_MODE==='think');
+  $x('advModeLight').classList.toggle('on', ADV_MODE==='light');
+}
+function advSetMode(m){ ADV_MODE = m; lsSet('oright_adv_mode', m); advSyncMode(); }
+function advNew(){ ADV_HIST = []; advSave(); advRender(); }
+function advGrow(t){ t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,140)+'px'; }
+function advKey(e){
+  if(e.key==='Enter' && !e.shiftKey && !e.isComposing && e.keyCode!==229){ e.preventDefault(); askAiAdvisor(); }
 }
 function advSaveTok(){
-  const v=(document.getElementById('advTokIn').value||'').trim(); if(!v) return;
-  lsSet('oright_admin_token', v);
-  document.getElementById('advTokRow').style.display='none';
+  const v=($x('advTokIn').value||'').trim(); if(!v) return;
+  lsSet('oright_admin_token', v); $x('advTokIn').value=''; $x('advTokRow').style.display='none';
+  const t=$x('advInput'); if(t && t.value.trim()) askAiAdvisor();
 }
-function advQuick(q){ document.getElementById('aiAdvisorInput').value=q; askAiAdvisor(); }
+function advCopy(i){
+  const m=ADV_HIST[i]; if(!m) return;
+  try { navigator.clipboard.writeText(m.text||''); showToast('Copied'); } catch(e){}
+}
+function advSug(q){ $x('advInput').value=q; askAiAdvisor(); }
+function advRender(){
+  const box=$x('advMsgs'); if(!box) return;
+  let h='';
+  if(!ADV_HIST.length && !ADV_BUSY){
+    h='<div class="adv-empty"><b>Hi, I am your outreach advisor</b>Ask me about your outreach data, get advice, or use me like a normal AI assistant (translate, draft, brainstorm) in any language.<div class="adv-sugs">'+
+      '<button class="adv-sug" onclick="advSug(\'Analyze my outreach performance so far. Start with the most important finding.\')">Analyze my outreach performance</button>'+
+      '<button class="adv-sug" onclick="advSug(\'What are the 3 operational things I should check today, based on the data?\')">What should I check today?</button>'+
+      '<button class="adv-sug" onclick="advSug(\'Give me 3 ideas to test next to improve reply rate, based on what the data can and cannot tell us.\')">Ideas to test next</button></div></div>';
+  } else {
+    ADV_HIST.forEach((m,i)=>{
+      if(m.role==='user') h+='<div class="adv-m u">'+escH(m.text).replace(/\n/g,'<br>')+'</div>';
+      else if(m.role==='err') h+='<div class="adv-m e">'+escH(m.text)+'</div>';
+      else h+='<div class="adv-m a">'+advFmt(m.html||escH(m.text))+'<div class="meta"><span>'+escH(m.model||'')+'</span><button class="adv-link" onclick="advCopy('+i+')">Copy</button></div></div>';
+    });
+    if(ADV_BUSY) h+='<div class="adv-m a"><span class="adv-dots"><i></i><i></i><i></i></span></div>';
+  }
+  box.innerHTML=h;
+  box.scrollTop=box.scrollHeight;
+}
 async function askAiAdvisor(){
-  const input = document.getElementById('aiAdvisorInput');
-  const question = input.value.trim();
+  if(ADV_BUSY) return;
+  const ta=$x('advInput');
+  const question=(ta.value||'').trim();
   if(!question) return;
-  const answerBox = document.getElementById('aiAdvisorAnswer');
-  const btn = document.getElementById('advSendBtn');
-  const tokRow = document.getElementById('advTokRow');
   const token = lsGet('oright_admin_token') || '';
-  if(!token){ tokRow.style.display='block'; return; }
-  const mode = (document.querySelector('input[name="advMode"]:checked')||{}).value || 'think';
+  if(!token){ $x('advTokRow').style.display='block'; $x('advTokIn').focus(); return; }
+  ADV_HIST = ADV_HIST.filter(m=>m.role!=='err');
+  const history = ADV_HIST.slice(-10).map(m=>({ role:m.role, text:m.text }));
+  ADV_HIST.push({ role:'user', text:question });
+  ta.value=''; advGrow(ta);
+  ADV_BUSY=true; $x('advSendBtn').disabled=true; advRender();
   const context = [
-    'RINGKASAN PANEL DASHBOARD (dihitung dari sheet):',
-    (document.getElementById('aiTopActions')||{}).innerText || '',
-    (document.getElementById('aiProactiveInsight')||{}).innerText || ''
+    'DASHBOARD PANEL SUMMARY (calculated from the sheets):',
+    ($x('aiTopActions')||{}).innerText || '',
+    ($x('aiProactiveInsight')||{}).innerText || ''
   ].join('\n').slice(0, 6000);
-  answerBox.style.display = 'block';
-  answerBox.innerHTML = '<span style="color:var(--ink-faint);">' + (mode==='think' ? 'Thinking (can take 20-40 s)...' : 'One moment...') + '</span>';
-  btn.disabled = true;
   try {
-    // text/plain = tanpa preflight CORS; n8n tetap parse sebagai JSON
+    // text/plain = no CORS preflight; n8n still parses it as JSON
     const res = await fetch(N8N_BASE + '/ai-advisor', {cache:'no-store',
       method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'},
-      body: JSON.stringify({ question, mode, token, context })
+      body: JSON.stringify({ question, mode: ADV_MODE, token, context, history })
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     if(data.ok === false){
-      if(/UNAUTHORIZED/.test(data.error||'')){ lsSet('oright_admin_token', null); tokRow.style.display='block'; }
+      if(/UNAUTHORIZED/.test(data.error||'')){ lsSet('oright_admin_token', null); $x('advTokRow').style.display='block'; }
       throw new Error(data.error || 'Advisor failed');
     }
-    answerBox.innerHTML = advFmt(data.answer || data.text || 'No answer returned.') +
-      '<div class="adv-note" style="margin-top:8px;">model: ' + escH(data.model||'?') + ' · mode: ' + escH(data.mode||mode) + '</div>';
-    input.value = '';
+    ADV_HIST.push({ role:'ai', text: data.text || '', html: data.answer || '', model: data.model || '' });
   } catch(err){
-    answerBox.innerHTML = '<span style="color:var(--red);">Failed: ' + escH(err.message) + '</span>';
-  } finally { btn.disabled = false; }
+    ADV_HIST.pop();            // buang pertanyaan yang gagal, kembalikan ke kotak input
+    ta.value = question; advGrow(ta);
+    ADV_HIST.push({ role:'err', text:'Failed: ' + err.message + ' (your message is back in the box, press Enter to retry)' });
+  } finally {
+    ADV_BUSY=false; $x('advSendBtn').disabled=false; advSave(); advRender();
+    try { ta.focus(); } catch(e){}
+  }
 }
 
 async function doReassign(){
