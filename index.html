@@ -255,6 +255,15 @@
   .ai-panel-head .pulse-dot{width:7px;height:7px;border-radius:50%; background:#4ADE80; animation:pulse 1.6s infinite;}
   .ai-panel-head .role{font-size:10px; color:#B8C0D9; margin-top:4px;}
   .ai-body{flex:1; overflow-y:auto; padding:16px;}
+  .adv-chat{padding:12px 16px 14px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px; max-height:62vh; overflow-y:auto;}
+  .adv-answer{font-size:12.5px; line-height:1.55; background:var(--bg,#F5F6FA); border:1px solid var(--border); border-radius:10px; padding:10px 12px; max-height:34vh; overflow-y:auto;}
+  .adv-note{font-size:11px; color:var(--ink-faint); line-height:1.5;}
+  .adv-chat textarea,.adv-chat input[type=password]{width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font:inherit; font-size:12.5px; resize:vertical;}
+  .adv-send,.adv-btn{border:none; background:#10182B; color:#fff; border-radius:8px; padding:8px 14px; font-weight:700; font-size:12.5px; cursor:pointer;}
+  .adv-send:disabled{opacity:.5; cursor:wait;}
+  .adv-quick{display:flex; gap:6px; flex-wrap:wrap;}
+  .adv-chip{border:1px solid var(--border); background:var(--panel); border-radius:999px; padding:4px 10px; font-size:11px; cursor:pointer;}
+  .adv-mode{display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--ink-faint);}
   .ai-section-label{font-size:10px; font-weight:700; color:var(--ink-faint); letter-spacing:.7px; margin:4px 0 10px;}
   .ai-action{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
   .ai-action:last-child{border-bottom:none;}
@@ -1147,7 +1156,24 @@
       <div id="aiTopActions"><div class="ai-action"><div class="txt" style="color:var(--ink-faint);">Loading real data...</div></div></div>
       <div class="ai-insight" id="aiProactiveInsight"><p style="color:var(--ink-faint);">Loading insight...</p></div>
     </div>
-    <div style="padding:12px 16px; border-top:1px solid var(--border); font-size:11px; color:var(--ink-faint); line-height:1.5;">Ask-anything chat is coming later. These notes are counted from your sheets, not written by AI.</div>
+    <div class="adv-chat" id="advChat">
+      <div id="advTokRow" style="display:none;">
+        <div class="adv-note">Enter your Admin token (same as in Settings). Stored in this browser only.</div>
+        <div style="display:flex;gap:6px;"><input id="advTokIn" type="password" placeholder="Admin token" onkeydown="if(event.key==='Enter')advSaveTok()"><button class="adv-btn" onclick="advSaveTok()">Save</button></div>
+      </div>
+      <div id="aiAdvisorAnswer" class="adv-answer" style="display:none;"></div>
+      <div class="adv-quick">
+        <button class="adv-chip" onclick="advQuick('Analyze my outreach performance so far. Start with the most important finding and separate FACTS, HYPOTHESES and TEST IDEAS.')">Analyze outreach</button>
+        <button class="adv-chip" onclick="advQuick('What are the 3 operational things I should check today, based on the data?')">Check operations</button>
+      </div>
+      <div class="adv-mode">
+        <label><input type="radio" name="advMode" value="think" checked> Analysis (smartest, ~18/day)</label>
+        <label><input type="radio" name="advMode" value="light"> Quick (translate / light tasks)</label>
+      </div>
+      <textarea id="aiAdvisorInput" rows="3" placeholder="Ask or request advice... (Ctrl+Enter to send)" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();askAiAdvisor();}"></textarea>
+      <button class="adv-send" id="advSendBtn" onclick="askAiAdvisor()">Send</button>
+      <div class="adv-note">Answers use the weekly summary from your sheets. Small samples = weak conclusions.</div>
+    </div>
   </div>
   <button class="ai-fab" id="aiFab" onclick="toggleAiPanel()">🤖 AI Advisor <span class="n" id="aiFabN" style="display:none;"></span></button>
 
@@ -2959,23 +2985,53 @@ async function loadHolidays(){
   } catch(err){ banner.style.display = 'none'; console.error('Holiday check failed:', err); }
 }
 
+function advFmt(h){
+  return String(h||'')
+    .replace(/(^|<br>)#{1,4}\s*(.*?)(?=<br>|$)/g,'$1<b>$2</b>')
+    .replace(/\*([^*<]+?)\*/g,'<i>$1</i>');
+}
+function advSaveTok(){
+  const v=(document.getElementById('advTokIn').value||'').trim(); if(!v) return;
+  lsSet('oright_admin_token', v);
+  document.getElementById('advTokRow').style.display='none';
+}
+function advQuick(q){ document.getElementById('aiAdvisorInput').value=q; askAiAdvisor(); }
 async function askAiAdvisor(){
   const input = document.getElementById('aiAdvisorInput');
   const question = input.value.trim();
   if(!question) return;
   const answerBox = document.getElementById('aiAdvisorAnswer');
+  const btn = document.getElementById('advSendBtn');
+  const tokRow = document.getElementById('advTokRow');
+  const token = lsGet('oright_admin_token') || '';
+  if(!token){ tokRow.style.display='block'; return; }
+  const mode = (document.querySelector('input[name="advMode"]:checked')||{}).value || 'think';
+  const context = [
+    'RINGKASAN PANEL DASHBOARD (dihitung dari sheet):',
+    (document.getElementById('aiTopActions')||{}).innerText || '',
+    (document.getElementById('aiProactiveInsight')||{}).innerText || ''
+  ].join('\n').slice(0, 6000);
   answerBox.style.display = 'block';
-  answerBox.innerHTML = '<p>Thinking...</p>';
+  answerBox.innerHTML = '<span style="color:var(--ink-faint);">' + (mode==='think' ? 'Thinking (can take 20-40 s)...' : 'One moment...') + '</span>';
+  btn.disabled = true;
   try {
-    const res = await fetch(N8N_BASE + '/ai-advisor', {cache:'no-store', 
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ question })
+    // text/plain = tanpa preflight CORS; n8n tetap parse sebagai JSON
+    const res = await fetch(N8N_BASE + '/ai-advisor', {cache:'no-store',
+      method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body: JSON.stringify({ question, mode, token, context })
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
-    answerBox.innerHTML = '<p>' + (data.answer || 'No answer returned.') + '</p>';
+    if(data.ok === false){
+      if(/UNAUTHORIZED/.test(data.error||'')){ lsSet('oright_admin_token', null); tokRow.style.display='block'; }
+      throw new Error(data.error || 'Advisor failed');
+    }
+    answerBox.innerHTML = advFmt(data.answer || data.text || 'No answer returned.') +
+      '<div class="adv-note" style="margin-top:8px;">model: ' + escH(data.model||'?') + ' · mode: ' + escH(data.mode||mode) + '</div>';
     input.value = '';
-  } catch(err){ answerBox.innerHTML = '<p style="color:var(--red);">Failed: ' + err.message + '</p>'; }
+  } catch(err){
+    answerBox.innerHTML = '<span style="color:var(--red);">Failed: ' + escH(err.message) + '</span>';
+  } finally { btn.disabled = false; }
 }
 
 async function doReassign(){
