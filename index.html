@@ -843,6 +843,19 @@
         <div id="fnOut" aria-live="polite"></div>
       </section>
 
+      <!-- 1b. OSM SALON FINDER -->
+      <section class="af-card" id="osmBox">
+        <h3 style="margin:0 0 4px;font-size:15px">Find salons on OpenStreetMap <span style="font-size:11px;font-weight:700;color:var(--ink-faint)">O'right PRO</span></h3>
+        <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">Pick one country. Each run releases up to the number you set (best first: own website, several branches, email on file). Run again for the next batch, or pick another country. Salons with only Instagram are saved for later and are not released yet.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="osmC" class="ld-input" list="fnCountries" placeholder="Country (e.g. Australia or AU)" maxlength="60" style="flex:1;min-width:190px">
+          <input id="osmN" class="ld-input" type="number" min="1" max="500" value="200" style="width:90px" aria-label="How many leads">
+          <select id="osmW" class="ld-input"><option value="tonight">Tonight 18:00 (drip)</option><option value="now">Start now</option></select>
+          <button class="btn-primary" id="osmGo" onclick="osmGo()">Find salons</button>
+        </div>
+        <div id="osmOut" style="margin-top:10px;font-size:12.5px"></div>
+      </section>
+
       <!-- 2. UPLOAD A FILE -->
       <section class="af-card" id="upStep1">
         <div class="af-card-head">
@@ -1608,15 +1621,15 @@ function twNext(hour, plusDays){ const t = twParts(Date.now()); let ms = Date.UT
 function twLabel(tw){ const m = String(tw || '').match(/^TW(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/); if(!m) return String(tw || ''); return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }) + ', ' + m[4] + ':' + m[5]; }
 function upSchedFuture(batch){ const s = lsGet('oright_sched_' + batch); return (s && s > twStr(Date.now())) ? s : ''; }
 
-function upSetWhen(m){ upState.when = m; if(m === 'later' && !upState.at) upState.at = twStr(twNext(1, 0)); upRenderPreview(); }
+function upSetWhen(m){ upState.when = m; if(m === 'later' && !upState.at) upState.at = twStr(twNext(18, 0)); upRenderPreview(); }
 function upSetAt(v){ upState.at = twFromInput(v); upRenderPreview(); }
 function upSetAtMs(ms){ upState.at = twStr(ms); upRenderPreview(); }
 function upWhenHTML(n){
-  const later = upState.when === 'later', a = twNext(1, 0), b = twNext(1, 1);
+  const later = upState.when === 'later', a = twNext(18, 0), b = twNext(1, 0);
   const chip = ms => '<button type="button" class="chip' + (upState.at === twStr(ms) ? ' on' : '') + '" onclick="upSetAtMs(' + ms + ')">' + twLabel(twStr(ms)) + '</button>';
   const sched = later ?
     '<div class="af-sched">' + chip(a) + chip(b) + '<input type="datetime-local" aria-label="Start time, Taiwan time" value="' + twToInput(upState.at) + '" min="' + twToInput(twStr(Date.now() + 5 * 60000)) + '" onchange="upSetAt(this.value)"></div>' +
-    '<div class="af-tz">Taiwan time. It is ' + twLabel(twStr(Date.now())) + ' there now. Leads are saved now and processed from the chosen time.</div>' : '';
+    '<div class="af-tz">Taiwan time. It is ' + twLabel(twStr(Date.now())) + ' there now. Leads are saved now and processing starts at the next :00 or :30 after the chosen time, about 15 leads per half hour (' + n + ' leads is roughly ' + Math.max(1, Math.ceil(n / 15) * 30) + ' min). The first chip is the next 18:00, the second is the next 01:00.</div>' : '';
   const label = later ? (upState.at ? 'Schedule ' + n + ' leads' : 'Pick a time') : 'Upload ' + n + ' leads';
   const off = (n === 0 || n > UP.HARD_MAX || (later && !upState.at)) ? 'disabled' : '';
   return '<div class="af-when"><div class="af-seg" role="group" aria-label="When to upload"><button type="button" class="' + (later ? '' : 'on') + '" onclick="upSetWhen(\'now\')">Upload now</button><button type="button" class="' + (later ? 'on' : '') + '" onclick="upSetWhen(\'later\')">Schedule</button></div>' + sched +
@@ -3136,6 +3149,28 @@ async function askAiAdvisor(){
     ADV_BUSY=false; $x('advSendBtn').disabled=false; advSave(); advRender();
     try { ta.focus(); } catch(e){}
   }
+}
+
+const OSM_ISO = {'Argentina':'AR','Australia':'AU','Austria':'AT','Bahrain':'BH','Bangladesh':'BD','Belgium':'BE','Brazil':'BR','Cambodia':'KH','Canada':'CA','Chile':'CL','China':'CN','Colombia':'CO','Croatia':'HR','Czech Republic':'CZ','Denmark':'DK','Egypt':'EG','Finland':'FI','France':'FR','Germany':'DE','Greece':'GR','Hong Kong':'HK','Hungary':'HU','India':'IN','Indonesia':'ID','Ireland':'IE','Israel':'IL','Italy':'IT','Japan':'JP','Jordan':'JO','Kazakhstan':'KZ','Kenya':'KE','Kuwait':'KW','Laos':'LA','Lebanon':'LB','Macau':'MO','Malaysia':'MY','Mexico':'MX','Morocco':'MA','Myanmar':'MM','Nepal':'NP','Netherlands':'NL','New Zealand':'NZ','Nigeria':'NG','Norway':'NO','Oman':'OM','Pakistan':'PK','Peru':'PE','Philippines':'PH','Poland':'PL','Portugal':'PT','Qatar':'QA','Romania':'RO','Russia':'RU','Saudi Arabia':'SA','Singapore':'SG','South Africa':'ZA','South Korea':'KR','Spain':'ES','Sri Lanka':'LK','Sweden':'SE','Switzerland':'CH','Taiwan':'TW','Thailand':'TH','Turkey':'TR','Ukraine':'UA','United Arab Emirates':'AE','United Kingdom':'GB','United States':'US','Vietnam':'VN'};
+async function osmGo(){
+  const out = document.getElementById('osmOut'), btn = document.getElementById('osmGo');
+  const tok = lsGet('oright_admin_token') || '';
+  if(!tok){ out.innerHTML = '<span style="color:var(--red)">Enter your Admin token first (Settings, or open the AI Advisor chat once).</span>'; return; }
+  const raw = document.getElementById('osmC').value.trim();
+  const key = Object.keys(OSM_ISO).find(k => k.toLowerCase() === raw.toLowerCase());
+  const iso = /^[A-Za-z]{2}$/.test(raw) ? raw.toUpperCase() : (key ? OSM_ISO[key] : '');
+  if(!iso){ out.innerHTML = '<span style="color:var(--red)">Pick a country from the list, or type its 2-letter code (AU, DE, GB...).</span>'; return; }
+  const limit = Math.max(1, Math.min(500, parseInt(document.getElementById('osmN').value, 10) || 200));
+  const later = document.getElementById('osmW').value === 'tonight';
+  btn.disabled = true; out.innerHTML = '<span style="color:var(--ink-faint)">Starting...</span>';
+  try {
+    const res = await fetch(N8N_BASE + '/osm-scrape', { cache:'no-store', method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ country:iso, limit, process_after: later ? twStr(twNext(18, 0)) : '', token:tok }) });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    if(d.ok === false){ if(/UNAUTHORIZED/.test(d.error || '')) lsSet('oright_admin_token', null); throw new Error(d.error || 'Failed'); }
+    out.innerHTML = '<span style="color:var(--green)">&#10003; ' + escH(d.message || 'Started') + '.</span> The search takes about 1-5 minutes. Then the leads are added to the upload inbox and go through the normal checks' + (later ? ' (processing starts at the chosen time, about 15 leads per half hour).' : ' (processing starts at the next :00 or :30).');
+  } catch(err){ out.innerHTML = '<span style="color:var(--red)">Could not start: ' + escH(err.message) + '. Check that the workflow OSM_Salon_Scraper is Active.</span>'; }
+  btn.disabled = false;
 }
 
 async function doReassign(){
