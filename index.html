@@ -255,6 +255,20 @@
   .ai-panel-head .pulse-dot{width:7px;height:7px;border-radius:50%; background:#4ADE80; animation:pulse 1.6s infinite;}
   .ai-panel-head .role{font-size:10px; color:#B8C0D9; margin-top:4px;}
   .ai-body{flex:1; overflow-y:auto; padding:16px;}
+  .hb{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; letter-spacing:.2px; padding:2px 9px; border-radius:999px; white-space:nowrap; line-height:1.5;}
+  .hb.o{background:#E4F5EA; color:#0B7A41;} .hb.o::before{content:''; width:6px; height:6px; border-radius:50%; background:#17A05D;}
+  .hb.p{background:#10182B; color:#fff;} .hb.p::before{content:'\2605'; color:#E8B64C; font-size:10px;}
+  .hch{display:inline-block; font-size:10.5px; font-weight:800; padding:2px 9px; border-radius:6px; white-space:nowrap; line-height:1.5; border:1px solid transparent;}
+  tr.row.br-o td:first-child{box-shadow:inset 4px 0 0 #17A05D;} tr.row.br-p td:first-child{box-shadow:inset 4px 0 0 #10182B;}
+  tr.row.lowfit{opacity:.62;} tr.row.lowfit:hover{opacity:1;}
+  tr.qdiv td{background:#F3F4F7; color:var(--ink-soft); font-size:11.5px; font-weight:700; padding:7px 14px; letter-spacing:.2px;}
+  .bseg{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .bseg button{display:flex; align-items:center; gap:8px; border:1.5px solid var(--border); background:var(--panel); border-radius:11px; padding:8px 14px; font:inherit; font-size:13px; font-weight:700; color:var(--ink-soft); cursor:pointer;}
+  .bseg button .n{font-size:11px; font-weight:800; background:#EEF1F5; border-radius:999px; padding:1px 8px; color:var(--ink-soft);}
+  .bseg button.on{color:var(--ink); border-color:var(--ink); box-shadow:0 1px 0 rgba(16,24,43,.06);}
+  .bseg button.on.o{border-color:#17A05D; background:#F1FAF4;} .bseg button.on.p{border-color:#10182B; background:#F2F3F7;}
+  .bseg .dot{width:9px; height:9px; border-radius:50%;} .bseg .dot.o{background:#17A05D;} .bseg .dot.p{background:#10182B;}
+  .qhid{font-size:11.5px; color:var(--ink-faint); line-height:1.6; margin-top:10px;}
   .ai-panel.wide{width:460px;}
   @media(max-width:520px){.ai-panel.wide,.ai-panel{width:100%;}}
   .ai-tabs{display:flex; gap:4px; padding:8px 12px 0; border-bottom:1px solid var(--border); background:var(--panel);}
@@ -3479,7 +3493,7 @@ function hubRender(){
   const Q = HUB.queue, S = HUB.sent, H = HUB.hist;
   $x('hubMode').innerHTML = hubSafetyHTML(Q) + ((Q && Q.test_mode) ? '<div class="x-note amber"><b>TEST MODE.</b> Emails can only be sent to your own office address' + ((Q.test_addresses || []).length ? ' (' + escH(Q.test_addresses.join(', ')) + ')' : '') + '. Sending to real leads is switched on later, after IT opens external sending.</div>' : '');
   $x('hubCntQueue').textContent = Q ? '· ' + (Q.items || []).length : ''; $x('hubCntSent').textContent = S ? '· ' + ((S.rows || []).length) : ''; $x('hubCntHist').textContent = H ? '· ' + ((H.leads || []).length) : '';
-  const nc = document.getElementById('navHubCnt'); if(nc){ const n = Q ? (Q.items || []).length : 0; nc.textContent = n; nc.style.display = n ? '' : 'none'; }
+  const nc = document.getElementById('navHubCnt'); if(nc){ const n = Q ? (Q.items || []).filter(i => !i.below_min).length : 0; nc.textContent = n; nc.style.display = n ? '' : 'none'; }
   hubDrawQueue(); hubDrawSent(); hubDrawHist();
 }
 const xHref = u => { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : (u ? 'https://' + u : ''); };
@@ -3498,7 +3512,12 @@ function xDossier(d, q){
     (facts.length ? '<div class="kv">' + facts.map(p => '<span>' + p[0] + '</span><span>' + escH(xClean(p[1])) + '</span>').join('') + '</div>' : '<div class="desc" style="color:var(--amber)">No business details saved for this lead yet (employees, founded, brands…).</div>') +
     ((esg || risk || fr || er) ? '<details><summary>Scores, ESG and risk signals</summary><div class="kv">' + (fr ? '<span>Why this fit score</span><span>' + escH(fr) + '</span>' : '') + (er ? '<span>Why this ESG score</span><span>' + escH(er) + '</span>' : '') + (esg ? '<span>ESG signals</span><span>' + escH(esg) + '</span>' : '') + (risk ? '<span>Risk signals</span><span>' + escH(risk) + '</span>' : '') + '</div></details>' : '') + '</div>';
 }
-function hubQF(){ return HUB.f || (HUB.f = { ch:'', co:'', type:'', ct:'', min:'', batch:'', q:'', sort:'fit' }); }
+const HB = it => (it && String(it.brand).toUpperCase() === 'PRO') ? 'PRO' : 'ORIGHT';
+const CH_COL = { distributor:['#1D4ED8','#EAF0FE'], salon:['#BE185D','#FCE7F3'], oem:['#C2410C','#FFEDD5'], 'oem/odm':['#C2410C','#FFEDD5'], amenities:['#0E7490','#CFFAFE'], retail:['#6D28D9','#EDE9FE'], 'e-commerce':['#A21CAF','#FAE8FF'], ecommerce:['#A21CAF','#FAE8FF'], 'corporate gifting':['#A16207','#FEF3C7'] };
+function chChip(c){ c = xClean(c); if(!c) return ''; const k = c.toLowerCase(), col = CH_COL[k] || ['#475569','#EEF1F5']; return '<span class="hch" style="color:' + col[0] + ';background:' + col[1] + '">' + escH(c) + '</span>'; }
+function brChip(b){ return b === 'PRO' ? '<span class="hb p">O\'right PRO</span>' : '<span class="hb o">O\'right</span>'; }
+function hubQF(){ return HUB.f || (HUB.f = { ch:'', co:'', type:'', ct:'', min:'', batch:'', q:'', sort:'fit', brand:(lsGet('oright_hub_brand') || '') }); }
+function hubBrand(b){ hubQF().brand = b; lsSet('oright_hub_brand', b || null); hubDrawQueue(); }
 function hubDrawQueue(){
   const el = $x('hubQueue'); if(HUB.errs.queue){ el.innerHTML = xErrBox('the queue', HUB.errs.queue.ep, HUB.errs.queue.e); return; }
   const items = (HUB.queue && HUB.queue.items) || [];
@@ -3506,7 +3525,10 @@ function hubDrawQueue(){
   const F = hubQF(), uniq = k => Array.from(new Set(items.map(q => xClean(q[k])).filter(Boolean))).sort((a, b) => a.localeCompare(b));
   const opts = (arr, cur, all) => '<option value="">' + all + '</option>' + arr.map(v => '<option' + (v === cur ? ' selected' : '') + '>' + escH(v) + '</option>').join('');
   const sel = 'padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;font:inherit;font-size:12.5px';
-  el.innerHTML = '<div class="x-note blue" style="margin-bottom:10px">Pick the contact you want to write to. Best-scoring leads are at the top. Use the filters to focus, for example one country before an expo.</div>' +
+  const nB = { ALL: items.length, ORIGHT: items.filter(q => HB(q) === 'ORIGHT').length, PRO: items.filter(q => HB(q) === 'PRO').length };
+  const bTab = (v, cls, label, n) => '<button class="' + cls + (F.brand === v ? ' on' : '') + '" onclick="hubBrand(\'' + v + '\')">' + (cls === 'o' || cls === 'p' ? '<span class="dot ' + cls + '"></span>' : '') + label + '<span class="n">' + n + '</span></button>';
+  el.innerHTML = '<div class="bseg">' + bTab('', '', 'All brands', nB.ALL) + bTab('ORIGHT', 'o', 'O\'right', nB.ORIGHT) + bTab('PRO', 'p', 'O\'right PRO', nB.PRO) + '</div>' +
+    '<div class="x-note blue" style="margin-bottom:10px">Every verified lead with a usable email is here, best fit first. Faded rows are below your Fit threshold: still writable, just lower priority. Colour stripe = brand, coloured tag = channel.</div>' +
     '<div class="x-panel" style="margin-bottom:12px;padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
     '<input id="qfq" placeholder="Search company" value="' + escH(F.q) + '" oninput="hubQFSet(\'q\',this.value)" style="' + sel + ';min-width:170px">' +
     '<select id="qfco" onchange="hubQFSet(\'co\',this.value)" style="' + sel + '">' + opts(uniq('country'), F.co, 'All countries') + '</select>' +
@@ -3517,7 +3539,7 @@ function hubDrawQueue(){
     '<input id="qfmin" type="number" min="0" max="100" placeholder="Min fit" value="' + escH(F.min) + '" oninput="hubQFSet(\'min\',this.value)" style="' + sel + ';width:84px">' +
     '<select id="qfsort" onchange="hubQFSet(\'sort\',this.value)" style="' + sel + '"><option value="fit">Sort: fit, high first</option><option value="esg"' + (F.sort === 'esg' ? ' selected' : '') + '>Sort: ESG, high first</option><option value="name"' + (F.sort === 'name' ? ' selected' : '') + '>Sort: company A to Z</option><option value="follow"' + (F.sort === 'follow' ? ' selected' : '') + '>Sort: follow-ups first</option></select>' +
     '<button class="x-btn" onclick="hubQFReset()">Reset</button><span id="qfCount" style="margin-left:auto;color:var(--ink-faint);font-size:12px"></span></div>' +
-    '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Type</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody id="qBody"></tbody></table></div>';
+    '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Type</th><th class="r">Fit</th><th class="r">ESG</th><th></th></tr></thead><tbody id="qBody"></tbody></table></div><div class="qhid" id="qHid"></div>';
   hubQueueRows();
 }
 function hubQFSet(k, v){ hubQF()[k] = v; hubQueueRows(); }
@@ -3526,7 +3548,7 @@ function hubQueueRows(){
   const items = (HUB.queue && HUB.queue.items) || [], F = hubQF(), body = $x('qBody'); if(!body) return;
   const min = F.min === '' ? null : Number(F.min), q = F.q.toLowerCase();
   let rows = []; items.forEach((it, i) => {
-    if(F.ch && it.channel !== F.ch) return; if(F.co && it.country !== F.co) return; if(F.batch && it.batch !== F.batch) return;
+    if(F.brand && HB(it) !== F.brand) return; if(F.ch && it.channel !== F.ch) return; if(F.co && it.country !== F.co) return; if(F.batch && it.batch !== F.batch) return;
     if(F.type === 'first' && it.email_no > 1) return; if(F.type === 'follow' && !(it.email_no > 1)) return;
     if(min != null && !(it.fit != null && it.fit >= min)) return; if(q && !(it.name || '').toLowerCase().includes(q)) return;
     let list = (it.contacts && it.contacts.length) ? it.contacts : (it.contact && it.contact.email ? [it.contact] : []);
@@ -3541,9 +3563,15 @@ function hubQueueRows(){
   const pill = (v, hi, mid) => '<span class="x-pill ' + (v == null ? 'grey' : v >= hi ? 'green' : v >= mid ? 'blue' : 'amber') + '">' + escH(v == null ? '–' : Math.round(v)) + '</span>';
   const flat = []; rows.forEach(r => r.list.forEach((c, j) => flat.push({ q: r.it, i: r.i, c, first: j === 0 })));
   $x('qfCount').textContent = 'Showing ' + rows.length + ' of ' + items.length + ' leads · ' + flat.length + ' contacts';
-  body.innerHTML = flat.length ? flat.map(r => {
-    const q = r.q, c = r.c;
-    return '<tr class="row" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH([q.country, q.channel].filter(Boolean).join(' · ')) + (q.lead && q.lead.employees ? ' · ' + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">' + (c.kind === 'Personal' ? 'Personal mailbox · role unknown' : 'Company address') + '</span>') + '</td><td>' + escH(c.email || '') + (c.dom === 'mismatch' ? '<div><span class="x-pill red">⚠ DIFFERENT DOMAIN (site: ' + escH(c.site || '?') + ')</span></div>' : '') + (c.role ? '<div><span class="x-pill amber">Not a buying mailbox</span></div>' : '') + (c.email_status === 'Unapproved' ? '<div><span class="x-pill amber">Not approved yet</span></div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
+  const Hd = (HUB.queue && HUB.queue.hidden) || null, hp = [];
+  if(Hd){ if(Hd.not_verified) hp.push(Hd.not_verified + ' in Review / rejected / parked (not verified, so not emailed)'); if(Hd.no_contact) hp.push(Hd.no_contact + ' verified without a usable contact email'); if(Hd.waiting) hp.push(Hd.waiting + ' waiting for the follow-up date'); if(Hd.closed) hp.push(Hd.closed + ' already replied or closed'); if(Hd.busy) hp.push(Hd.busy + ' being sent now'); }
+  const hb = $x('qHid'); if(hb) hb.innerHTML = hp.length ? 'Not in this list: ' + hp.map(escH).join(' · ') + '.' : '';
+  const FM = (HUB.queue && HUB.queue.fit_min) || 0; let seenLow = false;
+  body.innerHTML = flat.length ? flat.map((r, ix) => {
+    const q = r.q, c = r.c, low = !!q.below_min;
+    let div = ''; if(r.first && low && !seenLow && ix > 0 && F.sort === 'fit' && FM) div = '<tr class="qdiv"><td colspan="7">Below Fit ' + FM + ' · lower priority. Still ready to write if it makes sense.</td></tr>';
+    if(r.first && low) seenLow = true;
+    return div + '<tr class="row br-' + (HB(q) === 'PRO' ? 'p' : 'o') + (low ? ' lowfit' : '') + '" title="' + (low ? 'Below the Fit threshold (' + FM + ')' : '') + '" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="margin-top:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">' + brChip(HB(q)) + chChip(q.channel) + '</div><div style="color:var(--ink-faint);font-size:12px;margin-top:3px">' + escH(q.country || '') + (q.lead && q.lead.employees ? (q.country ? ' · ' : '') + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">' + (c.kind === 'Personal' ? 'Personal mailbox · role unknown' : 'Company address') + '</span>') + '</td><td>' + escH(c.email || '') + (c.dom === 'mismatch' ? '<div><span class="x-pill red">⚠ DIFFERENT DOMAIN (site: ' + escH(c.site || '?') + ')</span></div>' : '') + (c.role ? '<div><span class="x-pill amber">Not a buying mailbox</span></div>' : '') + (c.email_status === 'Unapproved' ? '<div><span class="x-pill amber">Not approved yet</span></div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
   }).join('') : '<tr><td colspan="7" class="x-empty">No lead matches these filters. Press Reset.</td></tr>';
 }
 function hubDrawSent(){
