@@ -456,6 +456,17 @@
   .stg.skipped{opacity:.55;}
   .stg.done .st{background:var(--green-soft); color:var(--green);}
   .stg.running .bar > i{background-image:linear-gradient(90deg,rgba(255,255,255,0) 0,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 100%); background-size:60px 100%; animation:stgSlide 1.2s linear infinite;}
+  .stg .bar > i.ind{width:38% !important; animation:osmInd 1.5s ease-in-out infinite alternate;}
+  @keyframes osmInd{from{margin-left:0}to{margin-left:62%}}
+  .osm-tb{width:100%; border-collapse:collapse; font-size:12px;}
+  .osm-tb th{text-align:left; font-size:10.5px; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-faint); padding:6px 8px; border-bottom:1px solid var(--border);}
+  .osm-tb td{padding:7px 8px; border-bottom:1px solid var(--border); vertical-align:middle;}
+  .osm-tb tr:last-child td{border-bottom:none;}
+  .osm-b{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; border-radius:20px; padding:2px 8px;}
+  .osm-b.done{background:var(--green-soft); color:var(--green);}
+  .osm-b.err{background:var(--red-soft); color:var(--red);}
+  .osm-b.run{background:var(--brand-soft); color:var(--brand);}
+  .osm-b.stale{background:var(--amber-soft); color:var(--amber);}
   @keyframes stgSpin{to{transform:rotate(360deg)}}
   @keyframes stgSlide{from{background-position:-60px 0}to{background-position:200px 0}}
   .up-live{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; margin:10px 0 2px;}
@@ -854,6 +865,8 @@
           <button class="btn-primary" id="osmGo" onclick="osmGo()">Find salons</button>
         </div>
         <div id="osmOut" style="margin-top:10px;font-size:12.5px"></div>
+        <div id="osmProg" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:12px"></div>
+        <div id="osmHist" style="margin-top:14px"></div>
       </section>
 
       <!-- 2. UPLOAD A FILE -->
@@ -1442,7 +1455,7 @@ function showPage(name){
   if(name==='dashboard') loadDashboard();
   if(name==='outreach') hubLoad();
   if(name==='leads') loadLeads();
-  if(name==='upload'){ upResume(); upFillSources(); }
+  if(name==='upload'){ upResume(); upFillSources(); osmResume(); }
   if(name==='executive') loadTeamOverview();
   if(name==='pipeline') pipeLoad();
   if(name==='market') loadMarketNews();
@@ -3152,8 +3165,120 @@ async function askAiAdvisor(){
 }
 
 const OSM_ISO = {'Argentina':'AR','Australia':'AU','Austria':'AT','Bahrain':'BH','Bangladesh':'BD','Belgium':'BE','Brazil':'BR','Cambodia':'KH','Canada':'CA','Chile':'CL','China':'CN','Colombia':'CO','Croatia':'HR','Czech Republic':'CZ','Denmark':'DK','Egypt':'EG','Finland':'FI','France':'FR','Germany':'DE','Greece':'GR','Hong Kong':'HK','Hungary':'HU','India':'IN','Indonesia':'ID','Ireland':'IE','Israel':'IL','Italy':'IT','Japan':'JP','Jordan':'JO','Kazakhstan':'KZ','Kenya':'KE','Kuwait':'KW','Laos':'LA','Lebanon':'LB','Macau':'MO','Malaysia':'MY','Mexico':'MX','Morocco':'MA','Myanmar':'MM','Nepal':'NP','Netherlands':'NL','New Zealand':'NZ','Nigeria':'NG','Norway':'NO','Oman':'OM','Pakistan':'PK','Peru':'PE','Philippines':'PH','Poland':'PL','Portugal':'PT','Qatar':'QA','Romania':'RO','Russia':'RU','Saudi Arabia':'SA','Singapore':'SG','South Africa':'ZA','South Korea':'KR','Spain':'ES','Sri Lanka':'LK','Sweden':'SE','Switzerland':'CH','Taiwan':'TW','Thailand':'TH','Turkey':'TR','Ukraine':'UA','United Arab Emirates':'AE','United Kingdom':'GB','United States':'US','Vietnam':'VN'};
+/* ---------- OSM salon search: live progress + history ---------- */
+const OSM = { id:null, poll:null, tick:null, t0:0, run:null, follow:false, busy:false, misses:0, info:null };
+const OSM_LS = 'oright_osm_run';
+const OSM_STAGES = [
+  ['Search OpenStreetMap', 'Pulling every salon that lists a website or Instagram in this country. Usually 1-5 minutes; big countries take longer.'],
+  ['Save the names', 'Grouping branches by website and saving every salon (name, website, city) to the OSM_Candidates sheet'],
+  ['Send to the upload inbox', 'The best leads go to the inbox, then follow the normal steps below (clean, verify, enrich, score, contacts)']
+];
+const osmMs = tw => { const m = String(tw || '').match(/^(?:TW)?(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/); return m ? Date.parse(m[1] + 'T' + m[2] + ':00+08:00') : 0; };
+const osmClock = ms => { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const osmActive = r => r && ['Searching', 'Saving', 'Sending'].includes(r.status);
+function osmSetBtn(){ const b = document.getElementById('osmGo'); if(!b) return; const on = !!OSM.poll; b.disabled = on; b.title = on ? 'A search is still running. Wait for it to finish.' : ''; }
+function osmStop(clear){
+  clearInterval(OSM.poll); clearInterval(OSM.tick); OSM.poll = OSM.tick = null;
+  if(clear){ lsSet(OSM_LS, null); OSM.id = null; const p = document.getElementById('osmProg'); if(p){ p.style.display = 'none'; p.innerHTML = ''; } }
+  osmSetBtn();
+}
+function osmWatch(id, follow, info){
+  osmStop(false);
+  OSM.id = id; OSM.follow = !!follow; OSM.run = null; OSM.misses = 0; OSM.t0 = Date.now(); OSM.info = info || null;
+  document.getElementById('osmProg').style.display = 'block';
+  osmRender();
+  OSM.poll = setInterval(osmPoll, 6000); OSM.tick = setInterval(osmTickUi, 1000); osmSetBtn();
+  osmPoll();
+}
+async function osmPoll(){
+  if(OSM.busy || !OSM.id) return; OSM.busy = true; let err = '';
+  try {
+    const d = await n8nGet('/osm-status?run=' + encodeURIComponent(OSM.id));
+    OSM.misses = d && d.run ? 0 : OSM.misses + 1; OSM.run = d && d.run ? d.run : null;
+  } catch(e){ err = e.message; OSM.misses++; }
+  OSM.busy = false; OSM.err = err; osmRender();
+  const r = OSM.run;
+  if(osmActive(r)) OSM.follow = true;
+  if(r && !osmActive(r)){
+    const wasLive = !!OSM.poll; osmStop(false); lsSet(OSM_LS, null);
+    if(wasLive){ osmHistLoad(); if(OSM.follow && r.status === 'Done' && r.batch && r.released > 0) osmFollowBatch(r); }
+  }
+}
+function osmFollowBatch(r){
+  try {
+    lsSet('oright_last_batch', r.batch); lsSet(UP.LS, r.batch); upRemember(r.batch);
+    if(r.process_after) lsSet('oright_sched_' + r.batch, r.process_after);
+    upWatch.started = null; upWatchBegin(r.batch, true); upRenderRecent();
+  } catch(e){}
+}
+function osmTickUi(){ const el = document.getElementById('osmElapsed'); if(el) el.textContent = osmClock(Date.now() - (OSM.info ? OSM.t0 : ((OSM.run && osmMs(OSM.run.run_at)) || OSM.t0))); }
+function osmRender(){
+  const el = document.getElementById('osmProg'); if(!el || !OSM.id) return;
+  const r = OSM.run, info = OSM.info || {};
+  const done = r && r.status === 'Done', failed = r && r.status === 'Error';
+  const stage = r ? (done ? 4 : (failed ? 1 : Math.min(3, Math.max(1, r.stage)))) : 1;
+  let rows = '';
+  OSM_STAGES.forEach((s, i) => {
+    const n = i + 1;
+    let state = done ? 'done' : (failed ? (n === 1 ? 'stuck' : 'queued') : (n < stage ? 'done' : (n === stage ? 'running' : 'queued')));
+    const label = { done:'Done', stuck:'Failed', running:'Running', queued:'Waiting' }[state];
+    let chips = '';
+    if(r && n === 1 && r.found) chips = 'Found ' + r.found.toLocaleString() + ' places with a website or Instagram';
+    if(r && n === 2 && r.groups) chips = r.groups.toLocaleString() + ' businesses (branches merged) · ' + r.new_candidates.toLocaleString() + ' new to us';
+    if(r && n === 3 && (r.released || done)) chips = r.released + ' leads sent' + (r.social_only ? ' · ' + r.social_only + ' Instagram-only saved for later' : '') + (r.left_new ? ' · ' + r.left_new + ' more waiting for the next run' : '');
+    if(r && n === 1 && !r.found && state === 'running' && !r.age_sec && r.status === 'Searching') chips = 'Waiting for OpenStreetMap to answer';
+    const icon = state === 'done' ? '&#10003;' : (state === 'stuck' ? '!' : '<span>' + n + '</span>');
+    const bar = state === 'done' ? 100 : 0;
+    rows += '<div class="stg ' + state + '"><div class="ic">' + icon + '</div><div><div class="nm">' + s[0] + '<span class="st">' + label + '</span></div><div class="ds">' + s[1] + '</div></div><div><div class="bar"><i class="' + (state === 'running' ? 'ind' : '') + '" style="width:' + bar + '%"></i></div>' + (chips ? '<div class="chips">' + escH(chips) + '</div>' : '') + '</div><div class="cnt"></div></div>';
+  });
+  const title = r && r.country ? r.country + ' (' + r.iso + ') · up to ' + r.limit + ' leads' : (info.country ? info.country + ' · up to ' + info.limit + ' leads' : 'Salon search');
+  let live;
+  if(failed) live = '<div class="up-live stuck"><span class="dot"></span>Stopped with an error</div>';
+  else if(done) live = '<div class="up-live fin"><span class="dot"></span>Finished</div>';
+  else live = '<div class="up-live"><span class="dot"></span>Working · <span id="osmElapsed">0:00</span> elapsed</div>';
+  let note = '';
+  if(failed) note = '<div class="up-note err"><b>Error:</b> ' + escH(r.error || 'unknown') + '<br>Nothing was released. Fix it or wait, then press Find salons again (names already saved are not duplicated).</div>';
+  else if(done){
+    const sched = r.process_after && r.process_after > twStr(Date.now()) ? ' Processing starts <b>' + escH(twLabel(r.process_after)) + '</b> (Taiwan time).' : '';
+    note = r.released > 0
+      ? '<div class="up-note info"><b>' + r.released + ' leads</b> are in the upload inbox (batch ' + escH(r.batch) + ').' + sched + ' Their progress is shown in the Batch panel at the top of this page.</div>'
+      : '<div class="up-note warn">Nothing new to send. Everything with a website in this country was already released earlier, or none was found.</div>';
+  } else if(!r){
+    if(OSM.err) note = '<div class="up-note warn">Could not read the status (' + escH(OSM.err) + '). Is the status endpoint (GET osm-status) imported and the workflow Active? Still trying.</div>';
+    else if(OSM.misses >= 12) note = '<div class="up-note warn">The workflow has not reported anything for over a minute. Check in n8n: is OSM_Salon_Scraper Active, and does the OSM_Runs tab exist with its header row? Open Executions to see the error.</div>';
+    else note = '<div class="up-note info">Request sent. Waiting for the workflow to report its first step.</div>';
+  } else {
+    const lim = r.status === 'Searching' ? 600 : 300;
+    if(r.age_sec != null && r.age_sec > lim) note = '<div class="up-note warn">No update for ' + Math.round(r.age_sec / 60) + ' minutes. It probably stopped. Open n8n, Executions, OSM_Salon_Scraper to see the error. This page keeps checking.</div>';
+    else if(r.status === 'Searching') note = '<div class="up-note info">OpenStreetMap answers when it is ready. Keep this page open or come back later: the result is kept in History below.</div>';
+  }
+  el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800;font-size:14px">' + escH(title) + '</div><div style="font-size:11.5px;color:var(--ink-faint)">Run ' + escH(OSM.id) + (OSM.poll ? ' · updates on its own' : '') + '</div></div><button class="btn-secondary" style="flex:none;padding:6px 12px;font-size:12px" onclick="osmStop(true)">Hide</button></div>' + live + rows + note +
+    (done && r.batch && r.released > 0 ? '<div class="up-actions"><button class="btn-secondary" style="padding:8px 14px;font-size:12px" onclick="osmOpenBatch(\'' + escH(r.batch) + '\')">Show pipeline progress</button></div>' : '');
+  osmTickUi();
+}
+function osmOpenBatch(id){ if(typeof upOpenBatch === 'function'){ upWatch.started = null; lsSet(UP.LS, id); upRemember(id); upWatchBegin(id, true); upRenderRecent(); const p = document.getElementById('upProgress'); if(p && p.scrollIntoView) p.scrollIntoView({ behavior:'smooth', block:'start' }); } }
+async function osmHistLoad(){
+  const el = document.getElementById('osmHist'); if(!el) return;
+  let runs = [];
+  try { const d = await n8nGet('/osm-status'); runs = Array.isArray(d.runs) ? d.runs : []; }
+  catch(e){ el.innerHTML = '<div style="font-size:11.5px;color:var(--ink-faint)">Search history is not available yet (' + escH(e.message) + '). It needs the osm-status endpoint from the latest workflow.</div>'; return; }
+  if(!runs.length){ el.innerHTML = '<div style="font-size:11.5px;color:var(--ink-faint)">No salon searches yet. Every run will be listed here, with its result.</div>'; return; }
+  const rowsH = runs.map(r => {
+    const act = osmActive(r), stale = act && r.age_sec != null && r.age_sec > (r.status === 'Searching' ? 600 : 300);
+    const badge = r.status === 'Done' ? '<span class="osm-b done">Done</span>' : (r.status === 'Error' ? '<span class="osm-b err">Failed</span>' : (stale ? '<span class="osm-b stale">No update</span>' : '<span class="osm-b run">Running</span>'));
+    const res = r.status === 'Done' ? (r.released + ' sent · ' + r.groups + ' businesses' + (r.left_new ? ' · ' + r.left_new + ' left' : '')) : (r.status === 'Error' ? (r.error || 'error') : escH(r.detail || ''));
+    const open = r.batch && r.status === 'Done' && r.released > 0 ? '<button class="btn-secondary" style="flex:none;padding:3px 9px;font-size:11px" onclick="osmOpenBatch(\'' + escH(r.batch) + '\')">Pipeline</button> ' : '';
+    return '<tr><td>' + escH(twLabel(r.run_at)) + '</td><td><b>' + escH(r.country || r.iso) + '</b></td><td>' + badge + '</td><td style="color:var(--ink-soft)">' + (r.status === 'Done' ? escH(res) : escH(res).slice(0, 110)) + '</td><td style="text-align:right;white-space:nowrap">' + open + '<button class="btn-secondary" style="flex:none;padding:3px 9px;font-size:11px" onclick="osmWatch(\'' + escH(r.run_id) + '\', false)">Details</button></td></tr>';
+  }).join('');
+  el.innerHTML = '<div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px">Search history (Taiwan time)</div><table class="osm-tb"><thead><tr><th>Started</th><th>Country</th><th>Status</th><th>Result</th><th></th></tr></thead><tbody>' + rowsH + '</tbody></table>';
+}
+function osmResume(){
+  const id = lsGet(OSM_LS);
+  if(id && !OSM.poll) osmWatch(id, true);
+  osmHistLoad();
+}
 async function osmGo(){
-  const out = document.getElementById('osmOut'), btn = document.getElementById('osmGo');
+  const out = document.getElementById('osmOut');
   const tok = lsGet('oright_admin_token') || '';
   if(!tok){ out.innerHTML = '<span style="color:var(--red)">Enter your Admin token first (Settings, or open the AI Advisor chat once).</span>'; return; }
   const raw = document.getElementById('osmC').value.trim();
@@ -3162,15 +3287,16 @@ async function osmGo(){
   if(!iso){ out.innerHTML = '<span style="color:var(--red)">Pick a country from the list, or type its 2-letter code (AU, DE, GB...).</span>'; return; }
   const limit = Math.max(1, Math.min(500, parseInt(document.getElementById('osmN').value, 10) || 200));
   const later = document.getElementById('osmW').value === 'tonight';
-  btn.disabled = true; out.innerHTML = '<span style="color:var(--ink-faint)">Starting...</span>';
+  document.getElementById('osmGo').disabled = true; out.innerHTML = '<span style="color:var(--ink-faint)">Starting...</span>';
   try {
     const res = await fetch(N8N_BASE + '/osm-scrape', { cache:'no-store', method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ country:iso, limit, process_after: later ? twStr(twNext(18, 0)) : '', token:tok }) });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
     if(d.ok === false){ if(/UNAUTHORIZED/.test(d.error || '')) lsSet('oright_admin_token', null); throw new Error(d.error || 'Failed'); }
-    out.innerHTML = '<span style="color:var(--green)">&#10003; ' + escH(d.message || 'Started') + '.</span> The search takes about 1-5 minutes. Then the leads are added to the upload inbox and go through the normal checks' + (later ? ' (processing starts at the chosen time, about 15 leads per half hour).' : ' (processing starts at the next :00 or :30).');
-  } catch(err){ out.innerHTML = '<span style="color:var(--red)">Could not start: ' + escH(err.message) + '. Check that the workflow OSM_Salon_Scraper is Active.</span>'; }
-  btn.disabled = false;
+    out.innerHTML = '';
+    if(d.run_id){ lsSet(OSM_LS, d.run_id); osmWatch(d.run_id, true, { country: d.country || iso, limit }); }
+    else out.innerHTML = '<span style="color:var(--amber)">Started, but this workflow version does not report progress. Import the latest OSM_Salon_Scraper workflow to see live steps.</span>'; osmSetBtn();
+  } catch(err){ out.innerHTML = '<span style="color:var(--red)">Could not start: ' + escH(err.message) + '. Check that the workflow OSM_Salon_Scraper is Active.</span>'; osmSetBtn(); document.getElementById('osmGo').disabled = !!OSM.poll; }
 }
 
 async function doReassign(){
