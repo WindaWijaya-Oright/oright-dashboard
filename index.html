@@ -3184,7 +3184,7 @@ function osmStop(clear){
 }
 function osmWatch(id, follow, info){
   osmStop(false);
-  OSM.id = id; OSM.follow = !!follow; OSM.run = null; OSM.misses = 0; OSM.t0 = Date.now(); OSM.info = info || null;
+  OSM.id = id; OSM.follow = !!follow; OSM.run = null; OSM.misses = 0; OSM.errN = 0; OSM.gaveUp = false; OSM.t0 = Date.now(); OSM.info = info || null;
   document.getElementById('osmProg').style.display = 'block';
   osmRender();
   OSM.poll = setInterval(osmPoll, 6000); OSM.tick = setInterval(osmTickUi, 1000); osmSetBtn();
@@ -3194,11 +3194,12 @@ async function osmPoll(){
   if(OSM.busy || !OSM.id) return; OSM.busy = true; let err = '';
   try {
     const d = await n8nGet('/osm-status?run=' + encodeURIComponent(OSM.id));
-    OSM.misses = d && d.run ? 0 : OSM.misses + 1; OSM.run = d && d.run ? d.run : null;
-  } catch(e){ err = e.message; OSM.misses++; }
+    OSM.errN = 0; OSM.misses = d && d.run ? 0 : OSM.misses + 1; OSM.run = d && d.run ? d.run : null;
+  } catch(e){ err = e.message; OSM.misses++; OSM.errN = (OSM.errN || 0) + 1; }
   OSM.busy = false; OSM.err = err; osmRender();
   const r = OSM.run;
   if(osmActive(r)) OSM.follow = true;
+  if(!r && (OSM.errN >= 3 || OSM.misses >= 20)){ OSM.gaveUp = true; osmStop(false); lsSet(OSM_LS, null); osmRender(); return; }
   if(r && !osmActive(r)){
     const wasLive = !!OSM.poll; osmStop(false); lsSet(OSM_LS, null);
     if(wasLive){ osmHistLoad(); if(OSM.follow && r.status === 'Done' && r.batch && r.released > 0) osmFollowBatch(r); }
@@ -3235,6 +3236,7 @@ function osmRender(){
   let live;
   if(failed) live = '<div class="up-live stuck"><span class="dot"></span>Stopped with an error</div>';
   else if(done) live = '<div class="up-live fin"><span class="dot"></span>Finished</div>';
+  else if(OSM.gaveUp) live = '<div class="up-live stuck"><span class="dot"></span>Stopped checking</div>';
   else live = '<div class="up-live"><span class="dot"></span>Working · <span id="osmElapsed">0:00</span> elapsed</div>';
   let note = '';
   if(failed) note = '<div class="up-note err"><b>Error:</b> ' + escH(r.error || 'unknown') + '<br>Nothing was released. Fix it or wait, then press Find salons again (names already saved are not duplicated).</div>';
@@ -3243,6 +3245,8 @@ function osmRender(){
     note = r.released > 0
       ? '<div class="up-note info"><b>' + r.released + ' leads</b> are in the upload inbox (batch ' + escH(r.batch) + ').' + sched + ' Their progress is shown in the Batch panel at the top of this page.</div>'
       : '<div class="up-note warn">Nothing new to send. Everything with a website in this country was already released earlier, or none was found.</div>';
+  } else if(!r && OSM.gaveUp){
+    note = '<div class="up-note err"><b>Stopped checking.</b> ' + (OSM.err ? 'The status could not be read (' + escH(OSM.err) + '). ' : 'No status row appeared. ') + 'In n8n open Executions and check <b>Read_Runs</b> / <b>Log_Start</b>. Most likely the tab <b>OSM_Runs</b> is missing or its header row (row 1) is wrong. Fix it, then press Retry.</div><div class="up-actions"><button class="btn-secondary" style="padding:8px 14px;font-size:12px" onclick="osmWatch(OSM.id, OSM.follow, OSM.info)">Retry</button></div>';
   } else if(!r){
     if(OSM.err) note = '<div class="up-note warn">Could not read the status (' + escH(OSM.err) + '). Is the status endpoint (GET osm-status) imported and the workflow Active? Still trying.</div>';
     else if(OSM.misses >= 12) note = '<div class="up-note warn">The workflow has not reported anything for over a minute. Check in n8n: is OSM_Salon_Scraper Active, and does the OSM_Runs tab exist with its header row? Open Executions to see the error.</div>';
