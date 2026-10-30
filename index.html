@@ -3191,7 +3191,7 @@ function osmWatch(id, follow, info){
   osmPoll();
 }
 async function osmPoll(){
-  if(OSM.busy || !OSM.id) return; OSM.busy = true; let err = '';
+  if(OSM.busy || !OSM.id || document.hidden) return; OSM.busy = true; let err = '';
   try {
     const d = await n8nGet('/osm-status?run=' + encodeURIComponent(OSM.id));
     OSM.errN = 0; OSM.misses = d && d.run ? 0 : OSM.misses + 1; OSM.run = d && d.run ? d.run : null;
@@ -3199,6 +3199,7 @@ async function osmPoll(){
   OSM.busy = false; OSM.err = err; osmRender();
   const r = OSM.run;
   if(osmActive(r)) OSM.follow = true;
+  if(osmActive(r) && r.age_sec != null && r.age_sec > 1800){ osmStop(false); lsSet(OSM_LS, null); osmRender(); return; }
   if(!r && (OSM.errN >= 3 || OSM.misses >= 20)){ OSM.gaveUp = true; osmStop(false); lsSet(OSM_LS, null); osmRender(); return; }
   if(r && !osmActive(r)){
     const wasLive = !!OSM.poll; osmStop(false); lsSet(OSM_LS, null);
