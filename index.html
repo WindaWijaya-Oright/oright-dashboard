@@ -3237,6 +3237,7 @@ function osmRender(){
   let live;
   if(failed) live = '<div class="up-live stuck"><span class="dot"></span>Stopped with an error</div>';
   else if(done) live = '<div class="up-live fin"><span class="dot"></span>Finished</div>';
+  else if(r && osmActive(r) && !OSM.poll) live = '<div class="up-live stuck"><span class="dot"></span>Stalled: automatic checking stopped</div>';
   else if(OSM.gaveUp) live = '<div class="up-live stuck"><span class="dot"></span>Stopped checking</div>';
   else live = '<div class="up-live"><span class="dot"></span>Working · <span id="osmElapsed">0:00</span> elapsed</div>';
   let note = '';
@@ -3254,10 +3255,10 @@ function osmRender(){
     else note = '<div class="up-note info">Request sent. Waiting for the workflow to report its first step.</div>';
   } else {
     const lim = r.status === 'Searching' ? 600 : 300;
-    if(r.age_sec != null && r.age_sec > lim) note = '<div class="up-note warn">No update for ' + Math.round(r.age_sec / 60) + ' minutes. It probably stopped. Open n8n, Executions, OSM_Salon_Scraper to see the error. This page keeps checking.</div>';
+    if(r.age_sec != null && r.age_sec > lim) note = '<div class="up-note warn">No update for ' + Math.round(r.age_sec / 60) + ' minutes. It probably stopped. Open n8n, Executions, OSM_Salon_Scraper to see the error. ' + (OSM.poll ? 'This page keeps checking.' : 'Automatic checking has stopped; press Hide to clear this panel.') + '</div>';
     else if(r.status === 'Searching') note = '<div class="up-note info">OpenStreetMap answers when it is ready. Keep this page open or come back later: the result is kept in History below.</div>';
   }
-  el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800;font-size:14px">' + escH(title) + '</div><div style="font-size:11.5px;color:var(--ink-faint)">Run ' + escH(OSM.id) + (OSM.poll ? ' · updates on its own' : '') + '</div></div><button class="btn-secondary" style="flex:none;padding:6px 12px;font-size:12px" onclick="osmStop(true)">Hide</button></div>' + live + rows + note +
+  el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800;font-size:14px">' + escH(title) + '</div><div style="font-size:11.5px;color:var(--ink-faint)">Run ' + escH(OSM.id) + (OSM.poll ? ' · updates on its own' : ' · not checking') + ' · panel v2.2</div></div><button class="btn-secondary" style="flex:none;padding:6px 12px;font-size:12px" onclick="osmStop(true)">Hide</button></div>' + live + rows + note +
     (done && r.batch && r.released > 0 ? '<div class="up-actions"><button class="btn-secondary" style="padding:8px 14px;font-size:12px" onclick="osmOpenBatch(\'' + escH(r.batch) + '\')">Show pipeline progress</button></div>' : '');
   osmTickUi();
 }
