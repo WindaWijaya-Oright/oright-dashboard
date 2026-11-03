@@ -563,6 +563,39 @@
 .x-slide input,.x-slide select,.x-slide textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font:inherit;font-size:13px;color:var(--ink);background:#fff}.x-slide textarea{min-height:90px;line-height:1.55;resize:vertical}
 .x-slide textarea.big{min-height:230px}.x-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .x-note{border-radius:10px;padding:9px 12px;font-size:12.5px;margin:8px 0;line-height:1.5}.x-note.amber{background:var(--amber-soft);color:#7a5207}.x-note.green{background:var(--green-soft);color:#0f5c3f}.x-note.blue{background:var(--brand-soft);color:#173a99}.x-note.red{background:var(--red-soft);color:var(--red)}
+/* ---- v12: lead at a glance + conversation thread ---- */
+.x-sum{border:1px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;margin-top:12px}
+.x-sum .v{font-size:14px;font-weight:700;line-height:1.4;display:flex;gap:8px;align-items:flex-start}
+.x-sum .v i{font-style:normal;flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;background:var(--ink-faint);margin-top:1px}
+.x-sum.green{background:var(--green-soft);border-color:#cfe9db}.x-sum.green .v i{background:var(--green)}
+.x-sum.amber{background:var(--amber-soft);border-color:#f3dcae}.x-sum.amber .v i{background:var(--amber)}
+.x-sum.blue{background:var(--brand-soft);border-color:#d3e0fb}.x-sum.blue .v i{background:var(--brand)}
+.x-sum.red{background:var(--red-soft);border-color:#f1cccc}.x-sum.red .v i{background:var(--red)}
+.x-sum .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin-top:10px}
+.x-sum .g div{background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.05);border-radius:9px;padding:6px 9px}
+.x-sum .g small{display:block;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);font-weight:700}
+.x-sum .g b{font-size:13px}
+.x-sum .to{font-size:12.5px;color:var(--ink-soft);margin-top:9px;line-height:1.5}
+.x-th{margin-top:8px}
+.x-th .rd{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin:14px 0 6px}
+.x-th .rd:after{content:"";flex:1;height:1px;background:var(--border)}
+.x-msg{border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:10px;background:#fff;padding:9px 12px;margin-bottom:8px}
+.x-msg.in{border-left-color:var(--green);background:var(--green-soft);border-color:#cfe9db;margin-left:20px}
+.x-msg.warn{border-left-color:var(--amber);background:var(--amber-soft)}
+.x-msg .h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12px;color:var(--ink-soft)}
+.x-msg .h b{color:var(--ink);font-size:12.5px}
+.x-msg .s{font-weight:700;font-size:13px;margin-top:4px}
+.x-msg .t{white-space:pre-wrap;font-size:12.5px;line-height:1.5;margin-top:5px;max-height:4.6em;overflow:hidden;position:relative;color:#2b3340}
+.x-msg .t.open{max-height:none}
+.x-msg .t:not(.open):after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.6em;background:linear-gradient(rgba(255,255,255,0),#fff)}
+.x-msg.in .t:not(.open):after{background:linear-gradient(rgba(231,246,238,0),#E7F6EE)}
+.x-msg.warn .t:not(.open):after{background:linear-gradient(rgba(253,243,226,0),#FDF3E2)}
+.x-msg .more{background:none;border:0;padding:3px 0 0;font:inherit;font-size:12px;color:var(--brand);cursor:pointer;font-weight:600}
+.x-msg .none{font-size:12.5px;color:var(--ink-faint);margin-top:5px;font-style:italic}
+.x-th-box{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:#FAFBFC;padding:0 14px 8px}
+.x-th-box>summary{cursor:pointer;font-weight:700;font-size:13.5px;padding:11px 0;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.x-th-box>summary::-webkit-details-marker{display:none}
+.x-th-box>summary span{font-weight:500;color:var(--ink-soft);font-size:12.5px}
 .x-tl{position:relative;margin:6px 0 0 8px;padding-left:20px;border-left:2px solid var(--border)}.x-ev{position:relative;margin-bottom:14px}
 .x-ev:before{content:"";position:absolute;left:-27px;top:4px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--ink-faint)}
 .x-ev.out:before{border-color:var(--brand)}.x-ev.in:before{border-color:var(--green)}.x-ev.note:before{border-color:var(--amber)}.x-ev.stage:before{border-color:var(--purple)}
@@ -1339,6 +1372,7 @@
   <div class="bd">
     <div id="dHol"></div>
     <div id="dDossier"></div>
+    <div id="dThread"></div>
     <div id="dPick"></div>
     <div id="dCompose">
     <div id="dMode"></div>
@@ -1368,13 +1402,14 @@
   <div class="hd"><div><h2 id="lTitle">Lead</h2><div id="lSub" style="color:var(--ink-soft);font-size:12.5px;margin-top:2px"></div></div><button class="x-x" onclick="xCloseAll()">×</button></div>
   <div class="bd">
     <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap"><label class="f" style="margin:0">Status</label><span id="lPills"></span></div>
+    <div id="lSummary"></div>
     <div id="lSignals"></div>
     <div id="lDossier"></div>
     <div id="lNext" style="margin-top:8px;font-size:12.5px;color:var(--ink-soft)"></div>
     <label class="f" style="margin-top:16px">Timeline</label>
     <div id="lTl"></div>
   </div>
-  <div class="ft"><button class="x-btn" id="lFollowBtn" onclick="lFollow()" style="display:none">↻ Follow up</button><button class="x-btn" onclick="lForm('reply')">📥 Log reply</button><button class="x-btn" onclick="lAddMenu()">＋ Add event</button><span style="flex:1"></span><button class="x-btn g" onclick="bOpen()">✨ Generate brief</button></div>
+  <div class="ft"><button class="x-btn" id="lFollowBtn" onclick="lFollow()" style="display:none">↻ Follow up</button><button class="x-btn" onclick="lForm('sent')">📤 Log sent email</button><button class="x-btn" onclick="lForm('reply')">📥 Log reply</button><button class="x-btn" onclick="lAddMenu()">＋ Add event</button><span style="flex:1"></span><button class="x-btn g" onclick="bOpen()">✨ Generate brief</button></div>
 </div>
 
 <!-- Form slide-over (reply, meeting, sample, quote, order, lost, nurture, note) -->
@@ -3866,7 +3901,7 @@ async function dOpenItem(q, email){
   $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = ''; $x('dMode').innerHTML = ''; $x('dSubj').value = ''; $x('dBody').value = '';
   dTypeStop();
   $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose();
-  dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); xOpen('xDraft');
+  $x('dThread').innerHTML = ''; dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); xOpen('xDraft'); dThreadLoad(q);
   holLoad(q.country);
 }
 async function dWriteGo(){
@@ -3952,20 +3987,92 @@ async function dSend(mode, confirmRisky){
   b1.textContent = 'Send now'; b2.textContent = $x('dSched').style.display === 'none' ? 'Schedule…' : 'Confirm schedule'; dCount();
 }
 
+/* ---------- v12: conversation thread + lead at a glance ---------- */
+const FU_GAP_DAYS = 5, MAX_EMAILS_UI = 7;
+function xEmailEvents(ev){   // fold the /hub-lead events into email "rounds": same email sent to several people becomes one card
+  const out = [], map = {};
+  (ev || []).forEach(e => {
+    if(e.kind === 'in'){ out.push({ dir:'in', at:e.at, who:String(e.title || '').replace(/^Reply from\s*/i, ''), subject:e.subject, body:e.body }); return; }
+    if(e.kind !== 'out') return;
+    const m = /^Email\s*(\d*)\s+(\w+)\s+to\s+(.+)$/i.exec(String(e.title || '')) || [], seq = Number(m[1]) || 0, st = (m[2] || 'sent').toLowerCase(), who = m[3] || '';
+    const key = seq + '|' + st + '|' + (e.subject || '') + '|' + String(e.body || '').slice(0, 160);
+    if(map[key]){ if(who && map[key].to.indexOf(who) < 0) map[key].to.push(who); map[key].clicks = Object.assign(map[key].clicks, e.click_links || {}); return; }
+    map[key] = { dir:'out', seq, state:st, at:e.at, to:who ? [who] : [], subject:e.subject, body:e.body, clicks:Object.assign({}, e.click_links || {}) }; out.push(map[key]);
+  });
+  return out.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+}
+function xRoundsOf(ev){   // number of emails really sent = highest sequence number (NOT the number of rows: one email to 3 people is still one email)
+  const m = xEmailEvents(ev).filter(x => x.dir === 'out' && x.state === 'sent'); if(!m.length) return 0;
+  return Math.max(m.length, m.reduce((n, x) => Math.max(n, x.seq || 0), 0));
+}
+function xSummaryHTML(ev, L){
+  const em = xEmailEvents(ev), sent = em.filter(x => x.dir === 'out' && x.state === 'sent'), ins = em.filter(x => x.dir === 'in'), rounds = xRoundsOf(ev);
+  const lastOut = sent[sent.length - 1], lastIn = ins[ins.length - 1], dOut = lastOut ? xDays(lastOut.at) : null, dIn = lastIn ? xDays(lastIn.at) : null;
+  const people = Array.from(new Set(sent.reduce((a, x) => a.concat(x.to), []))), clicks = Number(L.clicks) || 0;
+  const stage = L.stage || '', closed = ['Won', 'Lost'].includes(stage), later = ['Meeting', 'Sample', 'Quotation'].includes(stage);
+  let tone = 'blue', icon = 'i', head = '', sub = '';
+  if(L.status === 'Bounced'){ tone = 'red'; icon = '!'; head = 'The last email bounced.'; sub = 'Check the address before writing again.'; }
+  else if(stage === 'Lost'){ tone = 'red'; icon = '✕'; head = 'Closed as lost. Do not email.'; }
+  else if(stage === 'Won'){ tone = 'green'; icon = '✓'; head = 'Won: they ordered.'; }
+  else if(later){ tone = 'green'; icon = '✓'; head = 'In progress: ' + stage + '.'; sub = L.next_step ? 'Next step: ' + L.next_step + (L.next_step_due ? ' by ' + xDate(L.next_step_due, true) : '') : ''; }
+  else if(lastIn && (!lastOut || String(lastIn.at) >= String(lastOut.at))){ tone = 'green'; icon = '↩'; head = 'They replied ' + (dIn != null ? (dIn === 0 ? 'today' : dIn + ' day' + (dIn === 1 ? '' : 's') + ' ago') : '') + '. Waiting for our answer.'; sub = 'Log or answer the reply before sending anything else.'; }
+  else if(!rounds){ tone = 'blue'; icon = '·'; head = 'No email sent yet.'; }
+  else {
+    const due = dOut != null && dOut >= FU_GAP_DAYS && rounds < MAX_EMAILS_UI;
+    tone = due ? 'amber' : 'blue'; icon = due ? '!' : '…';
+    head = 'Emailed ' + rounds + ' time' + (rounds === 1 ? '' : 's') + ', last ' + (dOut != null ? (dOut === 0 ? 'today' : dOut + ' day' + (dOut === 1 ? '' : 's') + ' ago') : 'on ' + xDate(lastOut.at, true)) + '. No reply' + (lastIn ? ' since' : ' yet') + '.';
+    sub = rounds >= MAX_EMAILS_UI ? 'All ' + MAX_EMAILS_UI + ' emails used. Stop or move to Nurture.' : (due ? 'Follow-up ' + rounds + ' (email ' + (rounds + 1) + ') is due.' : 'Next follow-up is due in ' + Math.max(1, FU_GAP_DAYS - (dOut || 0)) + ' day' + (FU_GAP_DAYS - (dOut || 0) === 1 ? '' : 's') + '.');
+  }
+  const cell = (k, v) => '<div><small>' + k + '</small><b>' + v + '</b></div>';
+  return '<div class="x-sum ' + tone + '"><div class="v"><i>' + icon + '</i><span>' + escH(head) + (sub ? '<div style="font-weight:500;font-size:12.5px;color:var(--ink-soft);margin-top:2px">' + escH(sub) + '</div>' : '') + '</span></div>' +
+    '<div class="g">' + cell('Emails sent', rounds || '0') + cell('First email', sent.length ? xDate(sent[0].at, true) : '—') + cell('Last email', lastOut ? xDate(lastOut.at, true) : '—') + cell('Replies', ins.length || 'none') + cell('Clicks', clicks || '0') + cell('Stage', escH(stage || 'Not contacted')) + '</div>' +
+    (people.length ? '<div class="to"><b>Written to:</b> ' + people.map(escH).join(', ') + '</div>' : '') + '</div>';
+}
+function xThreadHTML(ev){
+  const em = xEmailEvents(ev); if(!em.length) return '';
+  let lastSeq = -1;
+  return '<div class="x-th">' + em.map(x => {
+    let h = '';
+    if(x.dir === 'out' && x.seq !== lastSeq){ lastSeq = x.seq; h += '<div class="rd">' + (x.seq ? (x.seq === 1 ? 'First email' : 'Follow-up ' + (x.seq - 1) + ' · email ' + x.seq) : 'Email') + '</div>'; }
+    if(x.dir === 'in') h += '<div class="rd">Their reply</div>';
+    const warn = x.dir === 'out' && x.state !== 'sent', body = String(x.body || '').trim();
+    const clicks = x.dir === 'out' && Object.keys(x.clicks).some(k => x.clicks[k] > 0) ? xClickChips(x.clicks) : '';
+    const meta = x.dir === 'in'
+      ? '<b>' + escH(x.who || 'Them') + '</b><span>' + xDate(x.at) + '</span>'
+      : '<b>' + escH(x.to.length > 2 ? x.to.slice(0, 2).join(', ') + ' +' + (x.to.length - 2) : (x.to.join(', ') || 'recipient not on file')) + '</b><span>' + xDate(x.at) + '</span><span class="x-pill ' + (warn ? 'amber' : 'grey') + '">' + escH(x.state) + '</span>' + clicks;
+    const more = body.length > 220 || body.split('\n').length > 4 ? '<button class="more" onclick="var t=this.previousElementSibling;t.classList.toggle(\'open\');this.textContent=t.classList.contains(\'open\')?\'Show less\':\'Show full email\'">Show full email</button>' : '';
+    return h + '<div class="x-msg ' + x.dir + (warn ? ' warn' : '') + '"><div class="h">' + meta + '</div>' +
+      (x.subject ? '<div class="s">' + escH(x.subject) + '</div>' : '') +
+      (body ? '<div class="t' + (more ? '' : ' open') + '">' + escH(body) + '</div>' + more : '<div class="none">' + (x.dir === 'out' ? 'Text not saved: this email was sent before the dashboard, from Outlook.' : 'No text saved.') + '</div>') + '</div>';
+  }).join('') + '</div>';
+}
+async function dThreadLoad(q){
+  const box = $x('dThread'); if(!box || !q || !q.match_key) return; box.innerHTML = '';
+  let d = (HUB.leadKey === q.match_key && HUB.lead) ? HUB.lead : null;
+  try { if(!d){ d = await n8nGet('/hub-lead?match_key=' + encodeURIComponent(q.match_key)); } }
+  catch(e){ box.innerHTML = '<div class="x-note amber" style="margin-top:12px"><b>Could not load the earlier emails.</b> ' + escH(e.message) + '. Write the follow-up only after checking the Sent tab.</div>'; return; }
+  if(!HUB.qItem || HUB.qItem.match_key !== q.match_key) return;   // user already opened another draft
+  const ev = d.events || [], L = d.lead || {}, n = xRoundsOf(ev);
+  if(!xEmailEvents(ev).length){ box.innerHTML = ''; return; }
+  const follow = n > 0;
+  box.innerHTML = xSummaryHTML(ev, L) + '<details class="x-th-box"' + (follow ? ' open' : '') + '><summary>Conversation so far<span>' + n + ' email' + (n === 1 ? '' : 's') + ' sent · tap to ' + (follow ? 'hide' : 'show') + '</span></summary>' + xThreadHTML(ev) + '</details>';
+}
+
 /* ---------- LEAD PANEL ---------- */
 async function lOpen(mk){
   HUB.leadKey = mk; HUB.lead = null; $x('lTitle').textContent = 'Loading…'; $x('lSub').textContent = ''; $x('lTl').innerHTML = '<div class="x-empty">Loading…</div>'; $x('lPills').innerHTML = ''; $x('lNext').textContent = '';
-  $x('lSignals').innerHTML = ''; $x('lDossier').innerHTML = ''; $x('lFollowBtn').style.display = 'none'; xOpen('xLead');
+  $x('lSummary').innerHTML = ''; $x('lSignals').innerHTML = ''; $x('lDossier').innerHTML = ''; $x('lFollowBtn').style.display = 'none'; xOpen('xLead');
   try { HUB.lead = await n8nGet('/hub-lead?match_key=' + encodeURIComponent(mk)); lDraw(); }
   catch(e){ $x('lTl').innerHTML = xErrBox('this lead', '/hub-lead', e); }
 }
 function lDraw(){
   const L = HUB.lead.lead || {}, ev = HUB.lead.events || [];
   $x('lTitle').textContent = L.company || L.name || HUB.leadKey; $x('lSub').textContent = [L.country, L.channel, L.contact_name, L.contact_title, L.contact_email].filter(Boolean).join(' · ');
+  $x('lSummary').innerHTML = xSummaryHTML(ev, L);
   $x('lPills').innerHTML = (L.stage ? '<span class="x-pill ' + stageColor(L.stage) + '">' + escH(L.stage) + '</span>' : (L.status ? '' : '<span class="x-pill grey">Not contacted yet</span>')) + (L.status ? '<span class="x-pill ' + statusColor(L.status) + '">' + escH(L.status) + '</span>' : '');
   $x('lDossier').innerHTML = L.dossier ? '<label class="f" style="margin-top:16px">Company</label>' + xDossier(L.dossier) : '';
   const ck = Number(L.clicks) || 0; $x('lSignals').innerHTML = ck ? '<div class="x-note ' + (ck >= 2 ? 'amber' : 'blue') + '" style="margin-top:10px">' + (ck >= 2 ? '🔥 ' : '') + '<b>Clicked ' + ck + ' time' + (ck === 1 ? '' : 's') + '</b>' + (L.last_click_at ? ', last on ' + xDate(L.last_click_at) : '') + '. This lead is opening the links in your signature.<div style="margin-top:4px">' + xClickChips(L.click_links) + '</div></div>' : '';
-  $x('lFollowBtn').style.display = ((L.emails_sent || 0) > 0 && !['Replied', 'Meeting', 'Sample', 'Quotation', 'Won', 'Lost'].includes(L.stage) && L.status !== 'Replied' && L.status !== 'Bounced' && L.emails_sent < 7) ? '' : 'none';
+  $x('lFollowBtn').style.display = ((xRoundsOf(ev) || L.emails_sent || 0) > 0 && !['Replied', 'Meeting', 'Sample', 'Quotation', 'Won', 'Lost'].includes(L.stage) && L.status !== 'Replied' && L.status !== 'Bounced' && (xRoundsOf(ev) || L.emails_sent || 0) < 7) ? '' : 'none';
   const dd = xDays(L.stage_since); $x('lNext').innerHTML = (dd != null ? 'In this stage for <b>' + dd + ' day' + (dd === 1 ? '' : 's') + '</b>. ' : '') + (L.next_step ? 'Next step: <b>' + escH(L.next_step) + '</b>' + (L.next_step_due ? ' by ' + xDate(L.next_step_due, true) : '') : '<span style="color:var(--amber)">No next step set.</span>');
   const KV = { meeting:[['at','Date'],['format','Format'],['attendees','Attendees'],['summary','Summary'],['needs','Needs / pain points'],['products','Products of interest'],['objections','Objections'],['decisions','Decisions'],['actions','Action items'],['next_step','Next step'],['next_step_due','Next step due'],['link','Link']],
     sample:[['products','Products and qty'],['ship_to','Sent to'],['ship_country','Country'],['ship_date','Shipped'],['courier','Courier'],['tracking','Tracking no.'],['eta','Expected arrival'],['received_date','Received'],['who_pays','Shipping paid by'],['feedback_due','Feedback due'],['feedback_rating','Feedback rating'],['feedback_notes','Feedback']],
@@ -3983,7 +4090,7 @@ function lAddMenu(){
   $x('fBody').innerHTML = '<div class="x-add">' + it.map(x => '<button onclick="lForm(\'' + x[0] + '\')"><span class="i">' + x[1] + '</span><span>' + x[2] + '<small>' + x[3] + '</small></span></button>').join('') + '</div>'; xOpen('xForm');
 }
 function lFollow(){
-  const L = (HUB.lead && HUB.lead.lead) || {}, mk = HUB.leadKey, n = (L.emails_sent || 0) + 1; let q = ((HUB.queue && HUB.queue.items) || []).find(x => x.match_key === mk);
+  const L = (HUB.lead && HUB.lead.lead) || {}, mk = HUB.leadKey, n = (xRoundsOf((HUB.lead && HUB.lead.events) || []) || L.emails_sent || 0) + 1; let q = ((HUB.queue && HUB.queue.items) || []).find(x => x.match_key === mk);
   q = q ? Object.assign({}, q, { email_no:Math.max(q.email_no || 1, n) }) : { match_key:mk, name:L.company || mk, country:L.country, channel:L.channel, fit:L.fit, esg:L.esg, why:'', email_no:n, reason:'Manual follow-up', contact:L.contact_email ? { name:L.contact_name, title:L.contact_title, email:L.contact_email, type:L.contact_name ? 'Personal' : 'Generic' } : null, contacts:[] };
   xCloseAll(); dOpenItem(q);
 }
@@ -4001,6 +4108,7 @@ const REPLY_KINDS = [   // [label, what happens, action]
 const LOST_REASONS = ['Not interested', 'Unsubscribed', 'Price', 'MOQ', 'Not the right time', 'Chose a competitor', 'Product does not fit', 'Certification / regulation', 'Logistics', 'No response', 'Other'];
 const FORMS = {
   reply:{ title:'Log a reply', ep:'/hub-log-reply', fields:[['at', 'Received', 'datetime', 1], ['from_name', 'From (name)', 'text'], ['from_email', 'From (email)', 'text'], ['subject', 'Subject', 'text'], ['body', 'Reply text (paste exactly)', 'textarea', 1, 'big'], ['kind', 'What kind of reply is it?', 'select', 1, REPLY_KINDS.map(k => k[0])], ['revisit_date', 'Ask me again on', 'date'], ['referred_to', 'Referred to (name and email)', 'text'], ['questions', 'Questions they asked (one per line)', 'textarea'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
+  sent:{ title:'Log an email I sent (from Outlook)', ep:'/hub-log-sent', fields:[['at', 'Sent on', 'datetime', 1], ['to_email', 'To (email)', 'text', 1], ['to_name', 'To (name)', 'text'], ['subject', 'Subject', 'text', 1], ['body', 'Email text (paste exactly as sent)', 'textarea', 1, 'big'], ['email_no', 'Email number (leave empty = next number)', 'text']] },
   meeting:{ title:'Meeting + MOM', ep:'/hub-event', type:'meeting', tidy:true, fields:[['at', 'Date and time', 'datetime', 1], ['format', 'Format', 'select', 0, ['Zoom / Teams', 'In person', 'Trade show', 'Phone']], ['attendees', 'Attendees (both sides, with position)', 'textarea', 1], ['summary', 'MOM: summary', 'textarea', 1], ['needs', 'Their needs / pain points', 'textarea'], ['products', 'Products of interest', 'textarea'], ['objections', 'Objections', 'textarea'], ['decisions', 'Decisions', 'textarea'], ['actions', 'Action items (who, deadline)', 'textarea'], ['next_step', 'Next step', 'text', 1], ['next_step_due', 'Next step due', 'date', 1], ['link', 'Link (recording, slides)', 'text']] },
   sample:{ title:'Sample sent', ep:'/hub-event', type:'sample', fields:[['products', 'Products and quantity', 'textarea', 1], ['ship_to', 'Sent to (name)', 'text', 1], ['ship_country', 'Country', 'text', 1], ['ship_date', 'Shipped on', 'date', 1], ['courier', 'Courier', 'text'], ['tracking', 'Tracking number', 'text'], ['eta', 'Expected arrival', 'date'], ['received_date', 'Received on', 'date'], ['who_pays', 'Shipping paid by', 'select', 0, ['O’right', 'Customer']], ['feedback_due', 'Feedback due', 'date'], ['feedback_rating', 'Feedback rating (1-5)', 'select', 0, ['', '1', '2', '3', '4', '5']], ['feedback_notes', 'Feedback', 'textarea'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
   quote:{ title:'Quotation', ep:'/hub-event', type:'quote', fields:[['no', 'Quote no.', 'text', 1], ['version', 'Version', 'text', 0, 'v1'], ['at', 'Date', 'date', 1], ['items', 'SKU, qty, unit price', 'textarea', 1], ['currency', 'Currency', 'text', 1], ['moq', 'MOQ', 'text'], ['incoterm', 'Incoterm', 'text'], ['payment_terms', 'Payment terms', 'text'], ['lead_time', 'Lead time', 'text'], ['valid_until', 'Valid until', 'date'], ['status', 'Status', 'select', 0, ['Sent', 'Negotiating', 'Accepted', 'Rejected']], ['response', 'Their response / counter-offer', 'textarea'], ['est_value', 'Estimated value', 'text'], ['expected_close', 'Expected close', 'date'], ['link', 'File link', 'text'], ['next_step', 'Next step', 'text'], ['next_step_due', 'Next step due', 'date']] },
@@ -4021,6 +4129,7 @@ function lForm(key){
     return '<label class="f">' + escH(f[1]) + req + '</label>' + inp; }).join('');
   $x('fBody').innerHTML = h; F.fields.forEach(f => { if(f[2] === 'datetime') $x('f_' + f[0]).value = xNowLocal(); if(f[2] === 'date' && f[0] === 'at') $x('f_at').value = xNowLocal().slice(0, 10); });
   if(key === 'reply'){ $x('f_kind').setAttribute('onchange', 'fKindChange()'); const hint = document.createElement('div'); hint.id = 'fKindHint'; hint.style.cssText = 'font-size:12.5px;color:var(--ink-soft);margin-top:6px;line-height:1.45'; $x('f_kind').insertAdjacentElement('afterend', hint); fKindChange(); }
+  if(key === 'sent'){ $x('f_to_email').value = L.contact_email || ''; $x('f_to_name').value = L.contact_name || ''; const n = document.createElement('div'); n.className = 'x-note blue'; n.textContent = 'Use this for emails you sent from Outlook. The dashboard cannot see Outlook yet, so it only knows what you log here. Log the oldest email first.'; $x('fBody').insertAdjacentElement('afterbegin', n); }
   if(key === 'lost'){ const s = $x('f_lost_at_stage'), cur = L.stage; if(s && STAGE_LIST.slice(0, 6).includes(cur)) s.value = cur; }
   xOpen('xForm');
 }
@@ -4057,6 +4166,7 @@ async function fSave(){
         if(a === 'unsub') await n8nPost('/hub-event', { match_key:HUB.leadKey, type:'lost', data:{ reason:'Unsubscribed', lost_at_stage:was, note:'Asked not to be emailed again' } });
       } catch(e2){ $x('fMsg').textContent = 'The reply was saved, but the stage could not be updated: ' + e2.message + '. Use Add event to set it.'; $x('fSave').disabled = false; await lOpen(HUB.leadKey); hubLoad(true); return; }
     }
+    else if(HUB.form === 'sent') await n8nPost(F.ep, Object.assign({ match_key:HUB.leadKey }, data));
     else await n8nPost(F.ep, { match_key:HUB.leadKey, type:F.type, data });
     lBack(); showToast('Saved'); await lOpen(HUB.leadKey); hubLoad(true);
   } catch(e){ $x('fMsg').textContent = 'Not saved: ' + e.message; }
