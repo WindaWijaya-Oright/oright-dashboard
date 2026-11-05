@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Outreach Reports</title>
+<style>
+:root{--ink:#1f2933;--muted:#66727f;--line:#d9dee3;--soft:#f4f6f8;--accent:#1d4e89;--warn:#9a5b00;--warnbg:#fff6e5}
+*{box-sizing:border-box}
+body{margin:0;background:#eef1f4;color:var(--ink);font:14px/1.55 "Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.bar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.bar label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:3px}
+.bar select,.bar input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;min-width:110px}
+.bar .sp{flex:1}
+button{font:inherit;padding:7px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:920px;margin:18px auto;padding:0 12px 60px}
+#msg{margin:0 0 12px;padding:10px 14px;border-radius:8px;display:none}
+#msg.info{display:block;background:#e8f1fb;color:#134174}
+#msg.err{display:block;background:#fdecea;color:#8a1c14}
+#report{background:#fff;border:1px solid var(--line);border-radius:8px;padding:34px 40px;display:none}
+#report h1{font-size:21px;margin:0 0 4px}
+#report h2{font-size:15px;margin:26px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--accent);color:var(--accent)}
+#report h3{font-size:13px;margin:14px 0 4px}
+.meta{color:var(--muted);font-size:12px}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;margin-left:8px;vertical-align:middle}
+.badge.draft{background:var(--warnbg);color:var(--warn)}
+.badge.final{background:#e6f4ea;color:#1e6b34}
+.headline{font-size:16px;font-weight:600;margin:14px 0 6px}
+table{border-collapse:collapse;width:100%;margin:6px 0 4px;font-size:13px}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:600}
+td.n,th.n{text-align:right;white-space:nowrap}
+ul,ol{margin:4px 0 4px 20px;padding:0}
+li{margin:3px 0}
+.muted{color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin:4px 0}
+.chips span{display:inline-block;border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin:2px 6px 2px 0;background:var(--soft)}
+.bar-wrap{background:var(--soft);height:8px;border-radius:4px;min-width:90px}
+.bar-in{background:var(--accent);height:8px;border-radius:4px}
+.hyp{border-left:3px solid #c9a227;padding-left:10px;margin:6px 0}
+#internal{max-width:920px;margin:14px auto 0;background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);display:none}
+#internal ul{margin-left:18px}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  .no-print,.bar,#internal,#msg{display:none!important}
+  main{margin:0;max-width:none;padding:0}
+  #report{border:0;padding:0;border-radius:0}
+  h2,h3,table,li{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="bar no-print">
+  <label>Period<select id="period"><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="monthly">Monthly</option></select></label>
+  <label>Date<input type="date" id="date"></label>
+  <label>Person<input id="owner" list="owners" placeholder="All"><datalist id="owners"></datalist></label>
+  <label>Report language<select id="lang"><option value="en">English</option><option value="zh">中文</option></select></label>
+  <button id="go">Generate</button>
+  <span class="sp"></span>
+  <button id="copy" class="sec" disabled>Copy</button>
+  <button id="pdf" class="sec" disabled>Save as PDF</button>
+</div>
+<main>
+  <div id="msg"></div>
+  <article id="report"></article>
+  <details id="internal"><summary></summary><ul id="internalList"></ul></details>
+</main>
+
+<script>
+const API = 'https://n8n.orightai.com/webhook/generate-report';
+
+const L = {
+zh: {
+  ui:{go:'產生報告',copy:'複製（貼到 Word）',copied:'已複製，可以貼到 Word',pdf:'儲存為 PDF',loading:'產生中，約需 20 秒…',period:'期間類型',date:'日期',person:'成員',all:'全部成員',lang:'語言',
+      fail:'報告產生失敗',failHint:'請確認：1) 連上公司 Wi-Fi  2) n8n 的 generate-report workflow 已設為 Active',pdfHint:'在列印視窗的「目的地」選「另存為 PDF」',
+      d:'日報',w:'週報',m:'月報'},
+  title:'O\'right 國際業務｜開發信成效報告', range:'期間', generated:'產生時間', scope:'範圍', all:'全部成員',
+  draft:'草稿', final:'定稿', draftNote:'本期尚未結束，數字統計到 {d}，並與上一期「相同天數」比較。', finalNote:'本期已結束，與上一期完整比較。',
+  s1:'重點摘要', s2:'本期數字', s3:'累計漏斗（自開始發信以來）', s4:'回覆率', s5:'目前 Pipeline', s6:'待處理事項', s7:'本期分眾表現', s8:'個人表現', s9:'分析與建議',
+  metric:'指標', thisP:'本期', lastP:'上期（同天數）', change:'變化',
+  m:{emails_sent:'發出信件',companies_contacted:'接觸公司數',new_companies_contacted:'其中首次接觸',companies_replied:'回覆公司數',bounced:'退信',meetings_logged:'會議（本期記錄）',samples_logged:'樣品（本期記錄）',quotations_logged:'報價（本期記錄）',won_logged:'成交（本期記錄）'},
+  step:{contacted:'已接觸',replied:'已回覆',meeting:'會議',sample:'樣品',quotation:'報價',won:'成交'}, cnt:'公司數', ofPrev:'佔上一階段', ofCont:'佔已接觸',
+  src:'來源', srcName:{'Imported (manual)':'歷史名單（手動追蹤表匯入）','System':'新系統發送'}, contacted:'接觸公司', replied:'回覆', rate:'回覆率', meetings:'會議',
+  rrAll:'累計回覆率', rrMature:'已滿 {n} 天信件的回覆率（排除退信）', rrNone:'尚無滿 {n} 天的信件（另有 {x} 家公司太新，先不判斷）', rrOf:'{a} / {b} 家回覆',
+  stage:{Contacted:'已接觸',Replied:'已回覆',Meeting:'會議',Sample:'樣品',Quotation:'報價',Won:'成交',Nurture:'培養中',Lost:'已流失',Cold:'暫無回應'},
+  company:'公司', country:'國家', since:'進入階段', nextStep:'下一步', stageCol:'階段', owner:'負責人', due:'預定日', daysOver:'逾期天數', daysIn:'停留天數',
+  overdue:'逾期跟進', noNext:'沒有下一步的活躍客戶（回覆／會議／樣品／報價階段）', next7:'未來 7 天要跟進', ready:'待開發名單（已驗證、分數達標、有聯絡人、尚未接觸）', none:'目前沒有', upcoming:'未來 14 天的會議',
+  segBC:'品牌｜通路', segC:'國家（前 5）', emails:'信件', companies:'公司', unassignedNote:'目前信件尚未記錄寄件人，無法比較個人表現。', ownerNote:'樣本數小時不做排名，只看活動量與待辦。', person:'成員', overdueCol:'逾期跟進',
+  hi:'亮點', co:'需要注意', hy:'可能原因（尚未驗證）', verify:'如何驗證', rec:'建議行動', cannot:'目前無法判斷', why:'原因', noAI:'本次沒有產生文字分析。',
+  foot:'定義：以公司為單位去重；週為週一至週日（台灣時間）；回覆率以公司計算並排除退信。文字分析只根據本報告內的數字撰寫，未使用其他資料。',
+  internal:'資料品質備註（僅供內部，不會被複製或列印）',
+  ownerName:{'Unassigned':'未指定','Imported (manual)':'歷史名單'}
+},
+en: {
+  ui:{go:'Generate report',copy:'Copy (paste into Word)',copied:'Copied. Paste it into Word',pdf:'Save as PDF',loading:'Generating, about 20 seconds…',period:'Period',date:'Date',person:'Person',all:'All',lang:'Language',
+      fail:'Report failed',failHint:'Check: 1) you are on the office Wi-Fi  2) the generate-report workflow in n8n is Active',pdfHint:'In the print window set Destination to "Save as PDF"',d:'Daily',w:'Weekly',m:'Monthly'},
+  title:"O'right International Sales | Outreach Report", range:'Period', generated:'Generated', scope:'Scope', all:'Whole team',
+  draft:'Draft', final:'Final', draftNote:'The period is still running. Numbers run up to {d} and are compared with the same number of days of the previous period.', finalNote:'The period is complete and compared with the full previous period.',
+  s1:'Summary', s2:'Numbers this period', s3:'Cumulative funnel (since the start)', s4:'Reply rate', s5:'Pipeline now', s6:'Needs action', s7:'By brand and country (this period)', s8:'By person', s9:'Analysis and recommendations',
+  metric:'Metric', thisP:'This period', lastP:'Previous (same days)', change:'Change',
+  m:{emails_sent:'Emails sent',companies_contacted:'Companies contacted',new_companies_contacted:'of which first-time',companies_replied:'Companies that replied',bounced:'Bounced',meetings_logged:'Meetings (logged this period)',samples_logged:'Samples (logged this period)',quotations_logged:'Quotations (logged this period)',won_logged:'Won (logged this period)'},
+  step:{contacted:'Contacted',replied:'Replied',meeting:'Meeting',sample:'Sample',quotation:'Quotation',won:'Won'}, cnt:'Companies', ofPrev:'% of previous step', ofCont:'% of contacted',
+  src:'Source', srcName:{'Imported (manual)':'Historical list (imported from manual tracker)','System':'Sent through the new system'}, contacted:'Contacted', replied:'Replied', rate:'Reply rate', meetings:'Meetings',
+  rrAll:'Reply rate, all time', rrMature:'Reply rate on emails at least {n} days old (bounces excluded)', rrNone:'No emails old enough yet ({x} companies are too recent to judge)', rrOf:'{a} of {b} companies replied',
+  stage:{Contacted:'Contacted',Replied:'Replied',Meeting:'Meeting',Sample:'Sample',Quotation:'Quotation',Won:'Won',Nurture:'Nurture',Lost:'Lost',Cold:'Cold'},
+  company:'Company', country:'Country', since:'In stage since', nextStep:'Next step', stageCol:'Stage', owner:'Owner', due:'Planned date', daysOver:'Days overdue', daysIn:'Days in stage',
+  overdue:'Overdue follow-ups', noNext:'Active leads with no next step (replied / meeting / sample / quotation)', next7:'Follow-ups due in the next 7 days', ready:'Leads ready to contact (verified, fit score met, usable contact, not yet contacted)', none:'None', upcoming:'Meetings in the next 14 days',
+  segBC:'Brand | channel', segC:'Country (top 5)', emails:'Emails', companies:'Companies', unassignedNote:'The sender is not recorded on these emails yet, so people cannot be compared.', ownerNote:'No ranking while samples are small; activity and open tasks only.', person:'Person', overdueCol:'Overdue',
+  hi:'What went well', co:'Needs attention', hy:'Possible reasons (not yet proven)', verify:'How to verify', rec:'Recommended actions', cannot:'Cannot conclude yet', why:'Why', noAI:'No written analysis was produced this time.',
+  foot:'Definitions: companies are counted once each; weeks run Monday to Sunday (Taiwan time); reply rate is per company and excludes bounces. The written analysis uses only the numbers in this report.',
+  internal:'Data quality notes (internal only, not copied or printed)',
+  ownerName:{'Unassigned':'Not assigned','Imported (manual)':'Historical list'}
+}
+};
+
+const $ = id => document.getElementById(id);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const own = k => (T.ownerName && T.ownerName[k]) || k;
+const pct = v => (v === null || v === undefined) ? '—' : v + '%';
+const sign = x => (x > 0 ? '+' : '') + x;
+const UI = L.en.ui;
+let T = L.en, lastReport = null;
+
+function tbl(head, rows, numCols) {
+  numCols = numCols || [];
+  return '<table><thead><tr>' + head.map((h, i) => '<th class="' + (numCols.includes(i) ? 'n' : '') + '">' + esc(h) + '</th>').join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + r.map((c, i) => '<td class="' + (numCols.includes(i) ? 'n' : '') + '">' + (c === null || c === undefined || c === '' ? '—' : esc(c)) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
+}
+const empty = () => '<p class="note">' + esc(T.none) + '</p>';
+const tip = (n, facts) => { const m = {}; (n.facts || []).forEach(f => m[f.id] = f.text); return esc((facts || []).map(id => m[id]).filter(Boolean).join(' | ')); };
+
+function render(r) {
+  const n = r.narrative || {}, w = r.window, t = r.this_period, l = r.last_period;
+  const per = T.ui[r.period.charAt(0)] || r.period;
+  let h = '';
+  h += '<h1>' + esc(T.title) + '<span class="badge ' + (r.status === 'Final' ? 'final' : 'draft') + '">' + esc(r.status === 'Final' ? T.final : T.draft) + '</span></h1>';
+  h += '<div class="meta">' + esc(per) + ' · ' + esc(T.range) + ': ' + esc(w.start) + ' ~ ' + esc(w.end) + ' · ' + esc(T.scope) + ': ' + esc(r.owner_filter || T.all) + ' · ' + esc(T.generated) + ': ' + esc(r.generated_at) + '</div>';
+  h += '<div class="note">' + esc(w.partial_period ? T.draftNote.replace('{d}', w.effective_end) : T.finalNote) + '</div>';
+
+  // 1. summary (AI)
+  h += '<h2>' + esc(T.s1) + '</h2><div class="headline">' + esc(n.headline || T.noAI) + '</div>';
+  if ((n.highlights || []).length) h += '<h3>' + esc(T.hi) + '</h3><ul>' + n.highlights.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>';
+  if ((n.concerns || []).length) h += '<h3>' + esc(T.co) + '</h3><ul>' + n.concerns.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>';
+
+  // 2. numbers
+  const keys = ['emails_sent', 'companies_contacted', 'new_companies_contacted', 'companies_replied', 'bounced', 'meetings_logged', 'samples_logged', 'quotations_logged', 'won_logged'];
+  h += '<h2>' + esc(T.s2) + '</h2>' + tbl([T.metric, T.thisP, T.lastP, T.change], keys.map(k => [T.m[k], t[k], l[k], sign(t[k] - l[k])]), [1, 2, 3]);
+
+  // 3. funnel
+  const max = Math.max(1, ...r.funnel_to_date.map(f => f.n));
+  h += '<h2>' + esc(T.s3) + '</h2><table><thead><tr><th>' + esc(T.step.contacted) + ' → ' + esc(T.step.won) + '</th><th class="n">' + esc(T.cnt) + '</th><th class="n">' + esc(T.ofPrev) + '</th><th class="n">' + esc(T.ofCont) + '</th><th></th></tr></thead><tbody>' +
+    r.funnel_to_date.map(f => '<tr><td>' + esc(T.step[f.step]) + '</td><td class="n">' + f.n + '</td><td class="n">' + pct(f.pct_of_previous) + '</td><td class="n">' + pct(f.pct_of_contacted) + '</td><td><div class="bar-wrap"><div class="bar-in" style="width:' + Math.round(100 * f.n / max) + '%"></div></div></td></tr>').join('') + '</tbody></table>';
+  const srcRows = (r.by_source_all_time || []).map(s => [T.srcName[s.key] || s.key, s.companies_contacted, s.replied, s.companies_contacted ? pct(Math.round(1000 * s.replied / s.companies_contacted) / 10) : '—', s.meetings]);
+  if (srcRows.length) h += tbl([T.src, T.contacted, T.replied, T.rate, T.meetings], srcRows, [1, 2, 3, 4]);
+
+  // 4. reply rate
+  const rr = r.reply_rate, c1 = rr.this_period_cohort, c0 = rr.last_period_cohort;
+  const cohort = c => c.companies_contacted ? T.rrOf.replace('{a}', c.companies_replied).replace('{b}', c.companies_contacted) + ' (' + pct(c.rate_pct) + ')' : T.rrNone.replace('{n}', 7).replace('{x}', c.immature_companies_excluded);
+  h += '<h2>' + esc(T.s4) + '</h2>' + tbl([T.metric, T.thisP, T.lastP], [
+    [T.rrAll, T.rrOf.replace('{a}', rr.all_time.companies_replied).replace('{b}', rr.all_time.companies_contacted) + ' (' + pct(rr.all_time.rate_pct) + ')', ''],
+    [T.rrMature.replace('{n}', 7), cohort(c1), cohort(c0)]]);
+
+  // 5. pipeline
+  const order = ['Won', 'Quotation', 'Sample', 'Meeting', 'Replied', 'Contacted', 'Nurture', 'Lost', 'Cold'];
+  const sc = r.pipeline_current.stage_counts || {};
+  h += '<h2>' + esc(T.s5) + '</h2><div class="chips">' + order.filter(k => sc[k]).map(k => '<span>' + esc(T.stage[k] || k) + ' <b>' + sc[k] + '</b></span>').join('') + '</div>';
+  ['Won', 'Quotation', 'Sample', 'Meeting', 'Replied'].forEach(st => {
+    const rows = (r.pipeline_current.lists || {})[st] || [];
+    if (rows.length) h += '<h3>' + esc(T.stage[st]) + '</h3>' + tbl([T.company, T.country, T.since, T.nextStep, T.owner], rows.slice(0, 12).map(x => [x.company, x.country, x.since, x.next_step, own(x.owner)]));
+  });
+
+  // 6. action
+  h += '<h2>' + esc(T.s6) + '</h2><h3>' + esc(T.overdue) + '</h3>';
+  const today = String(r.generated_at).slice(0, 10), D = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+  const od = (r.followups || {}).overdue || [];
+  h += od.length ? tbl([T.company, T.stageCol, T.nextStep, T.due, T.daysOver], od.slice(0, 10).map(x => [x.company, T.stage[x.stage] || x.stage, x.next_step, x.due, Math.round((D(today) - D(x.due)) / 864e5)]), [4]) : empty();
+  const nx = (r.followups || {}).next_7_days || [];
+  h += '<h3>' + esc(T.next7) + '</h3>' + (nx.length ? tbl([T.company, T.stageCol, T.nextStep, T.due], nx.slice(0, 10).map(x => [x.company, T.stage[x.stage] || x.stage, x.next_step, x.due])) : empty());
+  const um = r.upcoming_meetings_14d || [];
+  if (um.length) h += '<h3>' + esc(T.upcoming) + '</h3>' + tbl([T.company, T.due], um.map(x => [x.company, x.at]));
+  const st = r.stale_no_next_step || [];
+  h += '<h3>' + esc(T.noNext) + ' (' + st.length + ')</h3>' + (st.length ? tbl([T.company, T.country, T.stageCol, T.daysIn], st.slice(0, 10).map(x => [x.company, x.country, T.stage[x.stage] || x.stage, x.days_in_stage]), [3]) : empty());
+  if (r.leads_ready_to_contact !== null && r.leads_ready_to_contact !== undefined) h += '<h3>' + esc(T.ready) + '</h3><p><b>' + r.leads_ready_to_contact + '</b></p>';
+
+  // 7. segments
+  const seg = rows => rows.map(x => [x.key, x.emails_sent, x.companies_contacted, x.replied, x.meetings]);
+  h += '<h2>' + esc(T.s7) + '</h2>';
+  h += (r.by_brand_channel || []).length ? tbl([T.segBC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_brand_channel), [1, 2, 3, 4]) : empty();
+  h += (r.by_country_top5 || []).length ? tbl([T.segC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_country_top5), [1, 2, 3, 4]) : '';
+
+  // 8. owners
+  const ow = r.by_owner || [];
+  h += '<h2>' + esc(T.s8) + '</h2>';
+  if (!ow.length) h += empty();
+  else {
+    if (ow.every(o => o.key === 'Unassigned')) h += '<p class="note">' + esc(T.unassignedNote) + '</p>';
+    else h += '<p class="note">' + esc(T.ownerNote) + '</p>';
+    h += tbl([T.person, T.emails, T.companies, T.replied, T.meetings, T.overdueCol], ow.map(o => [own(o.key), o.emails_sent, o.companies_contacted, o.replied, o.meetings, o.follow_ups_overdue]), [1, 2, 3, 4, 5]);
+  }
+
+  // 9. analysis (AI)
+  h += '<h2>' + esc(T.s9) + '</h2>';
+  let any = false;
+  if ((n.hypotheses || []).length) { any = true; h += '<h3>' + esc(T.hy) + '</h3>' + n.hypotheses.map(x => '<div class="hyp" title="' + tip(n, x.facts) + '">' + esc(x.text) + '<div class="note">' + esc(T.verify) + ': ' + esc(x.how_to_verify) + '</div></div>').join(''); }
+  if ((n.recommendations || []).length) { any = true; h += '<h3>' + esc(T.rec) + '</h3><ol>' + n.recommendations.map(x => '<li title="' + tip(n, x.facts) + '"><b>' + esc(x.action) + '</b>' + (x.reason ? '<div class="note">' + esc(T.why) + ': ' + esc(x.reason) + '</div>' : '') + '</li>').join('') + '</ol>'; }
+  if ((n.cannot_conclude || []).length) { any = true; h += '<h3>' + esc(T.cannot) + '</h3><ul>' + n.cannot_conclude.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>'; }
+  if (!any) h += '<p class="note">' + esc(T.noAI) + '</p>';
+
+  h += '<p class="note" style="margin-top:22px">' + esc(T.foot) + '</p>';
+  $('report').innerHTML = h;
+  $('report').style.display = 'block';
+
+  const checks = (r.data_checks || []).slice();
+  if (n.meta && n.meta.ai_status && n.meta.ai_status !== 'ok') checks.push('Analisis: ' + n.meta.ai_status);
+  if (n.meta && (n.meta.dropped || []).length) n.meta.dropped.forEach(x => checks.push('Pagar anti-ngarang: ' + x));
+  $('internal').style.display = checks.length ? 'block' : 'none';
+  $('internal').querySelector('summary').textContent = T.internal + ' (' + checks.length + ')';
+  $('internalList').innerHTML = checks.map(x => '<li>' + esc(x) + '</li>').join('');
+  const dl = $('owners'); dl.innerHTML = ow.filter(o => o.key !== 'Unassigned' && o.key !== 'Imported (manual)').map(o => '<option value="' + esc(o.key) + '">').join('');
+}
+
+function setUI() { T = L[$('lang').value] || L.en; }
+function say(kind, text) { const m = $('msg'); m.className = kind || ''; m.textContent = text || ''; if (!kind) m.style.display = 'none'; }
+
+async function generate() {
+  setUI();
+  const body = { period: $('period').value, lang: $('lang').value };
+  if ($('date').value) body.date = $('date').value;
+  if ($('owner').value.trim()) body.owner = $('owner').value.trim();
+  $('go').disabled = true; say('info', UI.loading);
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 150000);
+  try {
+    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(body), signal: ctl.signal });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    let d = await res.json(); if (Array.isArray(d)) d = d[0];
+    if (!d || d.ok === false || !d.window) throw new Error((d && d.error) || 'Empty response');
+    lastReport = d; render(d); say('');
+    $('copy').disabled = false; $('pdf').disabled = false;
+    try { localStorage.setItem('rp_prefs', JSON.stringify({ lang: $('lang').value, period: $('period').value })); } catch (e) {}
+  } catch (e) {
+    say('err', UI.fail + ': ' + (e.name === 'AbortError' ? 'timeout' : e.message) + '. ' + UI.failHint);
+  } finally { clearTimeout(to); $('go').disabled = false; }
+}
+
+function copyReport() {
+  const el = $('report'), sel = getSelection(), rg = document.createRange();
+  rg.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(rg);
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  sel.removeAllRanges();
+  say(ok ? 'info' : 'err', ok ? UI.copied : 'Copy failed: select the report manually and press Ctrl/Cmd+C.');
+  if (ok) setTimeout(() => say(''), 2500);
+}
+function savePdf() {
+  const old = document.title, w = lastReport && lastReport.window;
+  if (w) document.title = 'Oright_' + lastReport.period + '_report_' + w.start + (lastReport.owner_filter ? '_' + lastReport.owner_filter : '');
+  say('info', UI.pdfHint);
+  setTimeout(() => { window.print(); document.title = old; setTimeout(() => say(''), 1500); }, 150);
+}
+
+try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.lang && L[p.lang]) $('lang').value = p.lang; if (p.period) $('period').value = p.period; } catch (e) {}
+$('go').addEventListener('click', generate);
+$('copy').addEventListener('click', copyReport);
+$('pdf').addEventListener('click', savePdf);
+setUI();
+</script>
+</body>
+</html>
