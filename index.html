@@ -1045,6 +1045,9 @@
           <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 20 Oct 10:10</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
+            <select id="sendAs" onchange="setCurrentUser(this.value)" style="padding:8px 10px; border-radius:8px; border:1.5px solid var(--brand); font-weight:700; background:var(--card, #fff); color:inherit;"></select>
+          </label>
           <span class="live-dot" id="hubUpdated"><span class="d"></span> Loading…</span>
           <button class="btn-secondary" style="flex:none; padding:9px 16px;" onclick="hubLoad(true)">↻ Refresh</button>
         </div>
@@ -1509,6 +1512,7 @@ const escH = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&am
 let _toastT = null;
 function showToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(_toastT); _toastT = setTimeout(()=>t.classList.remove('show'), 3200); }
 async function n8nPost(path, body){
+  if((path === '/hub-generate' || path === '/hub-send') && body && !body.sender) body = Object.assign({}, body, { sender: (typeof getCurrentUser === 'function') ? getCurrentUser() : 'Winda' });   // siapa yang sedang mengirim (Sending as)
   const res = await fetch(N8N_BASE + path, { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body) });
   let data = null; try { data = await res.json(); } catch(e){}
   if(!res.ok) throw new Error((data && (data.message || data.error)) || ('HTTP ' + res.status));
@@ -2882,13 +2886,19 @@ async function sendCurrentDraft(){
 // NOTE: there is no real authentication backend (n8n has no login system) --
 // this is a lightweight "who am I sending as" identity switch, stored locally,
 // used only to tag Assigned_To / sender_name when sending Personal emails.
-const ROSTER_USERS = ['Winda', 'Jo', 'Sharon L', 'Sharon H', 'Karen'];
+const ROSTER_USERS = ['Winda', 'Karen'];   // tambah nama di sini (dan baris SENDER.<NAMA>.* di Hub_Config) kalau ada orang baru
+const SENDER_LABEL = { Winda: "Winda (O'right)", Karen: "Karen (O'right PRO)" };
 
 function getCurrentUser(){
   return localStorage.getItem('oright_current_user') || 'Winda';
 }
 function setCurrentUser(name){
+  if(!ROSTER_USERS.includes(name)) name = ROSTER_USERS[0];
+  const changed = localStorage.getItem('oright_current_user') !== name;
   localStorage.setItem('oright_current_user', name);
+  const sel = document.getElementById('sendAs');
+  if(sel){ if(!sel.options.length) ROSTER_USERS.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = SENDER_LABEL[u] || u; sel.appendChild(o); }); sel.value = name; }
+  try { if(changed && HUB && HUB.draft) showToast('Sending as ' + name + '. Click Regenerate so the draft and signature match.'); } catch(e){}   // HUB belum ada saat halaman pertama dimuat
   document.getElementById('userNameLabel').textContent = name;
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
 }
