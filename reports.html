@@ -23,8 +23,16 @@ main{max-width:920px;margin:18px auto;padding:0 12px 60px}
 #msg.info{display:block;background:#e8f1fb;color:#134174}
 #msg.err{display:block;background:#fdecea;color:#8a1c14}
 #report{background:#fff;border:1px solid var(--line);border-radius:8px;padding:34px 40px;display:none}
-.brandrow{display:flex;align-items:center;gap:22px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.brandrow img{height:44px;width:auto;max-width:200px;object-fit:contain}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:0 0 18px;margin:0 0 20px;border-bottom:3px solid #8db43e}
+.logos{display:flex;align-items:center;gap:26px}
+.logos img{height:54px;width:auto;max-width:210px;object-fit:contain;display:block}
+.logos .vsep{width:1px;height:46px;background:var(--line)}
+.rtype{text-align:right;line-height:1.35}
+.rtype b{display:block;font-size:11px;letter-spacing:.14em;color:#6f9a1f;text-transform:uppercase}
+.rtype span{font-size:13px;color:var(--ink)}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px 8px;margin:10px 0 4px}
+.chiprow span{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:2px 11px;font-size:12px;color:var(--muted)}
+.chiprow span b{color:var(--ink);font-weight:600}
 #report h1{font-size:21px;margin:0 0 4px}
 #report h2{font-size:15px;margin:26px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--accent);color:var(--accent)}
 #report h3{font-size:13px;margin:14px 0 4px}
@@ -65,6 +73,7 @@ li{margin:3px 0}
   <div class="grp" id="gMonthly" style="display:none"><label>Month<input type="month" id="m1"></label></div>
 
   <label>Person<select id="owner"><option value="">All</option><option value="Karen">Karen (O'right PRO)</option><option value="Winda">Winda (O'right)</option></select></label>
+  <label>Report language<select id="lang"><option value="en">English</option><option value="zh">繁體中文</option></select></label>
   <button id="go">Generate</button>
   <span class="sp"></span>
   <button id="copy" class="sec" disabled>Copy</button>
@@ -80,7 +89,7 @@ const API = 'https://n8n.orightai.com/webhook/generate-report';
 const LOGO_ORIGHT = 'oright-logo-official.png', LOGO_PRO = 'oright-pro-logo.png';
 const OWNER_LABEL = { Karen: "Karen (O'right PRO)", Winda: "Winda (O'right)" };
 
-const T = {
+const EN = {
   ui:{copy:'Copy',copied:'Copied. Paste it into Word',loading:'Generating, about 20 seconds…',fail:'Report failed',
       failHint:'Check: 1) you are on the office Wi-Fi  2) the generate-report workflow in n8n is Active',pdfHint:'In the print window set Destination to "Save as PDF"',d:'Daily',w:'Weekly',m:'Monthly'},
   title:"O'right International Sales | Outreach Report", range:'Period', generated:'Generated', scope:'Scope', all:'Whole team',
@@ -99,13 +108,33 @@ const T = {
   foot:'Definitions: companies are counted once each; weeks run Monday to Sunday (Taiwan time); reply rate is per company and excludes bounces. The written analysis uses only the numbers in this report.',
   ownerName:{'Unassigned':'Not assigned','Imported (manual)':'Historical list','Karen':"Karen (O'right PRO)",'Winda':"Winda (O'right)"}
 };
+const ZH = {
+  ui:{d:'日報',w:'週報',m:'月報'},
+  title:"O'right 國際業務｜開發信成效報告", range:'期間', generated:'產生時間', scope:'範圍', all:'全部成員',
+  draft:'草稿', final:'定稿', draftNote:'本期尚未結束，數字統計到 {d}，並與上一期「相同天數」比較。', finalNote:'本期已結束，與上一期完整比較。',
+  s1:'重點摘要', s2:'本期數字', s3:'累計漏斗（自開始發信以來）', s4:'回覆率', s5:'目前 Pipeline', s6:'待處理事項', s7:'本期分眾表現', s8:'個人表現', s9:'分析與建議',
+  metric:'指標', thisP:'本期', lastP:'上期（同天數）', change:'變化',
+  m:{emails_sent:'發出信件',companies_contacted:'接觸公司數',new_companies_contacted:'其中首次接觸',companies_replied:'回覆公司數',bounced:'退信',meetings_logged:'會議（本期記錄）',samples_logged:'樣品（本期記錄）',quotations_logged:'報價（本期記錄）',won_logged:'成交（本期記錄）'},
+  step:{contacted:'已接觸',replied:'已回覆',meeting:'會議',sample:'樣品',quotation:'報價',won:'成交'}, cnt:'公司數', ofPrev:'佔上一階段', ofCont:'佔已接觸',
+  src:'來源', srcName:{'Imported (manual)':'歷史名單（手動追蹤表匯入）','System':'新系統發送'}, contacted:'接觸公司', replied:'回覆', rate:'回覆率', meetings:'會議',
+  rrAll:'累計回覆率', rrMature:'已滿 {n} 天信件的回覆率（排除退信）', rrNone:'尚無滿 {n} 天的信件（另有 {x} 家公司太新，先不判斷）', rrOf:'{a} / {b} 家回覆',
+  stage:{Contacted:'已接觸',Replied:'已回覆',Meeting:'會議',Sample:'樣品',Quotation:'報價',Won:'成交',Nurture:'培養中',Lost:'已流失',Cold:'暫無回應'},
+  company:'公司', country:'國家', since:'進入階段', nextStep:'下一步', stageCol:'階段', owner:'負責人', due:'預定日', daysOver:'逾期天數', daysIn:'停留天數',
+  overdue:'逾期跟進', noNext:'沒有下一步的活躍客戶（回覆／會議／樣品／報價階段）', next7:'未來 7 天要跟進', ready:'待開發名單（已驗證、分數達標、有聯絡人、尚未接觸）', none:'目前沒有', upcoming:'未來 14 天的會議',
+  segBC:'品牌｜通路', segC:'國家（前 5）', emails:'信件', companies:'公司', unassignedNote:'這些信件沒有記錄寄件人，無法比較個人表現。', ownerNote:'樣本數小時不做排名，只看活動量與待辦。', person:'成員', overdueCol:'逾期跟進',
+  hi:'亮點', co:'需要注意', hy:'可能原因（尚未驗證）', verify:'如何驗證', rec:'建議行動', cannot:'目前無法判斷', why:'原因', noAI:'本次沒有產生文字分析。',
+  foot:'定義：以公司為單位去重；週為週一至週日（台灣時間）；回覆率以公司計算並排除退信。文字分析只根據本報告內的數字撰寫，未使用其他資料。',
+  ownerName:{'Unassigned':'未指定','Imported (manual)':'歷史名單','Karen':"Karen (O'right PRO)",'Winda':"Winda (O'right)"}
+};
+const L = { en: EN, zh: ZH };
+let T = EN;
 
 const $ = id => document.getElementById(id);
 const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const own = k => T.ownerName[k] || k;
 const pct = v => (v === null || v === undefined) ? '—' : v + '%';
 const sign = x => (x > 0 ? '+' : '') + x;
-const UI = T.ui;
+const UI = EN.ui;
 let lastReport = null;
 
 /* ---------- dates (Taiwan time) ---------- */
@@ -135,18 +164,19 @@ function tbl(head, rows, numCols) {
 }
 const empty = () => '<p class="note">' + esc(T.none) + '</p>';
 const tip = (n, facts) => { const m = {}; (n.facts || []).forEach(f => m[f.id] = f.text); return esc((facts || []).map(id => m[id]).filter(Boolean).join(' | ')); };
-const logos = owner => {
+const logos = (owner, per, range) => {
   const o = '<img src="' + LOGO_ORIGHT + '" alt="O\'right">', p = '<img src="' + LOGO_PRO + '" alt="O\'right PRO">';
-  return '<div class="brandrow">' + (owner === 'Karen' ? p : owner === 'Winda' ? o : o + p) + '</div>';
+  const L2 = owner === 'Karen' ? p : owner === 'Winda' ? o : o + '<div class="vsep"></div>' + p;
+  return '<div class="rhead"><div class="logos">' + L2 + '</div><div class="rtype"><b>' + esc(per) + '</b><span>' + esc(range) + '</span></div></div>';
 };
 
 function render(r) {
   const n = r.narrative || {}, w = r.window, t = r.this_period, l = r.last_period;
   const per = T.ui[r.period.charAt(0)] || r.period;
   const range = w.start === w.end ? w.start : w.start + ' ~ ' + w.end;
-  let h = logos(r.owner_filter);
+  let h = logos(r.owner_filter, per, range);
   h += '<h1>' + esc(T.title) + '<span class="badge ' + (r.status === 'Final' ? 'final' : 'draft') + '">' + esc(r.status === 'Final' ? T.final : T.draft) + '</span></h1>';
-  h += '<div class="meta">' + esc(per) + ' · ' + esc(T.range) + ': ' + esc(range) + ' · ' + esc(T.scope) + ': ' + esc(r.owner_filter ? own(r.owner_filter) : T.all) + ' · ' + esc(T.generated) + ': ' + esc(r.generated_at) + '</div>';
+  h += '<div class="chiprow"><span>' + esc(T.range) + ': <b>' + esc(range) + '</b></span><span>' + esc(T.scope) + ': <b>' + esc(r.owner_filter ? own(r.owner_filter) : T.all) + '</b></span><span>' + esc(T.generated) + ': ' + esc(r.generated_at) + '</span></div>';
   h += '<div class="note">' + esc(w.partial_period ? T.draftNote.replace('{d}', w.effective_end) : T.finalNote) + '</div>';
 
   h += '<h2>' + esc(T.s1) + '</h2><div class="headline">' + esc(n.headline || T.noAI) + '</div>';
@@ -219,7 +249,7 @@ function say(kind, text) { const m = $('msg'); m.className = kind || ''; m.textC
 async function generate() {
   const date = pickedDate();
   if (!date) { say('err', 'Please pick a ' + ({ daily: 'date', weekly: 'start date', monthly: 'month' })[$('period').value] + ' first.'); return; }
-  const body = { period: $('period').value, lang: 'en', date: date };
+  const body = { period: $('period').value, lang: $('lang').value, date: date };
   if ($('owner').value) body.owner = $('owner').value;
   $('go').disabled = true; say('info', UI.loading);
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 150000);
@@ -228,9 +258,9 @@ async function generate() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     let d = await res.json(); if (Array.isArray(d)) d = d[0];
     if (!d || d.ok === false || !d.window) throw new Error((d && d.error) || 'Empty response');
-    lastReport = d; render(d); say('');
+    T = L[$('lang').value] || EN; lastReport = d; render(d); say('');
     $('copy').disabled = false; $('pdf').disabled = false;
-    try { localStorage.setItem('rp_prefs', JSON.stringify({ period: $('period').value })); } catch (e) {}
+    try { localStorage.setItem('rp_prefs', JSON.stringify({ period: $('period').value, lang: $('lang').value })); } catch (e) {}
   } catch (e) {
     say('err', UI.fail + ': ' + (e.name === 'AbortError' ? 'timeout' : e.message) + '. ' + UI.failHint);
   } finally { clearTimeout(to); $('go').disabled = false; }
@@ -254,7 +284,7 @@ function savePdf() {
 /* ---------- start ---------- */
 const t0 = todayTW();
 $('d1').value = t0; setWeek(t0); $('m1').value = t0.slice(0, 7);
-try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.period) $('period').value = p.period; } catch (e) {}
+try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.period) $('period').value = p.period; if (p.lang && L[p.lang]) $('lang').value = p.lang; } catch (e) {}
 showMode();
 $('period').addEventListener('change', showMode);
 $('w1').addEventListener('change', () => { if ($('w1').value) setWeek($('w1').value); });
