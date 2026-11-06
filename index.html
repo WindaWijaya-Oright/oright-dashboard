@@ -888,11 +888,12 @@
         <div id="fnOut" aria-live="polite"></div>
       </section>
 
-      <!-- 1b. OSM SALON FINDER -->
+      <!-- 1b. OSM FINDER (Salon / Retail) -->
       <section class="af-card" id="osmBox">
-        <h3 style="margin:0 0 4px;font-size:15px">Find salons on OpenStreetMap <span style="font-size:11px;font-weight:700;color:var(--ink-faint)">O'right PRO</span></h3>
-        <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">Pick one country. Each run releases up to the number you set (best first: own website, several branches, email on file). Run again for the next batch, or pick another country. Salons with only Instagram are saved for later and are not released yet.</div>
+        <h3 style="margin:0 0 4px;font-size:15px">Find leads on OpenStreetMap <span id="osmBrandTag" style="font-size:11px;font-weight:700;color:var(--ink-faint)">O'right PRO</span></h3>
+        <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">Pick one country. Each run releases up to the number you set (best first: own website, several branches, email on file). Run again for the next batch, or pick another country. Shops with only Instagram are saved for later and are not released yet. Salon = hair salons (O'right PRO). Retail = department stores, cosmetics, perfume and drugstores (O'right).</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="osmT" class="ld-input" onchange="document.getElementById('osmBrandTag').textContent=this.value==='Retail'?'O\'right':'O\'right PRO';document.getElementById('osmGo').textContent=this.value==='Retail'?'Find retail stores':'Find salons'"><option value="Salon">Salons (PRO)</option><option value="Retail">Retail &amp; department stores (O'right)</option></select>
           <input id="osmC" class="ld-input" list="fnCountries" placeholder="Country (e.g. Australia or AU)" maxlength="60" style="flex:1;min-width:190px">
           <input id="osmN" class="ld-input" type="number" min="1" max="500" value="200" style="width:90px" aria-label="How many leads">
           <select id="osmW" class="ld-input"><option value="tonight">Tonight 18:00 (drip)</option><option value="now">Start now</option></select>
@@ -3287,7 +3288,7 @@ function osmRender(){
   else if(OSM.gaveUp) live = '<div class="up-live stuck"><span class="dot"></span>Stopped checking</div>';
   else live = '<div class="up-live"><span class="dot"></span>Working · <span id="osmElapsed">0:00</span> elapsed</div>';
   let note = '';
-  if(failed) note = '<div class="up-note err"><b>Error:</b> ' + escH(r.error || 'unknown') + '<br>Nothing was released. Fix it or wait, then press Find salons again (names already saved are not duplicated).</div>';
+  if(failed) note = '<div class="up-note err"><b>Error:</b> ' + escH(r.error || 'unknown') + '<br>Nothing was released. Fix it or wait, then press Find again (names already saved are not duplicated).</div>';
   else if(done){
     const sched = r.process_after && r.process_after > twStr(Date.now()) ? ' Processing starts <b>' + escH(twLabel(r.process_after)) + '</b> (Taiwan time).' : '';
     note = r.released > 0
@@ -3341,7 +3342,7 @@ async function osmGo(){
   const later = document.getElementById('osmW').value === 'tonight';
   document.getElementById('osmGo').disabled = true; out.innerHTML = '<span style="color:var(--ink-faint)">Starting...</span>';
   try {
-    const res = await fetch(N8N_BASE + '/osm-scrape', { cache:'no-store', method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ country:iso, limit, process_after: later ? twStr(twNext(18, 0)) : '', token:tok }) });
+    const res = await fetch(N8N_BASE + '/osm-scrape', { cache:'no-store', method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify({ country:iso, limit, process_after: later ? twStr(twNext(18, 0)) : '', channel: document.getElementById('osmT').value, token:tok }) });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
     if(d.ok === false){ if(/UNAUTHORIZED/.test(d.error || '')) lsSet('oright_admin_token', null); throw new Error(d.error || 'Failed'); }
