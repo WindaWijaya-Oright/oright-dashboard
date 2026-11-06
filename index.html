@@ -809,6 +809,7 @@
       <div class="nav-item" data-page="market" onclick="showPage('market')"><span data-i18n="nav_market">🌍 Market Intelligence</span></div>
       <div class="nav-label"><span data-i18n="nav_exec">EXECUTIVE</span></div>
       <div class="nav-item" data-page="executive" onclick="showPage('executive')"><span data-i18n="nav_executive">👔 Team Overview</span></div>
+      <div class="nav-item" onclick="window.open('reports.html','_blank')"><span>📄 Reports</span></div>
       <div class="nav-label"><span data-i18n="nav_system">SYSTEM</span></div>
       <div class="nav-item" data-page="settings" onclick="showPage('settings')"><span data-i18n="nav_settings">⚙️ Settings</span></div>
     </div>
@@ -1042,7 +1043,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 20 Oct 10:10</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 6 Nov 12:00</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
@@ -3786,17 +3787,47 @@ function hubQueueRows(){
     return div + '<tr class="row br-' + (HB(q) === 'PRO' ? 'p' : 'o') + (low ? ' lowfit' : '') + '" title="' + (low ? 'Below the Fit threshold (' + FM + ')' : '') + '" data-e="' + escH(c.email || '') + '" data-i="' + r.i + '" onclick="dOpen(+this.getAttribute(\'data-i\'), this.getAttribute(\'data-e\'))" style="' + (r.first ? '' : 'border-top:0') + '"><td>' + (r.first ? '<b>' + escH(q.name) + '</b><div style="margin-top:4px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">' + brChip(HB(q)) + chChip(q.channel) + '</div><div style="color:var(--ink-faint);font-size:12px;margin-top:3px">' + escH(q.country || '') + (q.lead && q.lead.employees ? (q.country ? ' · ' : '') + escH(q.lead.employees) + ' staff' : '') + '</div>' : '<span style="color:var(--ink-faint);font-size:12px">↳ same company</span>') + '</td><td>' + (c.name ? escH(c.name) + (c.title ? '<div style="color:var(--ink-faint);font-size:12px">' + escH(c.title) + '</div>' : '') : '<span style="color:var(--ink-faint)">' + (c.kind === 'Personal' ? 'Personal mailbox · role unknown' : 'Company address') + '</span>') + '</td><td>' + escH(c.email || '') + (c.dom === 'mismatch' ? '<div><span class="x-pill red">⚠ DIFFERENT DOMAIN (site: ' + escH(c.site || '?') + ')</span></div>' : '') + (c.role ? '<div><span class="x-pill amber">Not a buying mailbox</span></div>' : '') + (c.email_status === 'Unapproved' ? '<div><span class="x-pill amber">Not approved yet</span></div>' : '') + '</td><td>' + (q.email_no > 1 ? '<span class="x-pill amber">Follow-up ' + (q.email_no - 1) + '</span>' : '<span class="x-pill green">First</span>') + '</td><td class="r">' + (r.first ? pill(q.fit, 85, 70) : '') + '</td><td class="r">' + (r.first ? '<span class="x-pill ' + ((q.esg == null) ? 'grey' : q.esg >= 70 ? 'green' : q.esg >= 40 ? 'amber' : 'red') + '">' + escH(q.esg == null ? '–' : Math.round(q.esg)) + '</span>' : '') + '</td><td class="r"><button class="x-btn p" style="padding:5px 12px">Write</button></td></tr>';
   }).join('') : '<tr><td colspan="7" class="x-empty">No lead matches these filters. Press Reset.</td></tr>';
 }
+HUB.sf = HUB.sf || { sender:'', from:'', to:'', q:'' };
+const sfDay = iso => { if(!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-CA'); };   // yyyy-mm-dd, local time
+function sfSet(k, v){ HUB.sf[k] = v; hubDrawSent(); }
+function sfRange(days){ const t = new Date(), f = new Date(); f.setDate(t.getDate() - (days - 1)); HUB.sf.from = days ? f.toLocaleDateString('en-CA') : ''; HUB.sf.to = days ? t.toLocaleDateString('en-CA') : ''; hubDrawSent(); }
+function sfRows(){   // keeps the ORIGINAL index (hubBounce uses it)
+  const F = HUB.sf, q = (F.q || '').toLowerCase();
+  return (HUB.sent.rows || []).map((r, i) => ({ r, i })).filter(({ r }) => {
+    if(F.sender === '__none') { if(r.sent_by) return false; } else if(F.sender && r.sent_by !== F.sender) return false;
+    const d = sfDay(r.sent_at || r.scheduled_at); if(F.from && (!d || d < F.from)) return false; if(F.to && (!d || d > F.to)) return false;
+    if(q && !((r.company || '') + ' ' + (r.to_email || '') + ' ' + (r.subject || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
 function hubDrawSent(){
   const el = $x('hubSent'); if(HUB.errs.sent){ el.innerHTML = xErrBox('sent emails', HUB.errs.sent.ep, HUB.errs.sent.e); return; }
-  const T = HUB.sent.totals || {}, rows = HUB.sent.rows || [];
+  const all = HUB.sent.rows || [], F = HUB.sf, view = sfRows(), rows = view.map(v => v.r);
+  const T = { sent: rows.filter(r => r.sent_at).length, scheduled: rows.filter(r => r.status === 'Scheduled' || r.status === 'Sending').length, failed: rows.filter(r => r.status === 'Failed').length,
+    bounced: rows.filter(r => r.bounced_at).length, replied: rows.filter(r => r.replied_at).length, clicked: rows.filter(r => r.clicks > 0).length };
   const k = (l, v, f) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + xN(v) + '</div><div class="f">' + f + '</div></div>';
   const sent = T.sent || 0;
-  let h = '<div class="x-grid x-g6">' + k('Sent', T.sent, 'delivered to the server') + k('Scheduled', T.scheduled, 'waiting to go out') + k('Bounced', T.bounced, sent ? xPct(T.bounced || 0, sent) + '% of sent' : '') + k('Replied', T.replied, sent ? xPct(T.replied || 0, sent) + '% of sent' : '') + k('Clicked', T.clicked, 'a link in the signature') + k('Failed', T.failed, 'could not be sent') + '</div>';
+  const senders = Array.from(new Set(all.map(r => r.sent_by).filter(Boolean))).sort(), hasNone = all.some(r => !r.sent_by);
+  const inp = 'style="padding:7px 9px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:12.5px;background:#fff"';
+  const today = new Date().toLocaleDateString('en-CA');
+  const nToday = all.filter(r => r.sent_at && sfDay(r.sent_at) === today && (!F.sender || (F.sender === '__none' ? !r.sent_by : r.sent_by === F.sender))).length;
+  let h = '<div class="x-panel" style="padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Sent by<select ' + inp + ' onchange="sfSet(\'sender\', this.value)"><option value="">Everyone</option>' + senders.map(s => '<option value="' + escH(s) + '"' + (F.sender === s ? ' selected' : '') + '>' + escH(s) + '</option>').join('') + (hasNone ? '<option value="__none"' + (F.sender === '__none' ? ' selected' : '') + '>(not recorded)</option>' : '') + '</select></label>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">From<input type="date" ' + inp + ' value="' + escH(F.from) + '" onchange="sfSet(\'from\', this.value)"></label>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">To<input type="date" ' + inp + ' value="' + escH(F.to) + '" onchange="sfSet(\'to\', this.value)"></label>' +
+    '<div style="display:flex;gap:6px"><button class="x-btn" onclick="sfRange(1)">Today</button><button class="x-btn" onclick="sfRange(7)">7 days</button><button class="x-btn" onclick="sfRange(30)">30 days</button><button class="x-btn" onclick="sfRange(0)">All time</button></div>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Search<input ' + inp + ' placeholder="Company, email, subject" value="' + escH(F.q) + '" onchange="sfSet(\'q\', this.value)"></label>' +
+    '<div style="margin-left:auto;font-size:12.5px;color:var(--ink-faint)">Showing <b>' + rows.length + '</b> of ' + all.length + ' emails' + (F.from || F.to ? ' · ' + escH(F.from || '…') + ' to ' + escH(F.to || '…') : '') + ' · sent today: <b>' + nToday + '</b></div></div>';
+  const by = {}; rows.forEach(r => { if(!r.sent_at) return; const s = r.sent_by || '(not recorded)'; (by[s] = by[s] || { n:0, cos:new Set(), rep:0, bnc:0 }); by[s].n++; by[s].cos.add(r.match_key); if(r.replied_at) by[s].rep++; if(r.bounced_at) by[s].bnc++; });
+  const keys = Object.keys(by).sort((a, b) => by[b].n - by[a].n);
+  if(keys.length) h += '<div class="x-panel" style="padding:10px 14px;margin-bottom:12px"><table class="x-tbl"><thead><tr><th>Sender</th><th class="r">Emails sent</th><th class="r">Companies</th><th class="r">Replied</th><th class="r">Bounced</th></tr></thead><tbody>' + keys.map(s => '<tr><td><b>' + escH(s) + '</b></td><td class="r">' + by[s].n + '</td><td class="r">' + by[s].cos.size + '</td><td class="r">' + by[s].rep + '</td><td class="r">' + by[s].bnc + '</td></tr>').join('') + '</tbody></table></div>';
+  h += '<div class="x-grid x-g6">' + k('Sent', T.sent, 'delivered to the server') + k('Scheduled', T.scheduled, 'waiting to go out') + k('Bounced', T.bounced, sent ? xPct(T.bounced || 0, sent) + '% of sent' : '') + k('Replied', T.replied, sent ? xPct(T.replied || 0, sent) + '% of sent' : '') + k('Clicked', T.clicked, 'a link in the signature') + k('Failed', T.failed, 'could not be sent') + '</div>';
   const late = rows.filter(r => r.status === 'Scheduled' && r.scheduled_at && Date.now() - new Date(r.scheduled_at).getTime() > 10 * 60000);
   if(late.length) h += '<div class="x-note amber"><b>' + late.length + ' email' + (late.length > 1 ? 's are' : ' is') + ' overdue.</b> They were due more than 10 minutes ago but have not gone out. Either the n8n workflow <code>Email_Send_Due</code> is not Active, or the computer running n8n was asleep or offline.</div>';
   h += '<div class="x-note blue">Clicks are counted only for people (clicks within seconds of sending are ignored, since mail scanners open links). Opens are not tracked: they are unreliable and inflated by Apple Mail privacy.</div>';
-  if(!rows.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails yet.</b><br>Sent and scheduled emails show up here with their status.</div></div>';
-  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Status</th><th>When</th><th class="r">Clicks</th><th></th></tr></thead><tbody>' + rows.map((r, i) => '<tr class="row" data-i="' + i + '" onclick="lOpen(HUB.sent.rows[+this.getAttribute(\'data-i\')].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td><td class="r" onclick="event.stopPropagation()">' + (r.status === 'Sent' ? '<button class="x-btn" style="padding:4px 9px;font-size:11.5px" title="The email came back undeliverable" onclick="hubBounce(' + i + ')">Mark bounced</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
+  if(!all.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails yet.</b><br>Sent and scheduled emails show up here with their status.</div></div>';
+  else if(!rows.length) h += '<div class="x-panel"><div class="x-empty"><b>No emails match these filters.</b><br>Change the dates or sender.</div></div>';
+  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company / to</th><th>Subject</th><th>Sent by</th><th>Status</th><th>When</th><th class="r">Clicks</th><th></th></tr></thead><tbody>' + view.map(({ r, i }) => '<tr class="row" onclick="lOpen(HUB.sent.rows[' + i + '].match_key)"><td><b>' + escH(r.company) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(r.to_email) + '</div></td><td>' + escH(r.subject) + '</td><td>' + (r.sent_by ? '<b>' + escH(r.sent_by) + '</b>' : '<span style="color:var(--ink-faint)">—</span>') + (r.reply_to ? '<div style="color:var(--ink-faint);font-size:11px">' + escH(r.reply_to) + '</div>' : '') + '</td><td><span class="x-pill ' + statusColor(r.status) + '">' + escH(r.status) + '</span>' + (r.failure_reason ? '<div style="color:var(--red);font-size:11.5px;max-width:240px">' + escH(r.failure_reason) + '</div>' : '') + '</td><td>' + (r.status === 'Scheduled' ? 'for ' + xDate(r.scheduled_at) : xDate(r.sent_at)) + '</td><td class="r">' + (r.clicks || 0) + (r.clicks ? '<div style="text-align:right">' + (xClickChips(r.click_links) || '<span style="color:var(--ink-faint);font-size:11.5px">link not recorded</span>') + '</div>' : '') + '</td><td class="r" onclick="event.stopPropagation()">' + (r.status === 'Sent' ? '<button class="x-btn" style="padding:4px 9px;font-size:11.5px" title="The email came back undeliverable" onclick="hubBounce(' + i + ')">Mark bounced</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>';
   el.innerHTML = h;
 }
 const SIGNAL = { hot:['red', '🔥 HOT'], active:['purple', 'Active'], followup:['amber', 'Follow up'], warm:['blue', 'Warm'], waiting:['grey', 'Waiting'], cold:['grey', 'Cold'], bounced:['red', 'Bounced'], closed:['grey', 'Closed'] };
