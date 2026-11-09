@@ -1377,6 +1377,7 @@
   <div class="bd">
     <div id="dHol"></div>
     <div id="dDossier"></div>
+    <div id="dMove"></div>
     <div id="dThread"></div>
     <div id="dPick"></div>
     <div id="dCompose">
@@ -2900,7 +2901,8 @@ function setCurrentUser(name){
   localStorage.setItem('oright_current_user', name);
   const sel = document.getElementById('sendAs');
   if(sel){ if(!sel.options.length) ROSTER_USERS.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = SENDER_LABEL[u] || u; sel.appendChild(o); }); sel.value = name; }
-  try { if(changed && HUB && HUB.draft) showToast('Sending as ' + name + '. Click Regenerate so the draft and signature match.'); } catch(e){}   // HUB belum ada saat halaman pertama dimuat
+  try { if(changed && HUB && HUB.draft) showToast('Sending as ' + name + '. Click Regenerate so the draft and signature match.'); } catch(e){}
+  try { if(HUB && HUB.qItem && document.getElementById('xDraft').classList.contains('on')){ dMoveRender(HUB.qItem); dGuardSync(HUB.qItem); } } catch(e){}   // HUB belum ada saat halaman pertama dimuat
   document.getElementById('userNameLabel').textContent = name;
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
 }
@@ -3713,12 +3715,13 @@ function hubRender(){
 const xHref = u => { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : (u ? 'https://' + u : ''); };
 const xClean = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
 const SOC_ICON = { LinkedIn:'in', Instagram:'IG', Facebook:'f', TikTok:'♪', YouTube:'▶', X:'X' };
+function xIg(v){ const n = parseInt(String(v == null ? '' : v).replace(/[^0-9]/g, ''), 10); if(!/^\s*[0-9][0-9,.]*\s*$/.test(String(v == null ? '' : v)) || !isFinite(n)) return ''; return n.toLocaleString('en-US') + (n >= 10000 ? ' (high)' : n >= 5000 ? ' (medium)' : n >= 1000 ? ' (low)' : ''); }
 function xDossier(d, q){
   if(!d) return '<div class="x-note amber"><b>No company data for this lead.</b> It was not found in Leads_Pool, so nothing can be cross-checked here.</div>';
   const chips = []; if(xClean(d.website)) chips.push('<a class="chip" href="' + escH(xHref(d.website)) + '" target="_blank" rel="noopener noreferrer" title="Open the website and check it is the right company">🌐 ' + escH(xClean(d.website).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '').slice(0, 40)) + ' ↗</a>'); else chips.push('<span class="chip off">🌐 No website</span>');
   const have = {}; (d.socials || []).forEach(s => { have[s.name] = 1; chips.push('<a class="chip" href="' + escH(s.url) + '" target="_blank" rel="noopener noreferrer">' + escH(s.name) + ' ↗</a>'); });
   ['LinkedIn', 'Instagram', 'Facebook'].filter(n => !have[n]).forEach(n => chips.push('<span class="chip off" title="Not found yet. Use Enrich to look for it">' + n + ': none yet</span>'));
-  const facts = [['Employees', d.employees], ['Founded', d.founded], ['Rooms', d.rooms], ['Stores', d.stores], ['Sub-segment', d.sub_segment], ['Brands carried', d.brands], ['Target markets', d.target_markets], ['Countries served', d.countries_served], ['Online channels', d.online], ['Industry', d.industry], ['Address', d.address], ['Phone', d.phone], ['Source', d.source], ['Batch', d.batch]].filter(p => xClean(p[1]));
+  const facts = [['Employees', d.employees], ['Founded', d.founded], ['Rooms', d.rooms], ['Stores', d.stores], ['Instagram followers', xIg(d.ig_followers)], ['Sub-segment', d.sub_segment], ['Brands carried', d.brands], ['Target markets', d.target_markets], ['Countries served', d.countries_served], ['Online channels', d.online], ['Industry', d.industry], ['Address', d.address], ['Phone', d.phone], ['Source', d.source], ['Batch', d.batch]].filter(p => xClean(p[1]));
   const sig = t => xClean(String(t || '').replace(/\[(LEAD|BRAND\/PRODUCT|UNCLASSIFIED)\]/g, ' • ')).replace(/^•\s*/, '');
   const esg = sig(d.esg_signals), risk = sig(d.risk_signals), fr = cleanWhy(d.fit_reason), er = cleanWhy(d.esg_reason);
   return '<div class="x-dos"><div class="top">' + chips.join('') + '</div>' +
@@ -3935,15 +3938,53 @@ function dPickRender(q, pre){
   }).join('');
   dPickSync();
 }
+
+/* ---------- MOVE a lead between O'right and O'right PRO, straight from the Outreach Hub ---------- */
+const SENDER_BRAND = { Winda:'ORIGHT', Karen:'PRO' };   // sama dengan bawaan guard di n8n; tambah baris SENDER.<NAMA>.BRAND di Hub_Config untuk orang baru
+function senderBrandOf(name){ return SENDER_BRAND[name] || ''; }
+function dGuardMismatch(q){ const me = senderBrandOf(getCurrentUser()), lb = String((q && q.brand) || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT'; return !!me && me !== lb; }
+function dGuardSync(q){ const bad = dGuardMismatch(q), w = $x('dWrite'); if(w){ w.disabled = bad; w.title = bad ? 'This lead belongs to the other brand. Switch the sender or move the lead first.' : ''; } }
+function dSwitchTo(name){ setCurrentUser(name); if(HUB.qItem){ dMoveRender(HUB.qItem); dGuardSync(HUB.qItem); } }
+const BRAND_CHANNELS = { PRO:['Salon','Distributor'], ORIGHT:['Distributor','Retail','Amenities','OEM','Corporate Gifting'] };
+function brandChannelOk(brand, channel){ return (BRAND_CHANNELS[brand] || []).some(c => c.toLowerCase() === String(channel || '').toLowerCase()); }
+function dMoveRender(q){
+  const el = $x('dMove'); if(!el) return;
+  const cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT', to = cur === 'PRO' ? 'ORIGHT' : 'PRO', ch = String(q.channel || '');
+  const def = brandChannelOk(to, ch) ? ch : (to === 'PRO' ? 'Salon' : 'Retail');
+  const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === q.match_key && /^(scheduled|queued|sending)$/i.test(r.status || '')).length;
+  const bad = dGuardMismatch(q), meN = getCurrentUser(), rightUser = ROSTER_USERS.find(u => senderBrandOf(u) === cur) || '';
+  const warn = bad ? '<div class="x-warn" style="margin:10px 0"><span>⚠</span><span>This lead belongs to <b>' + escH(BRAND_NAME[cur]) + '</b>, but you are sending as <b>' + escH(meN) + '</b> (' + escH(BRAND_NAME[senderBrandOf(meN)]) + '). The email cannot be written or sent from here. ' + (rightUser ? '<a href="#" onclick="dSwitchTo(\'' + rightUser + '\');return false" style="color:var(--brand)">Switch sender to ' + escH(rightUser) + '</a>, or ' : '') + 'move the lead to ' + escH(BRAND_NAME[senderBrandOf(meN)]) + ' below.</span></div>' : '';
+  el.innerHTML = warn + '<details class="x-note" style="margin:10px 0"' + (bad ? ' open' : '') + '><summary style="cursor:pointer;font-weight:600">Wrong brand? Move this lead to ' + escH(BRAND_NAME[to]) + '</summary>' +
+    '<div style="font-size:12.5px;line-height:1.5;margin:8px 0">Now: <b>' + escH(BRAND_NAME[cur]) + '</b> · ' + escH(ch || 'no channel') + '. ' + (to === 'PRO' ? "O'right PRO only works with hair salons and distributors." : "O'right works with distributors, retail, amenities, OEM and corporate gifting.") + ' The lead leaves this queue and appears in the other brand\'s queue after it is scored again.</div>' +
+    (sched ? '<div class="x-warn"><span>⚠</span><span>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled for this lead with the current brand\'s wording. Cancel ' + (sched > 1 ? 'them' : 'it') + ' in the Sent tab first, then move the lead.</span></div>' : '') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span style="font-size:12.5px">New channel</span><select class="ld-input" id="dMoveCh" style="min-width:150px">' + BRAND_CHANNELS[to].map(c => '<option' + (c.toLowerCase() === def.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('') + '</select>' +
+    '<button class="x-btn p" id="dMoveBtn"' + (sched ? ' disabled' : '') + ' onclick="dMoveGo(\'' + to + '\')">Move to ' + escH(BRAND_NAME[to]) + '</button></div>' +
+    '<div style="font-size:11.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5">Fit and ESG scores are cleared and calculated again with the new channel. Emails already sent are not changed.</div></details>';
+}
+async function dMoveGo(to){
+  const q = HUB.qItem; if(!q) return; const ch = ($x('dMoveCh') || {}).value, cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT';
+  if(!brandChannelOk(to, ch)){ showToast(BRAND_NAME[to] + ' cannot use the channel ' + ch); return; }
+  if(!confirm('Move ' + q.name + ' to ' + BRAND_NAME[to] + ' (' + ch + ')?\n\nIt will leave this queue.')) return;
+  const b = $x('dMoveBtn'); if(b){ b.disabled = true; b.textContent = 'Moving…'; }
+  try {
+    if(String(q.channel || '').toLowerCase() !== String(ch).toLowerCase()){
+      const reenrich = String(q.channel || '').toLowerCase() === 'amenities' || ch.toLowerCase() === 'amenities';
+      await n8nPost('/lead-review', { match_key:q.match_key, action:'set_channel', channel:ch, old_channel:q.channel || '', reenrich });
+    }
+    await n8nPost('/lead-review', { match_key:q.match_key, action:'set_brand', brand:to, old_brand:cur, rescore:true });
+    showToast('Moved to ' + BRAND_NAME[to] + ' (' + ch + '). It will be scored again.');
+    xCloseAll(); hubLoad(true);
+  } catch(err){ showToast('Could not move: ' + err.message); if(b){ b.disabled = false; b.textContent = 'Move to ' + BRAND_NAME[to]; } }
+}
 async function dOpenItem(q, email){
   HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
   $x('dTitle').innerHTML = 'Draft for ' + escH(q.name) + ' <span class="x-pill ' + (q.email_no > 1 ? 'amber' : 'green') + '" style="vertical-align:middle;margin-left:8px">' + (q.email_no > 1 ? 'Follow-up ' + (q.email_no - 1) : 'First email') + '</span>';
   $x('dScores').innerHTML = scoreTile('Fit', q.fit, FIT_BANDS) + scoreTile('ESG', q.esg, ESG_BANDS);
-  $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · '); $x('dDossier').innerHTML = xDossier(q.lead, q);
+  $x('dSub').textContent = [q.country, q.channel].filter(Boolean).join(' · '); $x('dDossier').innerHTML = xDossier(q.lead, q); dMoveRender(q);
   $x('dFlags').innerHTML = ''; $x('dWc').textContent = ''; $x('dSig').srcdoc = ''; $x('dName').value = ''; $x('dTo').value = ''; $x('dDeliver').innerHTML = ''; $x('dMode').innerHTML = ''; $x('dSubj').value = ''; $x('dBody').value = '';
   dTypeStop();
   $x('dSend').disabled = true; $x('dSchedBtn').disabled = true; $x('dRegen').disabled = true; dSchedClose();
-  $x('dThread').innerHTML = ''; dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); xOpen('xDraft'); dThreadLoad(q);
+  $x('dThread').innerHTML = ''; dPickRender(q, String(email || (q.contact && q.contact.email) || '').toLowerCase()); dState('pick'); dGuardSync(q); xOpen('xDraft'); dThreadLoad(q);
   holLoad(q.country);
 }
 async function dWriteGo(){
@@ -4549,6 +4590,8 @@ function ldClsDirty(){
 async function ldApplyCls(){
   const mk = ldCurrent && ldCurrent.mk; if(!mk) return; const L = ldCurrent.lead || {}, s = ldClsState();
   if(!s.chNew && !s.brNew){ showToast('Pick a different channel or brand first'); return; }
+  { const fb = s.brNew || s.curBr || (/salon/i.test(s.chNew || s.curCh) ? 'PRO' : 'ORIGHT'), fc = s.chNew || s.curCh;
+    if(fc && !brandChannelOk(fb, fc)){ showToast(BRAND_NAME[fb] + ' cannot use the channel ' + fc + '. Change the channel and brand together.'); return; } }
   const b = $x('ldClsApply'); if(b){ b.disabled = true; b.textContent = 'Saving…'; }
   const clr = { Fit_Score:'', Fit_Score_Reason:'', ESG_Score:'', ESG_Score_Reason:'', Score_Category:'', Score_Status:'', Score_Error:'' };
   const l = poolLeads.find(x => x.Match_Key === mk);
