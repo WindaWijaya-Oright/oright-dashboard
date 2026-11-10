@@ -1059,7 +1059,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 12:55</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 13:10</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
@@ -4066,11 +4066,26 @@ function dPickRender(q, pre){
   const list = (q.contacts && q.contacts.length) ? q.contacts : ((q.contact && q.contact.email) ? [q.contact] : []); HUB.recips = list;
   const sel = (pre && list.some(c => c.email === pre)) ? pre : (list[0] && list[0].email);
   const person = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>', mail = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
-  $x('dPick').innerHTML = '<label class="f" style="margin-top:14px">Who do you want to write to?</label><div style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 10px">The email is written differently for each kind of recipient. Nothing is written until you click <b>Write draft</b>.</div>' + list.map(c => {
+  $x('dPick').innerHTML = '<div id="dDm"></div><label class="f" style="margin-top:14px">Who do you want to write to?</label><div style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 10px">The email is written differently for each kind of recipient. Nothing is written until you click <b>Write draft</b>.</div>' + list.map(c => {
     const k = recipKind(c), t = KIND_TAG[k];
     return '<label class="x-pickc' + (c.dom === 'mismatch' ? ' mis' : '') + '"><input type="radio" name="dPickR" value="' + escH(c.email) + '"' + (c.email === sel ? ' checked' : '') + ' onchange="dPickSync()"><span class="ic">' + ((c.name || c.kind === 'Personal') ? person : mail) + '</span><span class="tx"><b>' + cHead(c) + '</b><span>' + escH(c.email) + (c.email_status === 'Unapproved' ? ' <i class="x-pill amber" style="font-style:normal">Not approved yet</i>' : '') + '</span><em><i class="x-pill ' + t[0] + '">' + (k === 'Personal' ? 'Personal' : k) + '</i> ' + escH(t[1]) + '</em>' + cWarn(c) + '</span></label>';
   }).join('');
-  dPickSync();
+  dPickSync(); dDmLoad(q.match_key);
+}
+/* Decision maker (dari LinkedIn_People, nama + jabatan berasal dari Leads_Pool) ditampilkan di atas pilihan penerima */
+function dDmHTML(it){
+  if(!it || !it.person || it.status === 'Rejected') return '';
+  const has = it.status === 'Auto' && liUrlOk(it.url);
+  return '<div class="x-note blue" style="margin:14px 0 4px"><b>Decision maker:</b> ' + escH(it.person) + (it.title ? ' · ' + escH(it.title) : '') +
+    (has ? ' · <a href="' + escH(it.url) + '" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>' : ' · <span style="color:var(--ink-faint)">no LinkedIn profile found</span>') +
+    (it.email_status === 'Found' && it.email ? '<br>Email you saved: ' + escH(it.email) : (has ? '<br><span style="color:var(--ink-faint)">No email saved yet. Add it in the LinkedIn tab.</span>' : '')) + '</div>';
+}
+async function dDmLoad(mk){
+  try {
+    const d = await n8nGet('/linkedin-people?match_key=' + encodeURIComponent(mk));
+    if(!HUB.qItem || HUB.qItem.match_key !== mk) return;
+    const el = $x('dDm'); if(el) el.innerHTML = dDmHTML(d.item);
+  } catch(e){}
 }
 
 /* ---------- MOVE a lead between O'right and O'right PRO, straight from the Outreach Hub ---------- */
