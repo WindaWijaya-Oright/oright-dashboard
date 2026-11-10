@@ -546,6 +546,21 @@
 .x-empty{padding:26px 14px;text-align:center;color:var(--ink-faint);font-size:13px;line-height:1.6}.x-empty b{color:var(--ink-soft)}
 .x-err{padding:14px;border-radius:10px;background:var(--red-soft);color:var(--red);font-size:12.5px;line-height:1.55}
 .x-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}.x-tab{padding:9px 14px;cursor:pointer;font-weight:700;color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px}.x-tab.on{color:var(--brand);border-color:var(--brand)}
+/* ---- LinkedIn tab (Outreach Hub) + LinkedIn di drawer lead ---- */
+.li-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.li-chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink-soft);font-family:'Inter',sans-serif}
+.li-chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.li-search{flex:1;min-width:160px;max-width:300px}
+.li-row{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--card,#fff);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:start}
+.li-nm{font-weight:700;font-size:14px}.li-sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px}.li-prof{font-size:11.5px;color:var(--ink-faint);margin-top:4px;line-height:1.4}
+.li-act{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.li-act .ld-input{width:230px}
+.li-act .btn-secondary,.li-act .btn-primary{flex:none;padding:7px 12px;font-size:12px;text-decoration:none;display:inline-block;width:auto}
+.li-pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;background:#eef1f5;color:var(--ink-soft);margin-left:6px}
+.li-pill.ok{background:#e3f5e8;color:#1c7a3a}.li-pill.no{background:#f4e6e6;color:#a33}
+.li-note{font-size:11.5px;color:var(--ink-faint);margin:2px 2px 12px;line-height:1.5}
+@media(max-width:760px){.li-row{grid-template-columns:1fr}.li-act{justify-content:flex-start}.li-act .ld-input{width:100%}}
+
 .x-seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}.x-seg button{border:0;background:#fff;padding:6px 11px;font-weight:600;cursor:pointer;color:var(--ink-soft);font-size:12px;font-family:inherit}.x-seg button.on{background:var(--ink);color:#fff}
 .x-map svg{width:100%;height:auto;display:block}.x-land{fill:var(--land);stroke:#fff;stroke-width:.5}.x-land.has{stroke:#9aa5b4;stroke-width:.6}.x-land:hover,.x-pt:hover{stroke:var(--ink);stroke-width:1.4;cursor:pointer}
 .x-legend{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}.x-legend i{display:inline-block;width:22px;height:10px;border-radius:2px}
@@ -1044,7 +1059,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 6 Nov 12:00</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 12:45</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
@@ -1059,10 +1074,12 @@
         <div class="x-tab on" data-t="queue" onclick="hubTab('queue')">To contact <span id="hubCntQueue" style="opacity:.6"></span></div>
         <div class="x-tab" data-t="sent" onclick="hubTab('sent')">Sent &amp; tracking <span id="hubCntSent" style="opacity:.6"></span></div>
         <div class="x-tab" data-t="hist" onclick="hubTab('hist')">History by lead <span id="hubCntHist" style="opacity:.6"></span></div>
+        <div class="x-tab" data-t="li" onclick="hubTab('li')">LinkedIn <span id="hubCntLi" style="opacity:.6"></span></div>
       </div>
       <div id="hubQueue"></div>
       <div id="hubSent" style="display:none"></div>
       <div id="hubHist" style="display:none"></div>
+      <div id="hubLi" style="display:none"></div>
     </div>
 
 <!-- ============ PAGE 2 : MARKET INTELLIGENCE ============ -->
@@ -2290,7 +2307,9 @@ function renderLeadDrawer(){
     '<div class="ld-find"><button class="btn-secondary" disabled title="Coming soon: will search for people and emails at this company">🔎 Find contacts <span class="tag" style="margin-left:4px;">SOON</span></button><span>Automatic search, coming soon</span></div>' +
     '<div style="font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-top:14px;">Add a contact manually</div>' +
     '<div class="ld-add"><input class="ld-input" id="ldcName" placeholder="Name (optional)"><input class="ld-input" id="ldcTitle" placeholder="Title (optional)"><input class="ld-input full" id="ldcEmail" placeholder="Email address"><input class="ld-input full" id="ldcSrc" placeholder="Where did you get it? e.g. LinkedIn, referred by …, met at expo"><button class="btn-primary full" onclick="ldAddContact()">Add contact</button></div></div>';
+  h += '<div class="ld-sec"><h4>LinkedIn</h4><div id="ldLiBody" style="font-size:12.5px; color:var(--ink-faint);">Loading…</div></div>';
   document.getElementById('ldBody').innerHTML = h;
+  ldLoadLinkedIn(ldCurrent.mk);
 }
 function ldContactsHTML(){
   if(!ldCurrent.contacts.length) return '<div style="font-size:12.5px; color:var(--ink-faint);">No contacts found for this lead yet. Add one below (for example from LinkedIn).</div>';
@@ -3686,6 +3705,115 @@ function hubTab(t){
   HUB.tab = t;
   document.querySelectorAll('#hubTabs .x-tab').forEach(e => e.classList.toggle('on', e.getAttribute('data-t') === t));
   $x('hubQueue').style.display = t === 'queue' ? '' : 'none'; $x('hubSent').style.display = t === 'sent' ? '' : 'none'; $x('hubHist').style.display = t === 'hist' ? '' : 'none';
+  $x('hubLi').style.display = t === 'li' ? '' : 'none'; if(t === 'li' && !LI.data) liLoad();
+}
+
+/* ---------- LinkedIn tab ---------- */
+/* GET /linkedin-people  -> {total, counts, items:[{match_key,person,title,url,lead,country,linkedin_title,confidence,status,email,email_status,email_at}]}
+   POST /linkedin-update {match_key, action: email_saved|no_email|reject|restore, email?, note?}  (Save email juga memanggil /contact-save supaya kontaknya masuk Lead_Contacts) */
+const LI = { data:null, err:null, filter:'Pending', q:'', busy:{} };
+const liUrlOk = u => /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/in\//i.test(String(u || ''));
+const liIsPending = it => !it.email_status || it.email_status === 'Pending';
+async function liLoad(){
+  const box = $x('hubLi'); if(!box) return;
+  if(!LI.data) box.innerHTML = '<div style="color:var(--ink-faint);font-size:13px;padding:8px 2px">Loading…</div>';
+  try { LI.data = await n8nGet('/linkedin-people'); LI.err = null; } catch(e){ LI.err = e; }
+  liRender();
+}
+function liRender(){
+  const box = $x('hubLi'); if(!box) return;
+  if(LI.err && !LI.data){ box.innerHTML = xErrBox('LinkedIn contacts', '/linkedin-people', LI.err); return; }
+  box.innerHTML =
+    '<div class="li-note">Profiles found automatically by name and company. Open the profile, find the email (for example with Mailmeteor), paste it here and press Save. The contact then appears in <b>To contact</b>. Check the line “Profile says” first: if it is clearly another person or company, press <b>Wrong person</b>.</div>' +
+    '<div class="li-bar" id="liChips"></div><div id="liList"></div>';
+  liDraw();
+}
+function liDraw(){
+  const items = (LI.data && LI.data.items) || [];
+  const cnt = { Pending:0, Found:0, Not_found:0 };
+  items.forEach(it => { cnt[liIsPending(it) ? 'Pending' : it.email_status] = (cnt[liIsPending(it) ? 'Pending' : it.email_status] || 0) + 1; });
+  const chip = (k, label) => '<button class="li-chip' + (LI.filter === k ? ' on' : '') + '" onclick="liFilter(\'' + k + '\')">' + label + ' · ' + (cnt[k] || 0) + '</button>';
+  const chips = $x('liChips'); if(!chips) return;
+  chips.innerHTML = chip('Pending', 'Needs email') + chip('Found', 'Email added') + chip('Not_found', 'No email found') +
+    '<input class="ld-input li-search" id="liQ" placeholder="Search name or company" value="' + escH(LI.q) + '" oninput="liSearch(this.value)">';
+  const qq = LI.q.trim().toLowerCase();
+  const rows = []; items.forEach((it, i) => {
+    const k = liIsPending(it) ? 'Pending' : it.email_status;
+    if(k !== LI.filter) return;
+    if(qq && (it.person + ' ' + it.lead + ' ' + it.country).toLowerCase().indexOf(qq) < 0) return;
+    rows.push(liRow(it, i));
+  });
+  $x('liList').innerHTML = rows.length ? rows.join('') : '<div style="color:var(--ink-faint);font-size:13px;padding:14px 2px">' + (items.length ? 'Nothing in this list.' : 'No LinkedIn profiles found yet. Run the LinkedIn_Enrichment workflow in n8n.') + '</div>';
+  $x('hubCntLi').textContent = LI.data ? '· ' + (cnt.Pending || 0) : '';
+}
+function liRow(it, i){
+  const st = liIsPending(it) ? 'Pending' : it.email_status, busy = LI.busy[it.match_key];
+  const open = liUrlOk(it.url) ? '<a class="btn-secondary" href="' + escH(it.url) + '" target="_blank" rel="noopener noreferrer">Open LinkedIn ↗</a>' : '';
+  let act;
+  if(st === 'Not_found') act = open + '<span class="li-pill no">No email found</span><button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liAct(' + i + ',\'restore\')">Undo</button>';
+  else act = open + '<input class="ld-input" id="liE' + i + '" type="email" placeholder="Email address" value="' + escH(it.email || '') + '" onkeydown="if(event.key===\'Enter\')liSave(' + i + ')">' +
+    '<button class="btn-primary" ' + (busy ? 'disabled ' : '') + 'onclick="liSave(' + i + ')">' + (busy ? 'Saving…' : (st === 'Found' ? 'Update' : 'Save')) + '</button>' +
+    (st === 'Found' ? '<span class="li-pill ok">Email added</span>' : '<button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liAct(' + i + ',\'no_email\')">No email found</button>') +
+    '<button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liReject(' + i + ')" title="This profile is not the right person">Wrong person</button>';
+  return '<div class="li-row"><div><div class="li-nm">' + escH(it.person) + (it.title ? ' <span style="font-weight:500;color:var(--ink-faint)">· ' + escH(it.title) + '</span>' : '') + '</div>' +
+    '<div class="li-sub">' + escH(it.lead) + (it.country ? ' · ' + escH(it.country) : '') + '</div>' +
+    '<div class="li-prof">Profile says: ' + escH(it.linkedin_title || '—') + (it.confidence === 'Medium' ? ' · matched by name and country only' : '') + '</div></div>' +
+    '<div class="li-act">' + act + '</div></div>';
+}
+function liFilter(k){ LI.filter = k; liDraw(); }
+function liSearch(v){ LI.q = v; const el = $x('liQ'); const pos = el ? el.selectionStart : 0; liDraw(); const e2 = $x('liQ'); if(e2){ e2.focus(); try { e2.setSelectionRange(pos, pos); } catch(e){} } }
+async function liSave(i){
+  const it = LI.data.items[i]; if(!it || LI.busy[it.match_key]) return;
+  const email = ($x('liE' + i).value || '').trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(email)){ showToast('Enter a valid email address'); return; }
+  LI.busy[it.match_key] = 1; liDraw();
+  try {
+    /* 1) simpan sebagai kontak lead (Lead_Contacts); aman diulang, Contact_ID sama untuk lead+email yang sama */
+    await n8nPost('/contact-save', { match_key:it.match_key, name:it.person, title:it.title || '', email, note:'LinkedIn' });
+    /* 2) tandai di LinkedIn_People */
+    await n8nPost('/linkedin-update', { match_key:it.match_key, action:'email_saved', email });
+    it.email = email; it.email_status = 'Found'; showToast('Saved. It is now in To contact.');
+  } catch(e){ showToast('Could not save: ' + e.message); }
+  delete LI.busy[it.match_key]; liDraw();
+}
+async function liAct(i, action){
+  const it = LI.data.items[i]; if(!it || LI.busy[it.match_key]) return;
+  LI.busy[it.match_key] = 1; liDraw();
+  try {
+    await n8nPost('/linkedin-update', { match_key:it.match_key, action });
+    if(action === 'no_email'){ it.email_status = 'Not_found'; it.email = ''; } else if(action === 'restore'){ it.email_status = 'Pending'; }
+  } catch(e){ showToast('Could not save: ' + e.message); }
+  delete LI.busy[it.match_key]; liDraw();
+}
+async function liReject(i){
+  const it = LI.data.items[i]; if(!it || LI.busy[it.match_key]) return;
+  if(!confirm('Mark this LinkedIn profile as the wrong person?\n' + it.person + ' · ' + it.lead + '\n\nIt will disappear from this list.')) return;
+  LI.busy[it.match_key] = 1; liDraw();
+  try { await n8nPost('/linkedin-update', { match_key:it.match_key, action:'reject' }); LI.data.items.splice(i, 1); showToast('Marked as wrong person'); }
+  catch(e){ showToast('Could not save: ' + e.message); }
+  delete LI.busy[it.match_key]; liDraw();
+}
+/* LinkedIn di drawer lead */
+function ldLiHTML(it){
+  if(!it) return 'Not searched yet.';
+  if(it.status === 'Auto' && liUrlOk(it.url)){
+    const st = !it.email_status || it.email_status === 'Pending' ? 'Needs email' : (it.email_status === 'Found' ? 'Email added' : 'No email found');
+    return '<div style="color:var(--ink);font-weight:700;">' + escH(it.person) + (it.title ? ' <span style="font-weight:500;color:var(--ink-faint);">· ' + escH(it.title) + '</span>' : '') + '</div>' +
+      '<div style="margin:3px 0 6px;">Profile says: ' + escH(it.linkedin_title || '—') + '</div>' +
+      '<a class="btn-secondary" style="display:inline-block;flex:none;padding:6px 12px;font-size:12px;text-decoration:none;" href="' + escH(it.url) + '" target="_blank" rel="noopener noreferrer">Open LinkedIn ↗</a><span class="li-pill' + (it.email_status === 'Found' ? ' ok' : '') + '">' + st + '</span>' +
+      (it.email_status === 'Found' ? '' : '<div style="margin-top:6px;">Add the email in Outreach Hub → LinkedIn.</div>');
+  }
+  if(it.status === 'Not_found') return 'No LinkedIn profile found for ' + escH(it.person || 'this contact') + '.';
+  if(it.status === 'Rejected') return 'A profile was found but marked as the wrong person.';
+  if(it.status === 'Skipped') return 'Skipped: no usable full name.';
+  return 'Not searched yet.';
+}
+async function ldLoadLinkedIn(mk){
+  try {
+    const d = await n8nGet('/linkedin-people?match_key=' + encodeURIComponent(mk));
+    if(!ldCurrent || ldCurrent.mk !== mk) return;
+    const el = document.getElementById('ldLiBody'); if(el) el.innerHTML = ldLiHTML(d.item);
+  } catch(e){ const el = document.getElementById('ldLiBody'); if(el && ldCurrent && ldCurrent.mk === mk) el.textContent = 'LinkedIn data is not available right now.'; }
 }
 function hubSafetyHTML(Q){
   const S = Q && Q.safety; if(!S) return '';
