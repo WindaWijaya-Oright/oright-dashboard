@@ -3949,32 +3949,54 @@ const BRAND_CHANNELS = { PRO:['Salon','Distributor'], ORIGHT:['Distributor','Ret
 function brandChannelOk(brand, channel){ return (BRAND_CHANNELS[brand] || []).some(c => c.toLowerCase() === String(channel || '').toLowerCase()); }
 function dMoveRender(q){
   const el = $x('dMove'); if(!el) return;
-  const cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT', to = cur === 'PRO' ? 'ORIGHT' : 'PRO', ch = String(q.channel || '');
-  const def = brandChannelOk(to, ch) ? ch : (to === 'PRO' ? 'Salon' : 'Retail');
+  const cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT', ch = String(q.channel || '');
   const sched = ((HUB.sent && HUB.sent.rows) || []).filter(r => r.match_key === q.match_key && /^(scheduled|queued|sending)$/i.test(r.status || '')).length;
   const bad = dGuardMismatch(q), meN = getCurrentUser(), rightUser = ROSTER_USERS.find(u => senderBrandOf(u) === cur) || '';
   const warn = bad ? '<div class="x-warn" style="margin:10px 0"><span>⚠</span><span>This lead belongs to <b>' + escH(BRAND_NAME[cur]) + '</b>, but you are sending as <b>' + escH(meN) + '</b> (' + escH(BRAND_NAME[senderBrandOf(meN)]) + '). The email cannot be written or sent from here. ' + (rightUser ? '<a href="#" onclick="dSwitchTo(\'' + rightUser + '\');return false" style="color:var(--brand)">Switch sender to ' + escH(rightUser) + '</a>, or ' : '') + 'move the lead to ' + escH(BRAND_NAME[senderBrandOf(meN)]) + ' below.</span></div>' : '';
-  el.innerHTML = warn + '<details class="x-note" style="margin:10px 0"' + (bad ? ' open' : '') + '><summary style="cursor:pointer;font-weight:600">Wrong brand? Move this lead to ' + escH(BRAND_NAME[to]) + '</summary>' +
-    '<div style="font-size:12.5px;line-height:1.5;margin:8px 0">Now: <b>' + escH(BRAND_NAME[cur]) + '</b> · ' + escH(ch || 'no channel') + '. ' + (to === 'PRO' ? "O'right PRO only works with hair salons and distributors." : "O'right works with distributors, retail, amenities, OEM and corporate gifting.") + ' The lead leaves this queue and appears in the other brand\'s queue after it is scored again.</div>' +
-    (sched ? '<div class="x-warn"><span>⚠</span><span>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled for this lead with the current brand\'s wording. Cancel ' + (sched > 1 ? 'them' : 'it') + ' in the Sent tab first, then move the lead.</span></div>' : '') +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span style="font-size:12.5px">New channel</span><select class="ld-input" id="dMoveCh" style="min-width:150px">' + BRAND_CHANNELS[to].map(c => '<option' + (c.toLowerCase() === def.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('') + '</select>' +
-    '<button class="x-btn p" id="dMoveBtn"' + (sched ? ' disabled' : '') + ' onclick="dMoveGo(\'' + to + '\')">Move to ' + escH(BRAND_NAME[to]) + '</button></div>' +
-    '<div style="font-size:11.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5">Fit and ESG scores are cleared and calculated again with the new channel. Emails already sent are not changed.</div></details>';
+  const brOpts = ['ORIGHT', 'PRO'].map(b => '<option value="' + b + '"' + (b === cur ? ' selected' : '') + '>' + escH(BRAND_NAME[b]) + '</option>').join('');
+  el.innerHTML = warn + '<details class="x-note" style="margin:10px 0"' + (bad ? ' open' : '') + '><summary style="cursor:pointer;font-weight:600">Wrong brand or channel? Change it here</summary>' +
+    '<div style="font-size:12.5px;line-height:1.5;margin:8px 0">Now: <b>' + escH(BRAND_NAME[cur]) + '</b> · ' + escH(ch || 'no channel') + '. O\'right PRO only works with hair salons (Salon) and distributors. O\'right works with Distributor, Retail, Amenities, OEM and Corporate Gifting. A hair salon therefore belongs to O\'right PRO, channel Salon.</div>' +
+    (sched ? '<div class="x-warn"><span>⚠</span><span>' + sched + ' email' + (sched > 1 ? 's are' : ' is') + ' already scheduled for this lead with the current wording. Cancel ' + (sched > 1 ? 'them' : 'it') + ' in the Sent tab first, then change the lead.</span></div>' : '') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span style="font-size:12.5px">Brand</span><select class="ld-input" id="dMoveBr" style="min-width:150px" onchange="dMoveSync(true)">' + brOpts + '</select>' +
+    '<span style="font-size:12.5px">Channel</span><select class="ld-input" id="dMoveCh" style="min-width:150px" onchange="dMoveSync(false)"></select>' +
+    '<button class="x-btn p" id="dMoveBtn" data-sched="' + (sched ? 1 : 0) + '" onclick="dMoveGo()">Nothing to change yet</button></div>' +
+    '<div id="dMoveNote" style="font-size:11.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5"></div></details>';
+  dMoveSync(true);
 }
-async function dMoveGo(to){
-  const q = HUB.qItem; if(!q) return; const ch = ($x('dMoveCh') || {}).value, cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT';
+function dMoveSync(brandChanged){
+  const q = HUB.qItem; if(!q) return;
+  const cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT', curCh = String(q.channel || '');
+  const bs = $x('dMoveBr'), cs = $x('dMoveCh'), btn = $x('dMoveBtn'), note = $x('dMoveNote'); if(!bs || !cs || !btn) return;
+  const br = bs.value, list = BRAND_CHANNELS[br] || [];
+  if(brandChanged){
+    const keep = brandChannelOk(br, curCh) ? curCh : (br === 'PRO' ? 'Salon' : 'Retail');
+    cs.innerHTML = list.map(c => '<option' + (c.toLowerCase() === keep.toLowerCase() ? ' selected' : '') + '>' + escH(c) + '</option>').join('');
+  }
+  const chNew = cs.value, chDiff = chNew.toLowerCase() !== curCh.toLowerCase(), brDiff = br !== cur;
+  btn.dataset.ch = chNew; btn.dataset.br = br;
+  if(!chDiff && !brDiff){ btn.disabled = true; btn.textContent = 'Nothing to change yet'; if(note) note.textContent = 'Pick a different brand or channel. Fit and ESG are cleared and calculated again.'; return; }
+  btn.disabled = btn.dataset.sched === '1';
+  btn.textContent = brDiff && chDiff ? 'Move to ' + BRAND_NAME[br] + ' (' + chNew + ') and score again' : (brDiff ? 'Move to ' + BRAND_NAME[br] + ' and score again' : 'Change channel to ' + chNew + ' and score again');
+  if(note) note.textContent = 'On click: ' + [chDiff ? 'channel ' + (curCh || 'none') + ' becomes ' + chNew : '', brDiff ? 'brand becomes ' + BRAND_NAME[br] : '', 'Fit and ESG are cleared', 'the lead leaves this queue until it is scored again (usually 10 to 20 minutes)'].filter(Boolean).join(', ') + '. Emails already sent are not changed.';
+}
+async function dMoveGo(){
+  const q = HUB.qItem; if(!q) return; const btn = $x('dMoveBtn'); if(!btn) return;
+  const cur = String(q.brand || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT', curCh = String(q.channel || '');
+  const to = btn.dataset.br || cur, ch = btn.dataset.ch || curCh;
+  const chDiff = ch.toLowerCase() !== curCh.toLowerCase(), brDiff = to !== cur;
+  if(!chDiff && !brDiff){ showToast('Pick a different brand or channel first'); return; }
   if(!brandChannelOk(to, ch)){ showToast(BRAND_NAME[to] + ' cannot use the channel ' + ch); return; }
-  if(!confirm('Move ' + q.name + ' to ' + BRAND_NAME[to] + ' (' + ch + ')?\n\nIt will leave this queue.')) return;
-  const b = $x('dMoveBtn'); if(b){ b.disabled = true; b.textContent = 'Moving…'; }
+  if(!confirm('Change ' + q.name + ' to ' + BRAND_NAME[to] + ' (' + ch + ')?\n\nIt will leave this queue until it is scored again.')) return;
+  btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    if(String(q.channel || '').toLowerCase() !== String(ch).toLowerCase()){
-      const reenrich = String(q.channel || '').toLowerCase() === 'amenities' || ch.toLowerCase() === 'amenities';
-      await n8nPost('/lead-review', { match_key:q.match_key, action:'set_channel', channel:ch, old_channel:q.channel || '', reenrich });
+    if(chDiff){
+      const reenrich = curCh.toLowerCase() === 'amenities' || ch.toLowerCase() === 'amenities';
+      await n8nPost('/lead-review', { match_key:q.match_key, action:'set_channel', channel:ch, old_channel:curCh, reenrich });
     }
-    await n8nPost('/lead-review', { match_key:q.match_key, action:'set_brand', brand:to, old_brand:cur, rescore:true });
-    showToast('Moved to ' + BRAND_NAME[to] + ' (' + ch + '). It will be scored again.');
+    if(brDiff) await n8nPost('/lead-review', { match_key:q.match_key, action:'set_brand', brand:to, old_brand:cur, rescore:true });
+    showToast('Saved: ' + BRAND_NAME[to] + ' (' + ch + '). It will be scored again.');
     xCloseAll(); hubLoad(true);
-  } catch(err){ showToast('Could not move: ' + err.message); if(b){ b.disabled = false; b.textContent = 'Move to ' + BRAND_NAME[to]; } }
+  } catch(err){ showToast('Could not save: ' + err.message); btn.disabled = false; dMoveSync(false); }
 }
 async function dOpenItem(q, email){
   HUB.qItem = q; HUB.draft = null; HUB.testMode = !!(HUB.queue && HUB.queue.test_mode); HUB.testAddr = ((HUB.queue && HUB.queue.test_addresses) || [])[0] || '';
