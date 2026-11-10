@@ -1059,7 +1059,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 12:45</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 12:55</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
@@ -3772,9 +3772,15 @@ async function liSave(i){
     await n8nPost('/contact-save', { match_key:it.match_key, name:it.person, title:it.title || '', email, note:'LinkedIn' });
     /* 2) tandai di LinkedIn_People */
     await n8nPost('/linkedin-update', { match_key:it.match_key, action:'email_saved', email });
-    it.email = email; it.email_status = 'Found'; showToast('Saved. It is now in To contact.');
+    it.email = email; it.email_status = 'Found'; showToast('Saved. Updating To contact…'); liQueueRefresh();
   } catch(e){ showToast('Could not save: ' + e.message); }
   delete LI.busy[it.match_key]; liDraw();
+}
+/* setelah Save: muat ulang antrean To contact (ditunda 4 detik; beberapa Save berurutan = 1 refresh) */
+let _liQT = null;
+function liQueueRefresh(){
+  clearTimeout(_liQT);
+  _liQT = setTimeout(async () => { try { HUB.queue = await n8nGet('/hub-queue'); HUB.errs.queue = null; hubRender(); } catch(e){} }, 4000);
 }
 async function liAct(i, action){
   const it = LI.data.items[i]; if(!it || LI.busy[it.match_key]) return;
