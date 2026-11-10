@@ -558,6 +558,7 @@
 .li-act .btn-secondary,.li-act .btn-primary{flex:none;padding:7px 12px;font-size:12px;text-decoration:none;display:inline-block;width:auto}
 .li-pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;background:#eef1f5;color:var(--ink-soft);margin-left:6px}
 .li-pill.ok{background:#e3f5e8;color:#1c7a3a}.li-pill.no{background:#f4e6e6;color:#a33}
+.li-err{grid-column:1/-1;color:#b42318;background:#fdecea;border-radius:8px;padding:7px 10px;font-size:12px;line-height:1.45}
 .li-note{font-size:11.5px;color:var(--ink-faint);margin:2px 2px 12px;line-height:1.5}
 @media(max-width:760px){.li-row{grid-template-columns:1fr}.li-act{justify-content:flex-start}.li-act .ld-input{width:100%}}
 
@@ -1059,7 +1060,7 @@
       <div class="topbar">
         <div>
           <h1 data-i18n="outreach_title">Outreach Hub</h1>
-          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 13:10</span></p>
+          <p class="desc">Write, review, send, track and remember, per lead. <span style="opacity:.45;font-size:11.5px">· build 10 Nov 14:35</span></p>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
           <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--ink-soft);" title="Every email you write or send from this screen uses this person's signature and Reply-To">Sending as
@@ -3711,21 +3712,21 @@ function hubTab(t){
 /* ---------- LinkedIn tab ---------- */
 /* GET /linkedin-people  -> {total, counts, items:[{match_key,person,title,url,lead,country,linkedin_title,confidence,status,email,email_status,email_at}]}
    POST /linkedin-update {match_key, action: email_saved|no_email|reject|restore, email?, note?}  (Save email juga memanggil /contact-save supaya kontaknya masuk Lead_Contacts) */
-const LI = { data:null, err:null, filter:'Pending', q:'', busy:{} };
+const LI = { data:null, err:null, filter:'Pending', q:'', busy:{}, errs:{} };
 const liUrlOk = u => /^https:\/\/([a-z]{2,3}\.)?linkedin\.com\/in\//i.test(String(u || ''));
 const liIsPending = it => !it.email_status || it.email_status === 'Pending';
 async function liLoad(){
   const box = $x('hubLi'); if(!box) return;
   if(!LI.data) box.innerHTML = '<div style="color:var(--ink-faint);font-size:13px;padding:8px 2px">Loading…</div>';
-  try { LI.data = await n8nGet('/linkedin-people'); LI.err = null; } catch(e){ LI.err = e; }
+  try { const d = await n8nGet('/linkedin-people'); if(!d || !Array.isArray(d.items)) throw new Error('Unexpected answer from the server (no list). Press Reload.'); LI.data = d; LI.err = null; } catch(e){ LI.err = e; }
   liRender();
 }
 function liRender(){
   const box = $x('hubLi'); if(!box) return;
-  if(LI.err && !LI.data){ box.innerHTML = xErrBox('LinkedIn contacts', '/linkedin-people', LI.err); return; }
+  if(LI.err && !LI.data){ box.innerHTML = xErrBox('LinkedIn contacts', '/linkedin-people', LI.err) + '<button class="btn-secondary" style="flex:none;margin-top:8px" onclick="liLoad()">Try again</button>'; return; }
   box.innerHTML =
     '<div class="li-note">Profiles found automatically by name and company. Open the profile, find the email (for example with Mailmeteor), paste it here and press Save. The contact then appears in <b>To contact</b>. Check the line “Profile says” first: if it is clearly another person or company, press <b>Wrong person</b>.</div>' +
-    '<div class="li-bar" id="liChips"></div><div id="liList"></div>';
+    '<div class="li-bar" id="liChips"></div><pre id="liCheck" style="display:none;white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,monospace;background:#f4f6f9;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:0 0 12px"></pre><div id="liList"></div>';
   liDraw();
 }
 function liDraw(){
@@ -3735,7 +3736,9 @@ function liDraw(){
   const chip = (k, label) => '<button class="li-chip' + (LI.filter === k ? ' on' : '') + '" onclick="liFilter(\'' + k + '\')">' + label + ' · ' + (cnt[k] || 0) + '</button>';
   const chips = $x('liChips'); if(!chips) return;
   chips.innerHTML = chip('Pending', 'Needs email') + chip('Found', 'Email added') + chip('Not_found', 'No email found') +
-    '<input class="ld-input li-search" id="liQ" placeholder="Search name or company" value="' + escH(LI.q) + '" oninput="liSearch(this.value)">';
+    '<input class="ld-input li-search" id="liQ" placeholder="Search name or company" value="' + escH(LI.q) + '" oninput="liSearch(this.value)">' +
+    '<button class="li-chip" onclick="liLoad()" title="Load the latest list from the sheet">↻ Reload</button>' +
+    '<button class="li-chip" onclick="liCheck()" title="Tests the connection between this page and n8n. Writes nothing.">Check connection</button>';
   const qq = LI.q.trim().toLowerCase();
   const rows = []; items.forEach((it, i) => {
     const k = liIsPending(it) ? 'Pending' : it.email_status;
@@ -3751,14 +3754,30 @@ function liRow(it, i){
   const open = liUrlOk(it.url) ? '<a class="btn-secondary" href="' + escH(it.url) + '" target="_blank" rel="noopener noreferrer">Open LinkedIn ↗</a>' : '';
   let act;
   if(st === 'Not_found') act = open + '<span class="li-pill no">No email found</span><button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liAct(' + i + ',\'restore\')">Undo</button>';
-  else act = open + '<input class="ld-input" id="liE' + i + '" type="email" placeholder="Email address" value="' + escH(it.email || '') + '" onkeydown="if(event.key===\'Enter\')liSave(' + i + ')">' +
+  else act = open + '<input class="ld-input" id="liE' + i + '" type="email" placeholder="Email address" value="' + escH(it.email || it.draft || '') + '" onkeydown="if(event.key===\'Enter\')liSave(' + i + ')">' +
     '<button class="btn-primary" ' + (busy ? 'disabled ' : '') + 'onclick="liSave(' + i + ')">' + (busy ? 'Saving…' : (st === 'Found' ? 'Update' : 'Save')) + '</button>' +
     (st === 'Found' ? '<span class="li-pill ok">Email added</span>' : '<button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liAct(' + i + ',\'no_email\')">No email found</button>') +
     '<button class="btn-secondary" ' + (busy ? 'disabled ' : '') + 'onclick="liReject(' + i + ')" title="This profile is not the right person">Wrong person</button>';
   return '<div class="li-row"><div><div class="li-nm">' + escH(it.person) + (it.title ? ' <span style="font-weight:500;color:var(--ink-faint)">· ' + escH(it.title) + '</span>' : '') + '</div>' +
     '<div class="li-sub">' + escH(it.lead) + (it.country ? ' · ' + escH(it.country) : '') + '</div>' +
     '<div class="li-prof">Profile says: ' + escH(it.linkedin_title || '—') + (it.confidence === 'Medium' ? ' · matched by name and country only' : '') + '</div></div>' +
-    '<div class="li-act">' + act + '</div></div>';
+    '<div class="li-act">' + act + '</div>' + (LI.errs[it.match_key] ? '<div class="li-err">' + escH(LI.errs[it.match_key]) + '</div>' : '') + '</div>';
+}
+/* tes koneksi halaman -> n8n; tidak menulis apa pun (POST dikirim kosong, harus dijawab 400 oleh validasi) */
+async function liCheck(){
+  const box = $x('liCheck'); box.style.display = ''; box.textContent = 'Checking…\nPage address: ' + location.origin + '\nn8n address: ' + N8N_BASE;
+  const tests = [
+    ['GET  /linkedin-people', () => fetch(N8N_BASE + '/linkedin-people', { cache:'no-store' })],
+    ['POST /linkedin-update', () => fetch(N8N_BASE + '/linkedin-update', { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body:'{}' })],
+    ['POST /contact-save   ', () => fetch(N8N_BASE + '/contact-save', { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body:'{}' })]
+  ];
+  const out = ['Page address: ' + location.origin, 'n8n address: ' + N8N_BASE, '(Expected: GET = 200, both POST = 400 with MATCH_KEY_REQUIRED)', ''];
+  for(const [name, fn] of tests){
+    try { const r = await fn(); let txt = ''; try { txt = (await r.text()).replace(/\s+/g, ' ').slice(0, 90); } catch(e){}
+      out.push((r.status === 200 || r.status === 400 ? 'OK     ' : 'PROBLEM') + ' ' + name + ' → HTTP ' + r.status + ' ' + txt); }
+    catch(e){ out.push('BLOCKED ' + name + ' → ' + e.message + '  (the browser refused the answer: Allowed Origins (CORS) does not match the page address, or the workflow is not Active)'); }
+    box.textContent = out.join('\n');
+  }
 }
 function liFilter(k){ LI.filter = k; liDraw(); }
 function liSearch(v){ LI.q = v; const el = $x('liQ'); const pos = el ? el.selectionStart : 0; liDraw(); const e2 = $x('liQ'); if(e2){ e2.focus(); try { e2.setSelectionRange(pos, pos); } catch(e){} } }
@@ -3766,14 +3785,20 @@ async function liSave(i){
   const it = LI.data.items[i]; if(!it || LI.busy[it.match_key]) return;
   const email = ($x('liE' + i).value || '').trim().toLowerCase();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s.]+$/.test(email)){ showToast('Enter a valid email address'); return; }
-  LI.busy[it.match_key] = 1; liDraw();
+  it.draft = email; LI.busy[it.match_key] = 1; delete LI.errs[it.match_key]; liDraw();
+  let step = 1;
   try {
     /* 1) simpan sebagai kontak lead (Lead_Contacts); aman diulang, Contact_ID sama untuk lead+email yang sama */
     await n8nPost('/contact-save', { match_key:it.match_key, name:it.person, title:it.title || '', email, note:'LinkedIn' });
+    step = 2;
     /* 2) tandai di LinkedIn_People */
     await n8nPost('/linkedin-update', { match_key:it.match_key, action:'email_saved', email });
     it.email = email; it.email_status = 'Found'; showToast('Saved. Updating To contact…'); liQueueRefresh();
-  } catch(e){ showToast('Could not save: ' + e.message); }
+  } catch(e){
+    LI.errs[it.match_key] = step === 1
+      ? 'Step 1 of 2 failed (saving the contact via /contact-save): ' + e.message + '. Nothing was saved.'
+      : 'Step 2 of 2 failed (marking it in LinkedIn_People via /linkedin-update): ' + e.message + '. The contact itself WAS saved; press Save again to finish.';
+  }
   delete LI.busy[it.match_key]; liDraw();
 }
 /* setelah Save: muat ulang antrean To contact (ditunda 4 detik; beberapa Save berurutan = 1 refresh) */
