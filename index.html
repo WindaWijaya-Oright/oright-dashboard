@@ -3952,6 +3952,7 @@ function hubQueueRows(){
   }).join('') : '<tr><td colspan="7" class="x-empty">No lead matches these filters. Press Reset.</td></tr>';
 }
 HUB.sf = HUB.sf || { sender:'', from:'', to:'', q:'' };
+const isSentRow = r => !!r.sent_at || ['Sent','Replied','Bounced'].includes(r.status);   // imported rows have no date but are Sent
 const sfDay = iso => { if(!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-CA'); };   // yyyy-mm-dd, local time
 function sfSet(k, v){ HUB.sf[k] = v; hubDrawSent(); }
 function sfRange(days){ const t = new Date(), f = new Date(); f.setDate(t.getDate() - (days - 1)); HUB.sf.from = days ? f.toLocaleDateString('en-CA') : ''; HUB.sf.to = days ? t.toLocaleDateString('en-CA') : ''; hubDrawSent(); }
@@ -3967,7 +3968,7 @@ function sfRows(){   // keeps the ORIGINAL index (hubBounce uses it)
 function hubDrawSent(){
   const el = $x('hubSent'); if(HUB.errs.sent){ el.innerHTML = xErrBox('sent emails', HUB.errs.sent.ep, HUB.errs.sent.e); return; }
   const all = HUB.sent.rows || [], F = HUB.sf, view = sfRows(), rows = view.map(v => v.r);
-  const T = { sent: rows.filter(r => r.sent_at).length, scheduled: rows.filter(r => r.status === 'Scheduled' || r.status === 'Sending').length, failed: rows.filter(r => r.status === 'Failed').length,
+  const T = { sent: rows.filter(isSentRow).length, scheduled: rows.filter(r => r.status === 'Scheduled' || r.status === 'Sending').length, failed: rows.filter(r => r.status === 'Failed').length,
     bounced: rows.filter(r => r.bounced_at).length, replied: rows.filter(r => r.replied_at).length, clicked: rows.filter(r => r.clicks > 0).length };
   const k = (l, v, f) => '<div class="x-kpi"><div class="l">' + l + '</div><div class="v">' + xN(v) + '</div><div class="f">' + f + '</div></div>';
   const sent = T.sent || 0;
@@ -3982,7 +3983,7 @@ function hubDrawSent(){
     '<div style="display:flex;gap:6px"><button class="x-btn" onclick="sfRange(1)">Today</button><button class="x-btn" onclick="sfRange(7)">7 days</button><button class="x-btn" onclick="sfRange(30)">30 days</button><button class="x-btn" onclick="sfRange(0)">All time</button></div>' +
     '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Search<input ' + inp + ' placeholder="Company, email, subject" value="' + escH(F.q) + '" onchange="sfSet(\'q\', this.value)"></label>' +
     '<div style="margin-left:auto;font-size:12.5px;color:var(--ink-faint)">Showing <b>' + rows.length + '</b> of ' + all.length + ' emails' + (F.from || F.to ? ' · ' + escH(F.from || '…') + ' to ' + escH(F.to || '…') : '') + ' · sent today: <b>' + nToday + '</b></div></div>';
-  const by = {}; rows.forEach(r => { if(!r.sent_at) return; const s = r.sent_by || '(not recorded)'; (by[s] = by[s] || { n:0, cos:new Set(), rep:0, bnc:0 }); by[s].n++; by[s].cos.add(r.match_key); if(r.replied_at) by[s].rep++; if(r.bounced_at) by[s].bnc++; });
+  const by = {}; rows.forEach(r => { if(!isSentRow(r)) return; const s = r.sent_by || '(not recorded)'; (by[s] = by[s] || { n:0, cos:new Set(), rep:0, bnc:0 }); by[s].n++; by[s].cos.add(r.match_key); if(r.replied_at) by[s].rep++; if(r.bounced_at) by[s].bnc++; });
   const keys = Object.keys(by).sort((a, b) => by[b].n - by[a].n);
   if(keys.length) h += '<div class="x-panel" style="padding:10px 14px;margin-bottom:12px"><table class="x-tbl"><thead><tr><th>Sender</th><th class="r">Emails sent</th><th class="r">Companies</th><th class="r">Replied</th><th class="r">Bounced</th></tr></thead><tbody>' + keys.map(s => '<tr><td><b>' + escH(s) + '</b></td><td class="r">' + by[s].n + '</td><td class="r">' + by[s].cos.size + '</td><td class="r">' + by[s].rep + '</td><td class="r">' + by[s].bnc + '</td></tr>').join('') + '</tbody></table></div>';
   h += '<div class="x-grid x-g6">' + k('Sent', T.sent, 'delivered to the server') + k('Scheduled', T.scheduled, 'waiting to go out') + k('Bounced', T.bounced, sent ? xPct(T.bounced || 0, sent) + '% of sent' : '') + k('Replied', T.replied, sent ? xPct(T.replied || 0, sent) + '% of sent' : '') + k('Clicked', T.clicked, 'a link in the signature') + k('Failed', T.failed, 'could not be sent') + '</div>';
