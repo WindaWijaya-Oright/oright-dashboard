@@ -68,9 +68,11 @@ img.pb{display:block;height:14px;width:260px}
 <body>
 <div class="bar no-print">
   <label>Report<select id="period"><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="monthly">Monthly</option></select></label>
-  <label>Which<select id="which"><option value="current">Current (to date)</option><option value="previous">Previous (complete)</option></select></label>
-  <label>Or pick a date<input type="date" id="date"></label>
-  <label>Person<input id="owner" list="owners" placeholder="All"><datalist id="owners"></datalist></label>
+  <label data-for="daily">Date<input type="date" id="dDate"></label>
+  <label data-for="weekly">From<input type="date" id="wFrom"></label>
+  <label data-for="weekly">To<input type="date" id="wTo"></label>
+  <label data-for="monthly">Month<input type="month" id="mMonth"></label>
+  <label>Person<select id="owner"><option value="">All</option><option value="Winda">Winda</option><option value="Karen">Karen</option></select></label>
   <label>Report language<select id="lang"><option value="en">English</option><option value="zh">中文</option></select></label>
   <button id="go">Generate</button>
   <span class="sp"></span>
@@ -91,7 +93,7 @@ const L = {
 en: {
   brand: "O'right International Sales",
   title: { daily: 'Daily Pulse', weekly: 'Weekly Review', monthly: 'Monthly Review' },
-  tagline: { daily: 'What needs doing today', weekly: 'How the week went, who replied, what happens next', monthly: 'Trends and performance for the month' },
+  tagline: { daily: 'What needs doing today', weekly: 'How the week went, who replied and where the leads stand', monthly: 'Trends and performance for the month' },
   range: 'Period', generated: 'Generated', scope: 'Scope', all: 'Whole team', draft: 'Draft', final: 'Final',
   draftNote: 'The period is still running. Numbers run up to {d} and are compared with the same number of days of the previous period.',
   finalNote: 'The period is complete and compared with the full previous period.',
@@ -107,9 +109,12 @@ en: {
   k: { sent: 'Emails sent', contacted: 'Companies contacted', replies: 'Replies', meetings: 'Meetings logged', sentToday: 'Sent today', repliesToday: 'Replies today', overdue: 'Overdue follow-ups', dueToday: 'Due today', vs: 'vs {p} before ({d})', pace: 'pace {p}', of: 'of {t}' },
   chartSent: 'Sent', chartTarget: 'Target pace', chartReplied: 'Companies replied',
   replyNone: 'No new replies in this period.', autoNote: '{n} automatic out-of-office replies are not counted.', replyTotal: '{n} companies replied in this period.', more: 'Showing the latest {n}.',
-  r: { contact: 'Replied by', said: 'What they said', status: 'Status now', next: 'Planned next step', sugg: 'Suggested next step', last: 'Our last email', owner: 'Owner', none: 'none on record', since: 'since', due: 'due', type: 'Type', sent: 'we sent them {n} email(s)' },
+  r: { company: 'Company', profile: 'Company profile', noProfile: 'No further company details on file.', fitNote: 'Fit assessment', alt: 'Also looks like a {x} business', fit: 'Fit score', contact: 'Replied by', said: 'What they said', status: 'Status now', next: 'Planned next step', last: 'Our last email', owner: 'Owner', none: 'none on record', since: 'since', due: 'due', type: 'Type', sent: 'we sent them {n} email(s)' },
   step: { contacted: 'Contacted', replied: 'Replied', meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation', won: 'Won' }, cnt: 'Companies', ofPrev: '% of previous step', ofCont: '% of contacted',
-  src: 'Source', srcName: { 'Imported (manual)': 'Historical list (imported from manual tracker)', System: 'Sent through the new system' }, contacted: 'Contacted', replied: 'Replied', rate: 'Reply rate', meetings: 'Meetings',
+  secBottleneck: 'Review: where it is stuck now', whoReplied: 'Who replied:', secLeadSource: 'Where our leads come from', notRecorded: 'Not recorded',
+  ls: { src: 'Lead source', pool: 'Leads on file', ver: 'Verified', con: 'Contacted', rep: 'Replied', rate: 'Reply rate', mtg: 'Meetings' },
+  pf: { Sub_Segment: 'Business type', Employees: 'Employees', Founded: 'Founded', Brands: 'Brands carried', Target_Markets: 'Target markets', Countries_Served: 'Countries served', Rooms: 'Rooms', Stores: 'Stores', Online: 'Online sales', Company_Summary: 'About', Description: 'About', Industry: 'Industry', Notes: 'Notes' },
+  src: 'Source', contacted: 'Contacted', replied: 'Replied', rate: 'Reply rate', meetings: 'Meetings',
   rrAll: 'Reply rate, all time', rrMature: 'Reply rate on emails at least {n} days old (bounces excluded)', rrNone: 'No emails old enough yet ({x} companies are too recent to judge)', rrOf: '{a} of {b} companies replied', thisP: 'This period', lastP: 'Previous (same days)', metric: 'Metric',
   stage: { Contacted: 'Contacted', Replied: 'Replied', Meeting: 'Meeting', Sample: 'Sample', Quotation: 'Quotation', Won: 'Won', Nurture: 'Nurture', Lost: 'Lost', Cold: 'Cold' },
   kind: { meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation', won: 'Won', lost: 'Lost', nurture: 'Nurture' },
@@ -123,7 +128,7 @@ en: {
 zh: {
   brand: "O'right 國際業務",
   title: { daily: '每日重點', weekly: '每週回顧', monthly: '每月回顧' },
-  tagline: { daily: '今天要處理的事', weekly: '本週成果、誰回覆了、接下來怎麼做', monthly: '本月趨勢與成效' },
+  tagline: { daily: '今天要處理的事', weekly: '本週成果、誰回覆了、名單現況', monthly: '本月趨勢與成效' },
   range: '期間', generated: '產生時間', scope: '範圍', all: '全部成員', draft: '草稿', final: '定稿',
   draftNote: '本期尚未結束，數字統計到 {d}，並與上一期「相同天數」比較。', finalNote: '本期已結束，與上一期完整比較。',
   hi: '亮點', co: '需要注意', hy: '可能原因（尚未驗證）', verify: '如何驗證', rec: '建議行動', cannot: '目前無法判斷', why: '原因', noAI: '本次沒有產生文字分析。',
@@ -138,9 +143,12 @@ zh: {
   k: { sent: '發出信件', contacted: '接觸公司數', replies: '回覆公司數', meetings: '會議（本期記錄）', sentToday: '今天已發', repliesToday: '今天回覆', overdue: '逾期跟進', dueToday: '今天到期', vs: '上期 {p}（{d}）', pace: '應達 {p}', of: '目標 {t}' },
   chartSent: '已發', chartTarget: '目標進度', chartReplied: '回覆公司數',
   replyNone: '本期沒有新的回覆。', autoNote: '另有 {n} 封自動回覆（休假通知）不列入。', replyTotal: '本期共有 {n} 家公司回覆。', more: '僅顯示最新 {n} 筆。',
-  r: { contact: '回覆的人', said: '對方說了什麼', status: '目前狀態', next: '已排定的下一步', sugg: '建議的下一步', last: '我們最後一封信', owner: '負責人', none: '尚無紀錄', since: '起', due: '預定', type: '類型', sent: '我們共寄了 {n} 封' },
+  r: { company: '公司', profile: '公司背景', noProfile: '目前沒有更多公司資料。', fitNote: '適配評估', alt: '也像是 {x} 類型的業者', fit: '適配分數', contact: '回覆的人', said: '對方說了什麼', status: '目前狀態', next: '已排定的下一步', last: '我們最後一封信', owner: '負責人', none: '尚無紀錄', since: '起', due: '預定', type: '類型', sent: '我們共寄了 {n} 封' },
   step: { contacted: '已接觸', replied: '已回覆', meeting: '會議', sample: '樣品', quotation: '報價', won: '成交' }, cnt: '公司數', ofPrev: '佔上一階段', ofCont: '佔已接觸',
-  src: '來源', srcName: { 'Imported (manual)': '歷史名單（手動追蹤表匯入）', System: '新系統發送' }, contacted: '接觸公司', replied: '回覆', rate: '回覆率', meetings: '會議',
+  secBottleneck: '現況檢視：目前卡在哪裡', whoReplied: '回覆的是哪些公司：', secLeadSource: '名單來源', notRecorded: '未記錄',
+  ls: { src: '名單來源', pool: '名單數', ver: '已驗證', con: '已接觸', rep: '已回覆', rate: '回覆率', mtg: '會議' },
+  pf: { Sub_Segment: '業務類型', Employees: '員工數', Founded: '成立', Brands: '代理品牌', Target_Markets: '目標市場', Countries_Served: '服務國家', Rooms: '客房數', Stores: '門市數', Online: '線上銷售', Company_Summary: '簡介', Description: '簡介', Industry: '產業', Notes: '備註' },
+  src: '來源', contacted: '接觸公司', replied: '回覆', rate: '回覆率', meetings: '會議',
   rrAll: '累計回覆率', rrMature: '已滿 {n} 天信件的回覆率（排除退信）', rrNone: '尚無滿 {n} 天的信件（另有 {x} 家公司太新，先不判斷）', rrOf: '{a} / {b} 家回覆', thisP: '本期', lastP: '上期（同天數）', metric: '指標',
   stage: { Contacted: '已接觸', Replied: '已回覆', Meeting: '會議', Sample: '樣品', Quotation: '報價', Won: '成交', Nurture: '培養中', Lost: '已流失', Cold: '暫無回應' },
   kind: { meeting: '會議', sample: '樣品', quotation: '報價', won: '成交', lost: '流失', nurture: '培養' },
@@ -222,17 +230,24 @@ function targetBlock(r) {
 function replyCards(r, n) {
   const list = r.new_replies || [];
   if (!list.length) return '<p class="note">' + esc(T.replyNone) + (r.auto_replies_in_period ? ' ' + esc(f(T.autoNote, { n: r.auto_replies_in_period })) : '') + '</p>';
-  const acts = {}; ((n.reply_actions) || []).forEach(a => acts[a.reply] = a.suggested_action);
   let h = '<p class="note">' + esc(f(T.replyTotal, { n: r.new_replies_total })) + (r.new_replies_total > list.length ? ' ' + esc(f(T.more, { n: list.length })) : '') + (r.auto_replies_in_period ? ' ' + esc(f(T.autoNote, { n: r.auto_replies_in_period })) : '') + '</p>';
+  if (n.reply_profile && n.reply_profile.text) h += '<div style="border-left:4px solid #1d4e89;background:#f3f6fa;padding:8px 12px;margin:8px 0 12px"><b>' + esc(T.whoReplied) + '</b> ' + esc(n.reply_profile.text) + '</div>';
   list.forEach(x => {
+    const ci = x.company_info || {};
     const nextTxt = x.next_step ? x.next_step + (x.next_step_due ? ' (' + T.r.due + ' ' + x.next_step_due + ')' : '') : T.r.none;
-    const row = (k, v, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="k">' + esc(k) + '</td><td>' + v + '</td></tr>';
-    h += '<table class="card"><tr class="head"><td colspan="2">' + esc(x.company) + ' · ' + esc([x.country, x.channel].filter(Boolean).join(' · ')) + '<span style="float:right" class="muted">' + esc(x.at) + '</span></td></tr>' +
-      row(T.r.contact, esc((x.contact || '—') + (x.contact_email ? ' <' + x.contact_email + '>' : '')) + (x.type && x.type !== 'unclassified' ? ' ' + pill('stage', x.type) : '')) +
+    const row = (k, v) => '<tr><td class="k">' + esc(k) + '</td><td>' + v + '</td></tr>';
+    const where = [ci.city, x.country].filter(Boolean).join(', ');
+    const tags = [x.channel, x.brand, x.lead_source && x.lead_source !== 'Not recorded' ? T.src + ': ' + x.lead_source : '', ci.fit_score != null ? T.r.fit + ' ' + ci.fit_score : ''].filter(Boolean).map(z => pill('stage', z)).join(' ');
+    const prof = (ci.profile || []).map(p => '<b>' + esc(T.pf[p.k] || p.k) + ':</b> ' + esc(p.v)).join('<br>') +
+      (ci.fit_reason ? ((ci.profile || []).length ? '<br>' : '') + '<b>' + esc(T.r.fitNote) + ':</b> ' + esc(ci.fit_reason) : '') +
+      (ci.alt_channel ? '<br>' + esc(f(T.r.alt, { x: ci.alt_channel })) : '');
+    h += '<table class="card"><tr class="head"><td colspan="2">' + esc(x.company) + '<span style="float:right" class="muted">' + esc(x.at) + '</span></td></tr>' +
+      row(T.r.company, esc(where) + (where ? ' ' : '') + tags + (ci.website ? '<br><span class="muted">' + esc(ci.website) + '</span>' : '')) +
+      row(T.r.profile, prof || '<span class="muted">' + esc(T.r.noProfile) + '</span>') +
+      row(T.r.contact, esc((x.contact || '—') + (x.contact_title ? ', ' + x.contact_title : '') + (x.contact_email ? ' <' + x.contact_email + '>' : '')) + (x.type && x.type !== 'unclassified' ? ' ' + pill('stage', x.type) : '')) +
       row(T.r.said, '<span class="quote">“' + esc(x.snippet || '—') + '”</span>') +
       row(T.r.status, pill('stage', stageLabel(x.stage)) + (x.stage_since ? ' <span class="muted">' + esc(T.r.since === '起' ? x.stage_since + T.r.since : T.r.since + ' ' + x.stage_since) + '</span>' : '') + ' · ' + esc(T.r.owner) + ': ' + esc(own(x.owner))) +
       row(T.r.next, esc(nextTxt)) +
-      (acts[x.id] ? row(T.r.sugg, esc(acts[x.id]), 'sugg') : '') +
       row(T.r.last, x.our_last_email ? esc('“' + x.our_last_email.subject + '” · ' + x.our_last_email.at + ' · ' + f(T.r.sent, { n: x.emails_we_sent })) : '—') +
       '</table>';
   });
@@ -241,9 +256,12 @@ function replyCards(r, n) {
 function funnelBlock(r) {
   const fn = r.funnel_to_date, max = Math.max(1, ...fn.map(x => x.n));
   let h = tbl([T.step.contacted + ' → ' + T.step.won, T.cnt, T.ofPrev, T.ofCont, ''], fn.map(x => [T.step[x.step], x.n, pct(x.pct_of_previous), pct(x.pct_of_contacted), H(hbarImg(x.n, max))]), [1, 2, 3]);
-  const sr = (r.by_source_all_time || []).map(s => [T.srcName[s.key] || s.key, s.companies_contacted, s.replied, s.companies_contacted ? pct(Math.round(1000 * s.replied / s.companies_contacted) / 10) : '—', s.meetings]);
-  if (sr.length) h += tbl([T.src, T.contacted, T.replied, T.rate, T.meetings], sr, [1, 2, 3, 4]);
   return h;
+}
+function leadSourceTable(r) {
+  const ls = r.by_lead_source || []; if (!ls.length) return empty();
+  const nm = k => k === 'Not recorded' ? T.notRecorded : k;
+  return tbl([T.ls.src, T.ls.pool, T.ls.ver, T.ls.con, T.ls.rep, T.ls.rate, T.ls.mtg], ls.map(x => [nm(x.key), x.leads_in_pool, x.verified, x.companies_contacted, x.replied, x.companies_contacted ? pct(Math.round(1000 * x.replied / x.companies_contacted) / 10) : '—', x.meetings]), [1, 2, 3, 4, 5, 6]);
 }
 function replyRateBlock(r) {
   const rr = r.reply_rate, c1 = rr.this_period_cohort, c0 = rr.last_period_cohort;
@@ -270,67 +288,55 @@ function ownerTable(r) {
   const note = ow.every(o => o.key === 'Unassigned') ? T.unassignedNote : T.ownerNote;
   return '<p class="note">' + esc(note) + '</p>' + tbl([T.person, T.emails, T.companies, T.replied, T.meetings, T.overdueCol], ow.map(o => [own(o.key), o.emails_sent, o.companies_contacted, o.replied, o.meetings, o.follow_ups_overdue]), [1, 2, 3, 4, 5]);
 }
-function analysisBlocks(n, opt) {
-  opt = opt || {}; let h = '', any = false;
-  if (opt.summary) {
-    if ((n.highlights || []).length) h += '<h3>' + esc(T.hi) + '</h3><ul>' + n.highlights.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>';
-    if ((n.concerns || []).length) h += '<h3>' + esc(T.co) + '</h3><ul>' + n.concerns.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>';
-    return h;
-  }
-  if ((n.hypotheses || []).length) { any = true; h += '<h3>' + esc(T.hy) + '</h3>' + n.hypotheses.map(x => '<div class="hyp">' + esc(x.text) + '<div class="note">' + esc(T.verify) + ': ' + esc(x.how_to_verify) + '</div></div>').join(''); }
-  if ((n.recommendations || []).length) { any = true; h += '<h3>' + esc(T.rec) + '</h3><ol>' + n.recommendations.map(x => '<li><b>' + esc(x.action) + '</b>' + (x.reason ? '<div class="note">' + esc(T.why) + ': ' + esc(x.reason) + '</div>' : '') + '</li>').join('') + '</ol>'; }
-  if ((n.cannot_conclude || []).length) { any = true; h += '<h3>' + esc(T.cannot) + '</h3><ul>' + n.cannot_conclude.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>'; }
-  if (!any) h += '<p class="note">' + esc(T.noAI) + '</p>';
-  return h;
+function reviewBlock(n) {
+  if (!n.bottleneck || !n.bottleneck.text) return '';
+  return '<div style="border-left:4px solid #e08a00;background:#fff8ec;padding:8px 12px;margin:12px 0"><b>' + esc(T.secBottleneck) + '</b><br>' + esc(n.bottleneck.text) + '</div>';
 }
 const sec = (title, body) => '<h2>' + esc(title) + '</h2>' + body;
 const delta = (a, b) => f(T.k.vs, { p: b, d: sign(a - b) });
 
 // ---------- three layouts ----------
+function kpis(r) {
+  const t = r.this_period, l = r.last_period;
+  return kpiRow([{ lab: T.k.sent, big: t.emails_sent, sub: delta(t.emails_sent, l.emails_sent) }, { lab: T.k.contacted, big: t.companies_contacted, sub: delta(t.companies_contacted, l.companies_contacted) },
+    { lab: T.k.replies, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) }, { lab: T.k.meetings, big: t.meetings_logged, sub: delta(t.meetings_logged, l.meetings_logged) }]);
+}
 function renderDaily(r, n) {
   const t = r.this_period, l = r.last_period, tg = r.targets.team, od = (r.followups || {}).overdue || [], dt = (r.followups || {}).due_today || [];
-  let h = kpiRow([
+  let h = reviewBlock(n) + kpiRow([
     { lab: T.k.sentToday, big: t.emails_sent + ' / ' + tg.target, sub: tg.target ? f(T.k.pace, { p: tg.pace_to_date }) + ' · ' + T.stat[tg.status] : T.stat['n/a'] },
     { lab: T.k.repliesToday, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) },
     { lab: T.k.overdue, big: od.length, sub: '' }, { lab: T.k.dueToday, big: dt.length, sub: '' }]);
   h += sec(T.secChartDaily, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget, w: 800, h: 210 }));
   h += sec(T.secRepliesToday, replyCards(r, n));
   h += sec(T.secTodo, '<h3>' + esc(T.dueTodayH) + '</h3>' + dueTable(dt, 10) + '<h3>' + esc(T.overdue) + ' (' + od.length + ')</h3>' + overdueTable(r, 8));
-  h += sec(T.secAnalysis, analysisBlocks(n, { summary: true }) + analysisBlocks(n));
   return h;
 }
 function renderWeekly(r, n) {
-  const t = r.this_period, l = r.last_period;
-  let h = analysisBlocks(n, { summary: true });
-  h += sec(T.secTarget, targetBlock(r));
-  h += kpiRow([{ lab: T.k.sent, big: t.emails_sent, sub: delta(t.emails_sent, l.emails_sent) }, { lab: T.k.contacted, big: t.companies_contacted, sub: delta(t.companies_contacted, l.companies_contacted) },
-    { lab: T.k.replies, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) }, { lab: T.k.meetings, big: t.meetings_logged, sub: delta(t.meetings_logged, l.meetings_logged) }]);
+  let h = reviewBlock(n);
+  h += sec(T.secTarget, targetBlock(r)) + kpis(r);
   h += sec(T.secChartWeek, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget }));
   h += sec(T.secRepliesWeek, replyCards(r, n));
   h += sec(T.secProgress, progressTable(r));
   h += sec(T.secFunnel, funnelBlock(r) + '<h3>' + esc(T.secReply) + '</h3>' + replyRateBlock(r));
+  h += sec(T.secLeadSource, leadSourceTable(r));
+  h += sec(T.secSeg, segTables(r));
+  h += sec(T.secOwner, ownerTable(r));
   h += sec(T.secPipeline, pipelineChips(r));
   h += sec(T.secAction, '<h3>' + esc(T.overdue) + '</h3>' + overdueTable(r, 6) + '<h3>' + esc(T.noNext) + ' (' + (r.stale_no_next_step || []).length + ')</h3>' + staleTable(r, 6));
-  const nx = (r.followups || {}).next_7_days || [], um = r.upcoming_meetings_14d || [];
-  h += sec(T.secNext, '<h3>' + esc(T.next7) + '</h3>' + dueTable(nx, 10) + (um.length ? '<h3>' + esc(T.upcoming) + '</h3>' + tbl([T.company, T.due], um.map(x => [x.company, x.at])) : '') +
-    (r.leads_ready_to_contact != null ? '<h3>' + esc(T.ready) + '</h3><p><b>' + r.leads_ready_to_contact + '</b> <span class="muted">(' + esc(T.readyDesc) + ')</span></p>' : ''));
-  h += sec(T.secAnalysis, analysisBlocks(n));
   return h;
 }
 function renderMonthly(r, n) {
-  const t = r.this_period, l = r.last_period;
-  let h = analysisBlocks(n, { summary: true });
-  h += sec(T.secTarget, targetBlock(r));
-  h += kpiRow([{ lab: T.k.sent, big: t.emails_sent, sub: delta(t.emails_sent, l.emails_sent) }, { lab: T.k.contacted, big: t.companies_contacted, sub: delta(t.companies_contacted, l.companies_contacted) },
-    { lab: T.k.replies, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) }, { lab: T.k.meetings, big: t.meetings_logged, sub: delta(t.meetings_logged, l.meetings_logged) }]);
+  let h = reviewBlock(n);
+  h += sec(T.secTarget, targetBlock(r)) + kpis(r);
   h += sec(T.secChartMonth, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget, h: 240 }));
   h += '<h3>' + esc(T.secChartReplies) + '</h3>' + chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.replied), color: '#2e7d4f', h: 190 });
   h += sec(T.secFunnel, funnelBlock(r) + '<h3>' + esc(T.secReply) + '</h3>' + replyRateBlock(r));
+  h += sec(T.secLeadSource, leadSourceTable(r));
   h += sec(T.secSeg, segTables(r));
   h += sec(T.secOwner, ownerTable(r));
   h += sec(T.secProgress, progressTable(r) + '<h3>' + esc(T.secPipeline) + '</h3>' + pipelineChips(r));
   h += sec(T.secAction, '<h3>' + esc(T.noNext) + ' (' + (r.stale_no_next_step || []).length + ')</h3>' + staleTable(r, 6) + '<h3>' + esc(T.overdue) + '</h3>' + overdueTable(r, 6));
-  h += sec(T.secPlanMonth, analysisBlocks(n));
   return h;
 }
 
@@ -350,22 +356,32 @@ function render(r) {
   $('internal').style.display = checks.length ? 'block' : 'none';
   $('internal').querySelector('summary').textContent = T.internal + ' (' + checks.length + ')';
   $('internalList').innerHTML = checks.map(x => '<li>' + esc(x) + '</li>').join('');
-  $('owners').innerHTML = (r.by_owner || []).filter(o => o.key !== 'Unassigned' && o.key !== 'Imported (manual)').map(o => '<option value="' + esc(o.key) + '">').join('');
 }
 
 function say(kind, text) { const m = $('msg'); m.className = kind || ''; m.textContent = text || ''; if (!kind) m.style.display = 'none'; }
-function targetDate() {
-  if ($('date').value) return $('date').value;
-  if ($('which').value !== 'previous') return '';
-  const d = new Date(Date.now() + 8 * 3600e3), p = $('period').value, y = d.getUTCFullYear(), m = d.getUTCMonth(), dd = d.getUTCDate();
-  const out = p === 'daily' ? new Date(Date.UTC(y, m, dd - 1)) : p === 'weekly' ? new Date(Date.UTC(y, m, dd - 7)) : new Date(Date.UTC(y, m, 0));
-  return out.toISOString().slice(0, 10);
+function twToday() { return new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10); }
+function addD(iso, n) { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
+function initDates() {
+  const t = twToday(), [y, m, d] = t.split('-').map(Number), dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(), mon = addD(t, -((dow + 6) % 7));
+  $('dDate').value = t; $('wFrom').value = mon; $('wTo').value = addD(mon, 6); $('mMonth').value = t.slice(0, 7);
+}
+function syncControls() { const p = $('period').value; document.querySelectorAll('[data-for]').forEach(l => { l.style.display = l.dataset.for === p ? '' : 'none'; }); }
+function buildBody() {
+  const p = $('period').value, body = { period: p, lang: $('lang').value };
+  if (p === 'daily') { if (!$('dDate').value) throw new Error('Pick a date'); body.date = $('dDate').value; }
+  else if (p === 'weekly') {
+    const a = $('wFrom').value, b = $('wTo').value;
+    if (!a || !b) throw new Error('Pick the From and To dates');
+    if (b < a) throw new Error('"To" must be on or after "From"');
+    if ((Date.parse(b) - Date.parse(a)) / 864e5 > 61) throw new Error('Date range is limited to 62 days');
+    body.from = a; body.to = b;
+  } else { if (!$('mMonth').value) throw new Error('Pick a month'); body.date = $('mMonth').value + '-01'; }
+  if ($('owner').value) body.owner = $('owner').value;
+  return body;
 }
 async function generate() {
   T = L[$('lang').value] || L.en;
-  const body = { period: $('period').value, lang: $('lang').value }, dt = targetDate();
-  if (dt) body.date = dt;
-  if ($('owner').value.trim()) body.owner = $('owner').value.trim();
+  let body; try { body = buildBody(); } catch (e) { say('err', e.message); return; }
   $('go').disabled = true; say('info', UI.loading);
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 150000);
   try {
@@ -394,6 +410,7 @@ function savePdf() {
   setTimeout(() => { window.print(); document.title = old; setTimeout(() => say(''), 1500); }, 150);
 }
 try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.lang && L[p.lang]) $('lang').value = p.lang; if (p.period) $('period').value = p.period; } catch (e) {}
+$('period').addEventListener('change', syncControls); initDates(); syncControls();
 $('go').addEventListener('click', generate); $('copy').addEventListener('click', copyReport); $('pdf').addEventListener('click', savePdf);
 </script>
 </body>
