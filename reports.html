@@ -5,75 +5,73 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Outreach Reports</title>
 <style>
-:root{--ink:#1f2933;--muted:#66727f;--line:#d9dee3;--soft:#f4f6f8;--accent:#1d4e89;--warn:#9a5b00;--warnbg:#fff6e5}
+:root{--ink:#1f2933;--muted:#66727f;--line:#d9dee3;--soft:#f4f6f8;--accent:#1d4e89;--ok:#2e7d4f;--pace:#2f6fb0;--warn:#b26a00;--warnbg:#fff3df;--okbg:#e6f4ea;--paceBg:#e8f1fb}
 *{box-sizing:border-box}
-body{margin:0;background:#eef1f4;color:var(--ink);font:14px/1.55 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+body{margin:0;background:#eef1f4;color:var(--ink);font:14px/1.55 "Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 .bar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
 .bar label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:3px}
-.bar select,.bar input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;min-width:130px}
-.bar input[readonly]{background:var(--soft);color:var(--muted)}
-.bar .grp{display:flex;gap:10px;align-items:flex-end}
+.bar select,.bar input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;min-width:110px}
 .bar .sp{flex:1}
-.bar a.back{align-self:center;font-size:12.5px;color:var(--accent);text-decoration:none;margin-right:6px}
 button{font:inherit;padding:7px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
 button.sec{background:#fff;color:var(--accent)}
 button:disabled{opacity:.45;cursor:not-allowed}
-main{max-width:920px;margin:18px auto;padding:0 12px 60px}
+main{max-width:940px;margin:18px auto;padding:0 12px 60px}
 #msg{margin:0 0 12px;padding:10px 14px;border-radius:8px;display:none}
 #msg.info{display:block;background:#e8f1fb;color:#134174}
 #msg.err{display:block;background:#fdecea;color:#8a1c14}
-#report{background:#fff;border:1px solid var(--line);border-radius:8px;padding:34px 40px;display:none}
-.rhead{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:0 0 18px;margin:0 0 20px;border-bottom:3px solid #8db43e}
-.logos{display:flex;align-items:center;gap:26px}
-.logos img{height:54px;width:auto;max-width:210px;object-fit:contain;display:block}
-.logos .vsep{width:1px;height:46px;background:var(--line)}
-.rtype{text-align:right;line-height:1.35}
-.rtype b{display:block;font-size:11px;letter-spacing:.14em;color:#6f9a1f;text-transform:uppercase}
-.rtype span{font-size:13px;color:var(--ink)}
-.chiprow{display:flex;flex-wrap:wrap;gap:6px 8px;margin:10px 0 4px}
-.chiprow span{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:2px 11px;font-size:12px;color:var(--muted)}
-.chiprow span b{color:var(--ink);font-weight:600}
-#report h1{font-size:21px;margin:0 0 4px}
+#report{background:#fff;border:1px solid var(--line);border-radius:8px;padding:30px 38px;display:none}
+.brand{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+#report h1{font-size:23px;margin:2px 0 2px}
 #report h2{font-size:15px;margin:26px 0 8px;padding-bottom:5px;border-bottom:2px solid var(--accent);color:var(--accent)}
 #report h3{font-size:13px;margin:14px 0 4px}
 .meta{color:var(--muted);font-size:12px}
-.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;margin-left:8px;vertical-align:middle}
-.badge.draft{background:var(--warnbg);color:var(--warn)}
-.badge.final{background:#e6f4ea;color:#1e6b34}
-.headline{font-size:16px;font-weight:600;margin:14px 0 6px}
+.pill{display:inline-block;padding:1px 9px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.pill.draft,.pill.behind{background:var(--warnbg);color:var(--warn)}
+.pill.final,.pill.met{background:var(--okbg);color:var(--ok)}
+.pill.on_track{background:var(--paceBg);color:var(--pace)}
+.pill.na,.pill.stage{background:var(--soft);color:#44505c}
+.headline{font-size:17px;font-weight:600;margin:14px 0 8px;line-height:1.4}
 table{border-collapse:collapse;width:100%;margin:6px 0 4px;font-size:13px}
 th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
 th{background:var(--soft);font-weight:600}
 td.n,th.n{text-align:right;white-space:nowrap}
+table.kpi td{width:25%;text-align:center;padding:10px 6px;background:var(--soft);border:1px solid #fff;border-width:0 3px}
+.kpi .lab{font-size:11px;color:var(--muted)}
+.kpi .big{font-size:26px;font-weight:700;line-height:1.2}
+.kpi .sub{font-size:11px;color:var(--muted)}
+table.card{margin:10px 0;border:1px solid #c9d2db}
+table.card td.k{width:150px;color:var(--muted);background:var(--soft)}
+table.card tr.head td{background:#eaf0f7;font-weight:600;border-bottom:1px solid #c9d2db}
+.quote{font-style:italic}
+.sugg{background:#f1f7ee}
 ul,ol{margin:4px 0 4px 20px;padding:0}
 li{margin:3px 0}
 .muted{color:var(--muted)}
 .note{font-size:12px;color:var(--muted);margin:4px 0}
 .chips span{display:inline-block;border:1px solid var(--line);border-radius:14px;padding:2px 10px;margin:2px 6px 2px 0;background:var(--soft)}
-.bar-wrap{background:var(--soft);height:8px;border-radius:4px;min-width:90px}
-.bar-in{background:var(--accent);height:8px;border-radius:4px}
+img.chart{display:block;max-width:100%;height:auto;margin:6px 0}
+img.pb{display:block;height:14px;width:260px}
 .hyp{border-left:3px solid #c9a227;padding-left:10px;margin:6px 0}
+#internal{max-width:940px;margin:14px auto 0;background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--muted);display:none}
+#internal ul{margin-left:18px}
 @media print{
-  @page{size:A4;margin:14mm}
-  body{background:#fff}
-  .no-print,.bar,#msg{display:none!important}
+  @page{size:A4;margin:12mm}
+  body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .no-print,.bar,#internal,#msg{display:none!important}
   main{margin:0;max-width:none;padding:0}
   #report{border:0;padding:0;border-radius:0}
-  h2,h3,table,li{break-inside:avoid}
-  a{color:inherit;text-decoration:none}
+  h2,h3,table.card,table.kpi,img.chart{break-inside:avoid}
+  h2,h3{break-after:avoid}
 }
 </style>
 </head>
 <body>
 <div class="bar no-print">
-  <label>Period<select id="period"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
-
-  <div class="grp" id="gDaily"><label>Date<input type="date" id="d1"></label></div>
-  <div class="grp" id="gWeekly" style="display:none"><label>From (Monday)<input type="date" id="w1"></label><label>To (Sunday)<input type="date" id="w2" readonly></label></div>
-  <div class="grp" id="gMonthly" style="display:none"><label>Month<input type="month" id="m1"></label></div>
-
-  <label>Person<select id="owner"><option value="">All</option><option value="Karen">Karen (O'right PRO)</option><option value="Winda">Winda (O'right)</option></select></label>
-  <label>Report language<select id="lang"><option value="en">English</option><option value="zh">繁體中文</option></select></label>
+  <label>Report<select id="period"><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="monthly">Monthly</option></select></label>
+  <label>Which<select id="which"><option value="current">Current (to date)</option><option value="previous">Previous (complete)</option></select></label>
+  <label>Or pick a date<input type="date" id="date"></label>
+  <label>Person<input id="owner" list="owners" placeholder="All"><datalist id="owners"></datalist></label>
+  <label>Report language<select id="lang"><option value="en">English</option><option value="zh">中文</option></select></label>
   <button id="go">Generate</button>
   <span class="sp"></span>
   <button id="copy" class="sec" disabled>Copy</button>
@@ -82,175 +80,292 @@ li{margin:3px 0}
 <main>
   <div id="msg"></div>
   <article id="report"></article>
+  <details id="internal"><summary></summary><ul id="internalList"></ul></details>
 </main>
 
 <script>
 const API = 'https://n8n.orightai.com/webhook/generate-report';
-const LOGO_ORIGHT = 'oright-logo-official.png', LOGO_PRO = 'oright-pro-logo.png';
-const OWNER_LABEL = { Karen: "Karen (O'right PRO)", Winda: "Winda (O'right)" };
+const UI = { loading: 'Generating, about 25 seconds…', fail: 'Report failed', failHint: 'Check: 1) you are on the office Wi-Fi  2) the generate-report workflow in n8n is Active', copied: 'Copied. Paste it into Word', pdfHint: 'In the print window set Destination to "Save as PDF"' };
 
-const EN = {
-  ui:{copy:'Copy',copied:'Copied. Paste it into Word',loading:'Generating, about 20 seconds…',fail:'Report failed',
-      failHint:'Check: 1) you are on the office Wi-Fi  2) the generate-report workflow in n8n is Active',pdfHint:'In the print window set Destination to "Save as PDF"',d:'Daily',w:'Weekly',m:'Monthly'},
-  title:"O'right International Sales | Outreach Report", range:'Period', generated:'Generated', scope:'Scope', all:'Whole team',
-  draft:'Draft', final:'Final', draftNote:'The period is still running. Numbers run up to {d} and are compared with the same number of days of the previous period.', finalNote:'The period is complete and compared with the full previous period.',
-  s1:'Summary', s2:'Numbers this period', s3:'Cumulative funnel (since the start)', s4:'Reply rate', s5:'Pipeline now', s6:'Needs action', s7:'By brand and country (this period)', s8:'By person', s9:'Analysis and recommendations',
-  metric:'Metric', thisP:'This period', lastP:'Previous (same days)', change:'Change',
-  m:{emails_sent:'Emails sent',companies_contacted:'Companies contacted',new_companies_contacted:'of which first-time',companies_replied:'Companies that replied',bounced:'Bounced',meetings_logged:'Meetings (logged this period)',samples_logged:'Samples (logged this period)',quotations_logged:'Quotations (logged this period)',won_logged:'Won (logged this period)'},
-  step:{contacted:'Contacted',replied:'Replied',meeting:'Meeting',sample:'Sample',quotation:'Quotation',won:'Won'}, cnt:'Companies', ofPrev:'% of previous step', ofCont:'% of contacted',
-  src:'Source', srcName:{'Imported (manual)':'Historical list (imported from manual tracker)','System':'Sent through the new system'}, contacted:'Contacted', replied:'Replied', rate:'Reply rate', meetings:'Meetings',
-  rrAll:'Reply rate, all time', rrMature:'Reply rate on emails at least {n} days old (bounces excluded)', rrNone:'No emails old enough yet ({x} companies are too recent to judge)', rrOf:'{a} of {b} companies replied',
-  stage:{Contacted:'Contacted',Replied:'Replied',Meeting:'Meeting',Sample:'Sample',Quotation:'Quotation',Won:'Won',Nurture:'Nurture',Lost:'Lost',Cold:'Cold'},
-  company:'Company', country:'Country', since:'In stage since', nextStep:'Next step', stageCol:'Stage', owner:'Owner', due:'Planned date', daysOver:'Days overdue', daysIn:'Days in stage',
-  overdue:'Overdue follow-ups', noNext:'Active leads with no next step (replied / meeting / sample / quotation)', next7:'Follow-ups due in the next 7 days', ready:'Leads ready to contact (verified, fit score met, usable contact, not yet contacted)', none:'None', upcoming:'Meetings in the next 14 days',
-  segBC:'Brand | channel', segC:'Country (top 5)', emails:'Emails', companies:'Companies', unassignedNote:'The sender is not recorded on these emails, so people cannot be compared.', ownerNote:'No ranking while samples are small; activity and open tasks only.', person:'Person', overdueCol:'Overdue',
-  hi:'What went well', co:'Needs attention', hy:'Possible reasons (not yet proven)', verify:'How to verify', rec:'Recommended actions', cannot:'Cannot conclude yet', why:'Why', noAI:'No written analysis was produced this time.',
-  foot:'Definitions: companies are counted once each; weeks run Monday to Sunday (Taiwan time); reply rate is per company and excludes bounces. The written analysis uses only the numbers in this report.',
-  ownerName:{'Unassigned':'Not assigned','Imported (manual)':'Historical list','Karen':"Karen (O'right PRO)",'Winda':"Winda (O'right)"}
-};
-const ZH = {
-  ui:{d:'日報',w:'週報',m:'月報'},
-  title:"O'right 國際業務｜開發信成效報告", range:'期間', generated:'產生時間', scope:'範圍', all:'全部成員',
-  draft:'草稿', final:'定稿', draftNote:'本期尚未結束，數字統計到 {d}，並與上一期「相同天數」比較。', finalNote:'本期已結束，與上一期完整比較。',
-  s1:'重點摘要', s2:'本期數字', s3:'累計漏斗（自開始發信以來）', s4:'回覆率', s5:'目前 Pipeline', s6:'待處理事項', s7:'本期分眾表現', s8:'個人表現', s9:'分析與建議',
-  metric:'指標', thisP:'本期', lastP:'上期（同天數）', change:'變化',
-  m:{emails_sent:'發出信件',companies_contacted:'接觸公司數',new_companies_contacted:'其中首次接觸',companies_replied:'回覆公司數',bounced:'退信',meetings_logged:'會議（本期記錄）',samples_logged:'樣品（本期記錄）',quotations_logged:'報價（本期記錄）',won_logged:'成交（本期記錄）'},
-  step:{contacted:'已接觸',replied:'已回覆',meeting:'會議',sample:'樣品',quotation:'報價',won:'成交'}, cnt:'公司數', ofPrev:'佔上一階段', ofCont:'佔已接觸',
-  src:'來源', srcName:{'Imported (manual)':'歷史名單（手動追蹤表匯入）','System':'新系統發送'}, contacted:'接觸公司', replied:'回覆', rate:'回覆率', meetings:'會議',
-  rrAll:'累計回覆率', rrMature:'已滿 {n} 天信件的回覆率（排除退信）', rrNone:'尚無滿 {n} 天的信件（另有 {x} 家公司太新，先不判斷）', rrOf:'{a} / {b} 家回覆',
-  stage:{Contacted:'已接觸',Replied:'已回覆',Meeting:'會議',Sample:'樣品',Quotation:'報價',Won:'成交',Nurture:'培養中',Lost:'已流失',Cold:'暫無回應'},
-  company:'公司', country:'國家', since:'進入階段', nextStep:'下一步', stageCol:'階段', owner:'負責人', due:'預定日', daysOver:'逾期天數', daysIn:'停留天數',
-  overdue:'逾期跟進', noNext:'沒有下一步的活躍客戶（回覆／會議／樣品／報價階段）', next7:'未來 7 天要跟進', ready:'待開發名單（已驗證、分數達標、有聯絡人、尚未接觸）', none:'目前沒有', upcoming:'未來 14 天的會議',
-  segBC:'品牌｜通路', segC:'國家（前 5）', emails:'信件', companies:'公司', unassignedNote:'這些信件沒有記錄寄件人，無法比較個人表現。', ownerNote:'樣本數小時不做排名，只看活動量與待辦。', person:'成員', overdueCol:'逾期跟進',
-  hi:'亮點', co:'需要注意', hy:'可能原因（尚未驗證）', verify:'如何驗證', rec:'建議行動', cannot:'目前無法判斷', why:'原因', noAI:'本次沒有產生文字分析。',
-  foot:'定義：以公司為單位去重；週為週一至週日（台灣時間）；回覆率以公司計算並排除退信。文字分析只根據本報告內的數字撰寫，未使用其他資料。',
-  ownerName:{'Unassigned':'未指定','Imported (manual)':'歷史名單','Karen':"Karen (O'right PRO)",'Winda':"Winda (O'right)"}
-};
-const L = { en: EN, zh: ZH };
-let T = EN;
+const L = {
+en: {
+  brand: "O'right International Sales",
+  title: { daily: 'Daily Pulse', weekly: 'Weekly Review', monthly: 'Monthly Review' },
+  tagline: { daily: 'What needs doing today', weekly: 'How the week went, who replied, what happens next', monthly: 'Trends and performance for the month' },
+  range: 'Period', generated: 'Generated', scope: 'Scope', all: 'Whole team', draft: 'Draft', final: 'Final',
+  draftNote: 'The period is still running. Numbers run up to {d} and are compared with the same number of days of the previous period.',
+  finalNote: 'The period is complete and compared with the full previous period.',
+  hi: 'What went well', co: 'Needs attention', hy: 'Possible reasons (not yet proven)', verify: 'How to verify', rec: 'Recommended actions', cannot: 'Cannot conclude yet', why: 'Why', noAI: 'No written analysis was produced this time.',
+  secTarget: 'Target', secKpi: 'Key numbers', secChartDaily: 'Emails sent, last 7 days', secChartWeek: 'Emails sent per day', secChartMonth: 'Emails sent per week', secChartReplies: 'Companies that replied per week',
+  secReplies: 'Replies', secRepliesToday: 'Replies today', secRepliesWeek: 'Replies this week', secProgress: 'Progress logged', secFunnel: 'Funnel since the start', secReply: 'Reply rate', secPipeline: 'Pipeline now',
+  secAction: 'Needs action', secTodo: 'Follow-ups to do', secNext: 'Next week', secSeg: 'By brand, channel and country', secOwner: 'By person', secAnalysis: 'Analysis and recommendations', secPlanMonth: 'Plan for next month',
+  tTarget: 'Target', tSent: 'Sent', tPace: 'Pace now', tStatus: 'Status', team: 'Team',
+  stat: { met: 'Target met', on_track: 'On pace', behind: 'Behind pace', 'n/a': 'No target today' },
+  targetNote: 'Target: at least {w} emails per person per week (about {d} per working day). Counted: emails sent through the outreach system, follow-ups included; the imported historical list is not counted.',
+  paceNote: 'Working days in this period: {t}; elapsed: {e}. Pace expected by now: {p} per person.',
+  outside: 'Also sending, not on the team target list: {x}.',
+  k: { sent: 'Emails sent', contacted: 'Companies contacted', replies: 'Replies', meetings: 'Meetings logged', sentToday: 'Sent today', repliesToday: 'Replies today', overdue: 'Overdue follow-ups', dueToday: 'Due today', vs: 'vs {p} before ({d})', pace: 'pace {p}', of: 'of {t}' },
+  chartSent: 'Sent', chartTarget: 'Target pace', chartReplied: 'Companies replied',
+  replyNone: 'No new replies in this period.', autoNote: '{n} automatic out-of-office replies are not counted.', replyTotal: '{n} companies replied in this period.', more: 'Showing the latest {n}.',
+  r: { contact: 'Replied by', said: 'What they said', status: 'Status now', next: 'Planned next step', sugg: 'Suggested next step', last: 'Our last email', owner: 'Owner', none: 'none on record', since: 'since', due: 'due', type: 'Type', sent: 'we sent them {n} email(s)' },
+  step: { contacted: 'Contacted', replied: 'Replied', meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation', won: 'Won' }, cnt: 'Companies', ofPrev: '% of previous step', ofCont: '% of contacted',
+  src: 'Source', srcName: { 'Imported (manual)': 'Historical list (imported from manual tracker)', System: 'Sent through the new system' }, contacted: 'Contacted', replied: 'Replied', rate: 'Reply rate', meetings: 'Meetings',
+  rrAll: 'Reply rate, all time', rrMature: 'Reply rate on emails at least {n} days old (bounces excluded)', rrNone: 'No emails old enough yet ({x} companies are too recent to judge)', rrOf: '{a} of {b} companies replied', thisP: 'This period', lastP: 'Previous (same days)', metric: 'Metric',
+  stage: { Contacted: 'Contacted', Replied: 'Replied', Meeting: 'Meeting', Sample: 'Sample', Quotation: 'Quotation', Won: 'Won', Nurture: 'Nurture', Lost: 'Lost', Cold: 'Cold' },
+  kind: { meeting: 'Meeting', sample: 'Sample', quotation: 'Quotation', won: 'Won', lost: 'Lost', nurture: 'Nurture' },
+  company: 'Company', country: 'Country', since: 'In stage since', nextStep: 'Next step', stageCol: 'Stage', owner: 'Owner', due: 'Planned date', daysOver: 'Days overdue', daysIn: 'Days in stage', event: 'Event', logged: 'Logged',
+  overdue: 'Overdue follow-ups', dueTodayH: 'Due today', noNext: 'Active leads with no next step recorded', next7: 'Follow-ups due in the next 7 days', ready: 'Leads ready to contact', readyDesc: 'verified, fit score met, usable contact, not yet contacted', none: 'None', upcoming: 'Meetings in the next 14 days',
+  segBC: 'Brand | channel', segC: 'Country (top 5)', emails: 'Emails', companies: 'Companies', unassignedNote: 'The sender is not recorded on these emails yet, so people cannot be compared.', ownerNote: 'Activity only. No ranking while samples are small.', person: 'Person', overdueCol: 'Overdue',
+  ownerName: { Unassigned: 'Not assigned', 'Imported (manual)': 'Historical list' },
+  foot: 'Definitions: companies are counted once each; weeks run Monday to Sunday (Taiwan time); reply rate is per company and excludes bounces. The written analysis uses only the numbers in this report.',
+  internal: 'Data quality notes (internal only, not copied or printed)', dash: '—'
+},
+zh: {
+  brand: "O'right 國際業務",
+  title: { daily: '每日重點', weekly: '每週回顧', monthly: '每月回顧' },
+  tagline: { daily: '今天要處理的事', weekly: '本週成果、誰回覆了、接下來怎麼做', monthly: '本月趨勢與成效' },
+  range: '期間', generated: '產生時間', scope: '範圍', all: '全部成員', draft: '草稿', final: '定稿',
+  draftNote: '本期尚未結束，數字統計到 {d}，並與上一期「相同天數」比較。', finalNote: '本期已結束，與上一期完整比較。',
+  hi: '亮點', co: '需要注意', hy: '可能原因（尚未驗證）', verify: '如何驗證', rec: '建議行動', cannot: '目前無法判斷', why: '原因', noAI: '本次沒有產生文字分析。',
+  secTarget: '目標達成', secKpi: '重點數字', secChartDaily: '近 7 天發信數', secChartWeek: '每日發信數', secChartMonth: '每週發信數', secChartReplies: '每週回覆公司數',
+  secReplies: '回覆', secRepliesToday: '今天的回覆', secRepliesWeek: '本週的回覆', secProgress: '本期進展', secFunnel: '累計漏斗（自開始發信以來）', secReply: '回覆率', secPipeline: '目前 Pipeline',
+  secAction: '待處理事項', secTodo: '要跟進的事', secNext: '下週安排', secSeg: '品牌、通路與國家表現', secOwner: '個人表現', secAnalysis: '分析與建議', secPlanMonth: '下個月的建議',
+  tTarget: '目標', tSent: '已發', tPace: '目前應達', tStatus: '狀態', team: '團隊',
+  stat: { met: '已達標', on_track: '進度正常', behind: '落後進度', 'n/a': '今天無目標' },
+  targetNote: '目標：每人每週至少 {w} 封（每個工作日約 {d} 封）。計算：透過開發信系統寄出的信（含追蹤信），不含匯入的歷史名單。',
+  paceNote: '本期工作日 {t} 天，已過 {e} 天，目前每人應達 {p} 封。',
+  outside: '另有寄信但不在團隊目標名單：{x}。',
+  k: { sent: '發出信件', contacted: '接觸公司數', replies: '回覆公司數', meetings: '會議（本期記錄）', sentToday: '今天已發', repliesToday: '今天回覆', overdue: '逾期跟進', dueToday: '今天到期', vs: '上期 {p}（{d}）', pace: '應達 {p}', of: '目標 {t}' },
+  chartSent: '已發', chartTarget: '目標進度', chartReplied: '回覆公司數',
+  replyNone: '本期沒有新的回覆。', autoNote: '另有 {n} 封自動回覆（休假通知）不列入。', replyTotal: '本期共有 {n} 家公司回覆。', more: '僅顯示最新 {n} 筆。',
+  r: { contact: '回覆的人', said: '對方說了什麼', status: '目前狀態', next: '已排定的下一步', sugg: '建議的下一步', last: '我們最後一封信', owner: '負責人', none: '尚無紀錄', since: '起', due: '預定', type: '類型', sent: '我們共寄了 {n} 封' },
+  step: { contacted: '已接觸', replied: '已回覆', meeting: '會議', sample: '樣品', quotation: '報價', won: '成交' }, cnt: '公司數', ofPrev: '佔上一階段', ofCont: '佔已接觸',
+  src: '來源', srcName: { 'Imported (manual)': '歷史名單（手動追蹤表匯入）', System: '新系統發送' }, contacted: '接觸公司', replied: '回覆', rate: '回覆率', meetings: '會議',
+  rrAll: '累計回覆率', rrMature: '已滿 {n} 天信件的回覆率（排除退信）', rrNone: '尚無滿 {n} 天的信件（另有 {x} 家公司太新，先不判斷）', rrOf: '{a} / {b} 家回覆', thisP: '本期', lastP: '上期（同天數）', metric: '指標',
+  stage: { Contacted: '已接觸', Replied: '已回覆', Meeting: '會議', Sample: '樣品', Quotation: '報價', Won: '成交', Nurture: '培養中', Lost: '已流失', Cold: '暫無回應' },
+  kind: { meeting: '會議', sample: '樣品', quotation: '報價', won: '成交', lost: '流失', nurture: '培養' },
+  company: '公司', country: '國家', since: '進入階段', nextStep: '下一步', stageCol: '階段', owner: '負責人', due: '預定日', daysOver: '逾期天數', daysIn: '停留天數', event: '事件', logged: '記錄日',
+  overdue: '逾期跟進', dueTodayH: '今天到期', noNext: '沒有記錄下一步的活躍客戶', next7: '未來 7 天要跟進', ready: '待開發名單', readyDesc: '已驗證、分數達標、有聯絡人、尚未接觸', none: '目前沒有', upcoming: '未來 14 天的會議',
+  segBC: '品牌｜通路', segC: '國家（前 5）', emails: '信件', companies: '公司', unassignedNote: '目前信件尚未記錄寄件人，無法比較個人表現。', ownerNote: '只看活動量，樣本小時不做排名。', person: '成員', overdueCol: '逾期跟進',
+  ownerName: { Unassigned: '未指定', 'Imported (manual)': '歷史名單' },
+  foot: '定義：以公司為單位去重；週為週一至週日（台灣時間）；回覆率以公司計算並排除退信。文字分析只根據本報告內的數字撰寫。',
+  internal: '資料品質備註（僅供內部，不會被複製或列印）', dash: '—'
+}};
 
 const $ = id => document.getElementById(id);
-const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const own = k => T.ownerName[k] || k;
+const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const f = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => (o && o[k] !== undefined) ? o[k] : m);
 const pct = v => (v === null || v === undefined) ? '—' : v + '%';
-const sign = x => (x > 0 ? '+' : '') + x;
-const UI = EN.ui;
-let lastReport = null;
+const sign = x => (x > 0 ? '+' : x < 0 ? '−' : '±') + Math.abs(x);
+let T = L.en, lastReport = null;
+const own = k => (T.ownerName && T.ownerName[k]) || k;
 
-/* ---------- dates (Taiwan time) ---------- */
-const todayTW = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
-const addD = (s, n) => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); };
-const dowOf = s => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); };   // 0 = Sunday
-const mondayOf = s => addD(s, -((dowOf(s) + 6) % 7));
-function setWeek(any){ const mon = mondayOf(any); $('w1').value = mon; $('w2').value = addD(mon, 6); }
-function showMode(){
-  const p = $('period').value;
-  $('gDaily').style.display = p === 'daily' ? '' : 'none';
-  $('gWeekly').style.display = p === 'weekly' ? '' : 'none';
-  $('gMonthly').style.display = p === 'monthly' ? '' : 'none';
+// ---------- images (canvas -> data URI so charts survive Copy-to-Word and PDF) ----------
+const FONT = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,sans-serif';
+function niceMax(v) { const m = Math.pow(10, Math.floor(Math.log10(Math.max(v, 1)))); for (const k of [1, 2, 2.5, 5, 10]) if (v <= k * m) return k * m; return 10 * m; }
+function chartImg(o) {
+  const dpr = 2, W = o.w || 800, H = o.h || 230, c = document.createElement('canvas');
+  c.width = W * dpr; c.height = H * dpr; const g = c.getContext('2d'); g.scale(dpr, dpr);
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  const pL = 38, pR = 10, pT = 22, pB = 34, pw = W - pL - pR, ph = H - pT - pB, n = o.labels.length;
+  const vals = o.bars.filter(v => v != null).concat((o.target || []).filter(v => v != null));
+  const yMax = niceMax(Math.max(1, ...vals));
+  g.font = '11px ' + FONT; g.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) { const y = pT + ph - ph * i / 4; g.strokeStyle = '#e6eaee'; g.lineWidth = 1; g.beginPath(); g.moveTo(pL, y); g.lineTo(W - pR, y); g.stroke(); g.fillStyle = '#7a8793'; g.textAlign = 'right'; g.fillText(String(+(yMax * i / 4).toFixed(1)), pL - 6, y); }
+  const cw = pw / n, bw = Math.min(46, cw * 0.55);
+  o.labels.forEach((lb, i) => {
+    const cx = pL + cw * i + cw / 2, v = o.bars[i], t = o.target ? o.target[i] : null;
+    if (v != null) { const h = ph * v / yMax; g.fillStyle = o.color || '#1d4e89'; g.fillRect(cx - bw / 2, pT + ph - h, bw, h); g.fillStyle = '#33414d'; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(String(v), cx, pT + ph - h - 3); }
+    else { g.strokeStyle = '#c9d2db'; g.setLineDash([3, 3]); g.strokeRect(cx - bw / 2, pT + ph - 2, bw, 2); g.setLineDash([]); }
+    if (t != null && t > 0) { const y = pT + ph - ph * t / yMax; g.strokeStyle = '#e08a00'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - cw * 0.42, y); g.lineTo(cx + cw * 0.42, y); g.stroke(); }
+    g.fillStyle = '#5a6773'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(lb, cx, pT + ph + 8);
+  });
+  if (o.target) { g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = '#e08a00'; g.fillRect(pL, 7, 14, 3); g.fillStyle = '#5a6773'; g.fillText(o.targetName || '', pL + 20, 9); }
+  return '<img class="chart" alt="" width="' + W + '" height="' + H + '" src="' + c.toDataURL('image/png') + '">';
 }
-function pickedDate(){   // the single date the n8n workflow needs: any day inside the wanted period
-  const p = $('period').value;
-  if (p === 'daily') return $('d1').value;
-  if (p === 'weekly') return $('w1').value;
-  return $('m1').value ? $('m1').value + '-01' : '';
+const STATCOL = { met: '#2e7d4f', on_track: '#2f6fb0', behind: '#d9942b', 'n/a': '#9aa5b0' };
+function progressImg(sent, target, pace, status) {
+  const W = 260, H = 14, dpr = 2, c = document.createElement('canvas'); c.width = W * dpr; c.height = H * dpr; const g = c.getContext('2d'); g.scale(dpr, dpr);
+  g.fillStyle = '#e6eaee'; g.fillRect(0, 0, W, H);
+  if (target > 0) { g.fillStyle = STATCOL[status] || '#2f6fb0'; g.fillRect(0, 0, W * Math.min(1, sent / target), H); if (pace > 0 && pace < target) { g.fillStyle = '#1f2933'; g.fillRect(W * pace / target - 1, 0, 2, H); } }
+  return '<img class="pb" alt="" width="' + W + '" height="' + H + '" src="' + c.toDataURL('image/png') + '">';
+}
+function hbarImg(v, max, color) {
+  const W = 170, H = 12, dpr = 2, c = document.createElement('canvas'); c.width = W * dpr; c.height = H * dpr; const g = c.getContext('2d'); g.scale(dpr, dpr);
+  g.fillStyle = '#e6eaee'; g.fillRect(0, 0, W, H); g.fillStyle = color || '#1d4e89'; g.fillRect(0, 0, max ? Math.max(v ? 2 : 0, W * v / max) : 0, H);
+  return '<img alt="" width="' + W + '" height="' + H + '" src="' + c.toDataURL('image/png') + '">';
 }
 
-/* ---------- render ---------- */
+// ---------- building blocks ----------
 function tbl(head, rows, numCols) {
   numCols = numCols || [];
   return '<table><thead><tr>' + head.map((h, i) => '<th class="' + (numCols.includes(i) ? 'n' : '') + '">' + esc(h) + '</th>').join('') + '</tr></thead><tbody>' +
-    rows.map(r => '<tr>' + r.map((c, i) => '<td class="' + (numCols.includes(i) ? 'n' : '') + '">' + (c === null || c === undefined || c === '' ? '—' : esc(c)) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
+    rows.map(r => '<tr>' + r.map((c, i) => '<td class="' + (numCols.includes(i) ? 'n' : '') + '">' + (c && c.__html ? c.__html : (c === null || c === undefined || c === '' ? '—' : esc(c))) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
 }
+const H = s => ({ __html: s });
 const empty = () => '<p class="note">' + esc(T.none) + '</p>';
-const tip = (n, facts) => { const m = {}; (n.facts || []).forEach(f => m[f.id] = f.text); return esc((facts || []).map(id => m[id]).filter(Boolean).join(' | ')); };
-const logos = (owner, per, range) => {
-  const o = '<img src="' + LOGO_ORIGHT + '" alt="O\'right">', p = '<img src="' + LOGO_PRO + '" alt="O\'right PRO">';
-  const L2 = owner === 'Karen' ? p : owner === 'Winda' ? o : o + '<div class="vsep"></div>' + p;
-  return '<div class="rhead"><div class="logos">' + L2 + '</div><div class="rtype"><b>' + esc(per) + '</b><span>' + esc(range) + '</span></div></div>';
-};
+const pill = (cls, text) => '<span class="pill ' + cls + '">' + esc(text) + '</span>';
+const stageLabel = s => T.stage[s] || s;
+function kpiRow(cards) {
+  return '<table class="kpi"><tr>' + cards.map(c => '<td><div class="lab">' + esc(c.lab) + '</div><div class="big">' + esc(c.big) + '</div><div class="sub">' + esc(c.sub || '') + '</div></td>').join('') + '</tr></table>';
+}
+function targetBlock(r) {
+  const tg = r.targets, rows = [];
+  const mk = (name, x) => [name, H(progressImg(x.sent, x.target, x.pace_to_date, x.status)), x.sent + ' / ' + x.target + ' (' + pct(x.pct_of_target) + ')', x.pace_to_date, H(pill(x.status === 'n/a' ? 'na' : x.status, T.stat[x.status]))];
+  if (tg.people.length > 1) rows.push(mk(T.team, { ...tg.team, pace_to_date: tg.team.pace_to_date }));
+  tg.people.forEach(p => rows.push(mk(p.owner, p)));
+  let h = tbl(['', '', T.tSent + ' / ' + T.tTarget, T.tPace, T.tStatus], rows, [2, 3]);
+  h += '<p class="note">' + esc(f(T.targetNote, { w: tg.weekly_per_person, d: tg.weekly_per_person / 5 })) + (r.period === 'daily' ? '' : ' ' + esc(f(T.paceNote, { t: tg.workdays_in_period, e: tg.workdays_elapsed, p: tg.pace_per_person }))) + '</p>';
+  if ((tg.outside_team || []).length) h += '<p class="note">' + esc(f(T.outside, { x: tg.outside_team.map(o => o.owner + ' ' + o.sent).join(', ') })) + '</p>';
+  return h;
+}
+function replyCards(r, n) {
+  const list = r.new_replies || [];
+  if (!list.length) return '<p class="note">' + esc(T.replyNone) + (r.auto_replies_in_period ? ' ' + esc(f(T.autoNote, { n: r.auto_replies_in_period })) : '') + '</p>';
+  const acts = {}; ((n.reply_actions) || []).forEach(a => acts[a.reply] = a.suggested_action);
+  let h = '<p class="note">' + esc(f(T.replyTotal, { n: r.new_replies_total })) + (r.new_replies_total > list.length ? ' ' + esc(f(T.more, { n: list.length })) : '') + (r.auto_replies_in_period ? ' ' + esc(f(T.autoNote, { n: r.auto_replies_in_period })) : '') + '</p>';
+  list.forEach(x => {
+    const nextTxt = x.next_step ? x.next_step + (x.next_step_due ? ' (' + T.r.due + ' ' + x.next_step_due + ')' : '') : T.r.none;
+    const row = (k, v, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="k">' + esc(k) + '</td><td>' + v + '</td></tr>';
+    h += '<table class="card"><tr class="head"><td colspan="2">' + esc(x.company) + ' · ' + esc([x.country, x.channel].filter(Boolean).join(' · ')) + '<span style="float:right" class="muted">' + esc(x.at) + '</span></td></tr>' +
+      row(T.r.contact, esc((x.contact || '—') + (x.contact_email ? ' <' + x.contact_email + '>' : '')) + (x.type && x.type !== 'unclassified' ? ' ' + pill('stage', x.type) : '')) +
+      row(T.r.said, '<span class="quote">“' + esc(x.snippet || '—') + '”</span>') +
+      row(T.r.status, pill('stage', stageLabel(x.stage)) + (x.stage_since ? ' <span class="muted">' + esc(T.r.since === '起' ? x.stage_since + T.r.since : T.r.since + ' ' + x.stage_since) + '</span>' : '') + ' · ' + esc(T.r.owner) + ': ' + esc(own(x.owner))) +
+      row(T.r.next, esc(nextTxt)) +
+      (acts[x.id] ? row(T.r.sugg, esc(acts[x.id]), 'sugg') : '') +
+      row(T.r.last, x.our_last_email ? esc('“' + x.our_last_email.subject + '” · ' + x.our_last_email.at + ' · ' + f(T.r.sent, { n: x.emails_we_sent })) : '—') +
+      '</table>';
+  });
+  return h;
+}
+function funnelBlock(r) {
+  const fn = r.funnel_to_date, max = Math.max(1, ...fn.map(x => x.n));
+  let h = tbl([T.step.contacted + ' → ' + T.step.won, T.cnt, T.ofPrev, T.ofCont, ''], fn.map(x => [T.step[x.step], x.n, pct(x.pct_of_previous), pct(x.pct_of_contacted), H(hbarImg(x.n, max))]), [1, 2, 3]);
+  const sr = (r.by_source_all_time || []).map(s => [T.srcName[s.key] || s.key, s.companies_contacted, s.replied, s.companies_contacted ? pct(Math.round(1000 * s.replied / s.companies_contacted) / 10) : '—', s.meetings]);
+  if (sr.length) h += tbl([T.src, T.contacted, T.replied, T.rate, T.meetings], sr, [1, 2, 3, 4]);
+  return h;
+}
+function replyRateBlock(r) {
+  const rr = r.reply_rate, c1 = rr.this_period_cohort, c0 = rr.last_period_cohort;
+  const cohort = c => c.companies_contacted ? f(T.rrOf, { a: c.companies_replied, b: c.companies_contacted }) + ' (' + pct(c.rate_pct) + ')' : f(T.rrNone, { n: 7, x: c.immature_companies_excluded });
+  return tbl([T.metric, T.thisP, T.lastP], [[T.rrAll, f(T.rrOf, { a: rr.all_time.companies_replied, b: rr.all_time.companies_contacted }) + ' (' + pct(rr.all_time.rate_pct) + ')', ''], [f(T.rrMature, { n: 7 }), cohort(c1), cohort(c0)]]);
+}
+function pipelineChips(r) {
+  const order = ['Won', 'Quotation', 'Sample', 'Meeting', 'Replied', 'Contacted', 'Nurture', 'Lost', 'Cold'], sc = r.pipeline_current.stage_counts || {};
+  return '<div class="chips">' + order.filter(k => sc[k]).map(k => '<span>' + esc(stageLabel(k)) + ' <b>' + sc[k] + '</b></span>').join('') + '</div>';
+}
+const today0 = r => String(r.generated_at).slice(0, 10), D = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+function overdueTable(r, max) { const od = (r.followups || {}).overdue || []; return od.length ? tbl([T.company, T.stageCol, T.nextStep, T.due, T.daysOver], od.slice(0, max).map(x => [x.company, stageLabel(x.stage), x.next_step, x.due, Math.round((D(today0(r)) - D(x.due)) / 864e5)]), [4]) : empty(); }
+function staleTable(r, max) { const st = r.stale_no_next_step || []; return st.length ? tbl([T.company, T.country, T.stageCol, T.daysIn], st.slice(0, max).map(x => [x.company, x.country, stageLabel(x.stage), x.days_in_stage]), [3]) : empty(); }
+function dueTable(rows, max) { return rows.length ? tbl([T.company, T.stageCol, T.nextStep, T.due], rows.slice(0, max).map(x => [x.company, stageLabel(x.stage), x.next_step, x.due])) : empty(); }
+function progressTable(r) { const pe = r.progress_events || []; return pe.length ? tbl([T.event, T.company, T.country, T.logged], pe.map(x => [T.kind[x.kind] || x.kind, x.company, x.country, x.at])) : empty(); }
+function segTables(r) {
+  const seg = rows => rows.map(x => [x.key, x.emails_sent, x.companies_contacted, x.replied, x.meetings]);
+  let h = (r.by_brand_channel || []).length ? tbl([T.segBC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_brand_channel), [1, 2, 3, 4]) : empty();
+  if ((r.by_country_top5 || []).length) h += tbl([T.segC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_country_top5), [1, 2, 3, 4]);
+  return h;
+}
+function ownerTable(r) {
+  const ow = r.by_owner || []; if (!ow.length) return empty();
+  const note = ow.every(o => o.key === 'Unassigned') ? T.unassignedNote : T.ownerNote;
+  return '<p class="note">' + esc(note) + '</p>' + tbl([T.person, T.emails, T.companies, T.replied, T.meetings, T.overdueCol], ow.map(o => [own(o.key), o.emails_sent, o.companies_contacted, o.replied, o.meetings, o.follow_ups_overdue]), [1, 2, 3, 4, 5]);
+}
+function analysisBlocks(n, opt) {
+  opt = opt || {}; let h = '', any = false;
+  if (opt.summary) {
+    if ((n.highlights || []).length) h += '<h3>' + esc(T.hi) + '</h3><ul>' + n.highlights.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>';
+    if ((n.concerns || []).length) h += '<h3>' + esc(T.co) + '</h3><ul>' + n.concerns.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>';
+    return h;
+  }
+  if ((n.hypotheses || []).length) { any = true; h += '<h3>' + esc(T.hy) + '</h3>' + n.hypotheses.map(x => '<div class="hyp">' + esc(x.text) + '<div class="note">' + esc(T.verify) + ': ' + esc(x.how_to_verify) + '</div></div>').join(''); }
+  if ((n.recommendations || []).length) { any = true; h += '<h3>' + esc(T.rec) + '</h3><ol>' + n.recommendations.map(x => '<li><b>' + esc(x.action) + '</b>' + (x.reason ? '<div class="note">' + esc(T.why) + ': ' + esc(x.reason) + '</div>' : '') + '</li>').join('') + '</ol>'; }
+  if ((n.cannot_conclude || []).length) { any = true; h += '<h3>' + esc(T.cannot) + '</h3><ul>' + n.cannot_conclude.map(x => '<li>' + esc(x.text) + '</li>').join('') + '</ul>'; }
+  if (!any) h += '<p class="note">' + esc(T.noAI) + '</p>';
+  return h;
+}
+const sec = (title, body) => '<h2>' + esc(title) + '</h2>' + body;
+const delta = (a, b) => f(T.k.vs, { p: b, d: sign(a - b) });
+
+// ---------- three layouts ----------
+function renderDaily(r, n) {
+  const t = r.this_period, l = r.last_period, tg = r.targets.team, od = (r.followups || {}).overdue || [], dt = (r.followups || {}).due_today || [];
+  let h = kpiRow([
+    { lab: T.k.sentToday, big: t.emails_sent + ' / ' + tg.target, sub: tg.target ? f(T.k.pace, { p: tg.pace_to_date }) + ' · ' + T.stat[tg.status] : T.stat['n/a'] },
+    { lab: T.k.repliesToday, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) },
+    { lab: T.k.overdue, big: od.length, sub: '' }, { lab: T.k.dueToday, big: dt.length, sub: '' }]);
+  h += sec(T.secChartDaily, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget, w: 800, h: 210 }));
+  h += sec(T.secRepliesToday, replyCards(r, n));
+  h += sec(T.secTodo, '<h3>' + esc(T.dueTodayH) + '</h3>' + dueTable(dt, 10) + '<h3>' + esc(T.overdue) + ' (' + od.length + ')</h3>' + overdueTable(r, 8));
+  h += sec(T.secAnalysis, analysisBlocks(n, { summary: true }) + analysisBlocks(n));
+  return h;
+}
+function renderWeekly(r, n) {
+  const t = r.this_period, l = r.last_period;
+  let h = analysisBlocks(n, { summary: true });
+  h += sec(T.secTarget, targetBlock(r));
+  h += kpiRow([{ lab: T.k.sent, big: t.emails_sent, sub: delta(t.emails_sent, l.emails_sent) }, { lab: T.k.contacted, big: t.companies_contacted, sub: delta(t.companies_contacted, l.companies_contacted) },
+    { lab: T.k.replies, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) }, { lab: T.k.meetings, big: t.meetings_logged, sub: delta(t.meetings_logged, l.meetings_logged) }]);
+  h += sec(T.secChartWeek, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget }));
+  h += sec(T.secRepliesWeek, replyCards(r, n));
+  h += sec(T.secProgress, progressTable(r));
+  h += sec(T.secFunnel, funnelBlock(r) + '<h3>' + esc(T.secReply) + '</h3>' + replyRateBlock(r));
+  h += sec(T.secPipeline, pipelineChips(r));
+  h += sec(T.secAction, '<h3>' + esc(T.overdue) + '</h3>' + overdueTable(r, 6) + '<h3>' + esc(T.noNext) + ' (' + (r.stale_no_next_step || []).length + ')</h3>' + staleTable(r, 6));
+  const nx = (r.followups || {}).next_7_days || [], um = r.upcoming_meetings_14d || [];
+  h += sec(T.secNext, '<h3>' + esc(T.next7) + '</h3>' + dueTable(nx, 10) + (um.length ? '<h3>' + esc(T.upcoming) + '</h3>' + tbl([T.company, T.due], um.map(x => [x.company, x.at])) : '') +
+    (r.leads_ready_to_contact != null ? '<h3>' + esc(T.ready) + '</h3><p><b>' + r.leads_ready_to_contact + '</b> <span class="muted">(' + esc(T.readyDesc) + ')</span></p>' : ''));
+  h += sec(T.secAnalysis, analysisBlocks(n));
+  return h;
+}
+function renderMonthly(r, n) {
+  const t = r.this_period, l = r.last_period;
+  let h = analysisBlocks(n, { summary: true });
+  h += sec(T.secTarget, targetBlock(r));
+  h += kpiRow([{ lab: T.k.sent, big: t.emails_sent, sub: delta(t.emails_sent, l.emails_sent) }, { lab: T.k.contacted, big: t.companies_contacted, sub: delta(t.companies_contacted, l.companies_contacted) },
+    { lab: T.k.replies, big: t.companies_replied, sub: delta(t.companies_replied, l.companies_replied) }, { lab: T.k.meetings, big: t.meetings_logged, sub: delta(t.meetings_logged, l.meetings_logged) }]);
+  h += sec(T.secChartMonth, chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.sent), target: r.series.map(x => x.target), targetName: T.chartTarget, h: 240 }));
+  h += '<h3>' + esc(T.secChartReplies) + '</h3>' + chartImg({ labels: r.series.map(x => x.label), bars: r.series.map(x => x.replied), color: '#2e7d4f', h: 190 });
+  h += sec(T.secFunnel, funnelBlock(r) + '<h3>' + esc(T.secReply) + '</h3>' + replyRateBlock(r));
+  h += sec(T.secSeg, segTables(r));
+  h += sec(T.secOwner, ownerTable(r));
+  h += sec(T.secProgress, progressTable(r) + '<h3>' + esc(T.secPipeline) + '</h3>' + pipelineChips(r));
+  h += sec(T.secAction, '<h3>' + esc(T.noNext) + ' (' + (r.stale_no_next_step || []).length + ')</h3>' + staleTable(r, 6) + '<h3>' + esc(T.overdue) + '</h3>' + overdueTable(r, 6));
+  h += sec(T.secPlanMonth, analysisBlocks(n));
+  return h;
+}
 
 function render(r) {
-  const n = r.narrative || {}, w = r.window, t = r.this_period, l = r.last_period;
-  const per = T.ui[r.period.charAt(0)] || r.period;
-  const range = w.start === w.end ? w.start : w.start + ' ~ ' + w.end;
-  let h = logos(r.owner_filter, per, range);
-  h += '<h1>' + esc(T.title) + '<span class="badge ' + (r.status === 'Final' ? 'final' : 'draft') + '">' + esc(r.status === 'Final' ? T.final : T.draft) + '</span></h1>';
-  h += '<div class="chiprow"><span>' + esc(T.range) + ': <b>' + esc(range) + '</b></span><span>' + esc(T.scope) + ': <b>' + esc(r.owner_filter ? own(r.owner_filter) : T.all) + '</b></span><span>' + esc(T.generated) + ': ' + esc(r.generated_at) + '</span></div>';
-  h += '<div class="note">' + esc(w.partial_period ? T.draftNote.replace('{d}', w.effective_end) : T.finalNote) + '</div>';
-
-  h += '<h2>' + esc(T.s1) + '</h2><div class="headline">' + esc(n.headline || T.noAI) + '</div>';
-  if ((n.highlights || []).length) h += '<h3>' + esc(T.hi) + '</h3><ul>' + n.highlights.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>';
-  if ((n.concerns || []).length) h += '<h3>' + esc(T.co) + '</h3><ul>' + n.concerns.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>';
-
-  const keys = ['emails_sent', 'companies_contacted', 'new_companies_contacted', 'companies_replied', 'bounced', 'meetings_logged', 'samples_logged', 'quotations_logged', 'won_logged'];
-  h += '<h2>' + esc(T.s2) + '</h2>' + tbl([T.metric, T.thisP, T.lastP, T.change], keys.map(k => [T.m[k], t[k], l[k], sign(t[k] - l[k])]), [1, 2, 3]);
-
-  const max = Math.max(1, ...r.funnel_to_date.map(f => f.n));
-  h += '<h2>' + esc(T.s3) + '</h2><table><thead><tr><th>' + esc(T.step.contacted) + ' → ' + esc(T.step.won) + '</th><th class="n">' + esc(T.cnt) + '</th><th class="n">' + esc(T.ofPrev) + '</th><th class="n">' + esc(T.ofCont) + '</th><th></th></tr></thead><tbody>' +
-    r.funnel_to_date.map(f => '<tr><td>' + esc(T.step[f.step]) + '</td><td class="n">' + f.n + '</td><td class="n">' + pct(f.pct_of_previous) + '</td><td class="n">' + pct(f.pct_of_contacted) + '</td><td><div class="bar-wrap"><div class="bar-in" style="width:' + Math.round(100 * f.n / max) + '%"></div></div></td></tr>').join('') + '</tbody></table>';
-  const srcRows = (r.by_source_all_time || []).map(s => [T.srcName[s.key] || s.key, s.companies_contacted, s.replied, s.companies_contacted ? pct(Math.round(1000 * s.replied / s.companies_contacted) / 10) : '—', s.meetings]);
-  if (srcRows.length) h += tbl([T.src, T.contacted, T.replied, T.rate, T.meetings], srcRows, [1, 2, 3, 4]);
-
-  const rr = r.reply_rate, c1 = rr.this_period_cohort, c0 = rr.last_period_cohort;
-  const cohort = c => c.companies_contacted ? T.rrOf.replace('{a}', c.companies_replied).replace('{b}', c.companies_contacted) + ' (' + pct(c.rate_pct) + ')' : T.rrNone.replace('{n}', 7).replace('{x}', c.immature_companies_excluded);
-  h += '<h2>' + esc(T.s4) + '</h2>' + tbl([T.metric, T.thisP, T.lastP], [
-    [T.rrAll, T.rrOf.replace('{a}', rr.all_time.companies_replied).replace('{b}', rr.all_time.companies_contacted) + ' (' + pct(rr.all_time.rate_pct) + ')', ''],
-    [T.rrMature.replace('{n}', 7), cohort(c1), cohort(c0)]]);
-
-  const order = ['Won', 'Quotation', 'Sample', 'Meeting', 'Replied', 'Contacted', 'Nurture', 'Lost', 'Cold'];
-  const sc = r.pipeline_current.stage_counts || {};
-  h += '<h2>' + esc(T.s5) + '</h2><div class="chips">' + order.filter(k => sc[k]).map(k => '<span>' + esc(T.stage[k] || k) + ' <b>' + sc[k] + '</b></span>').join('') + '</div>';
-  ['Won', 'Quotation', 'Sample', 'Meeting', 'Replied'].forEach(st => {
-    const rows = (r.pipeline_current.lists || {})[st] || [];
-    if (rows.length) h += '<h3>' + esc(T.stage[st]) + '</h3>' + tbl([T.company, T.country, T.since, T.nextStep, T.owner], rows.slice(0, 12).map(x => [x.company, x.country, x.since, x.next_step, own(x.owner)]));
-  });
-
-  h += '<h2>' + esc(T.s6) + '</h2><h3>' + esc(T.overdue) + '</h3>';
-  const today = String(r.generated_at).slice(0, 10), D = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
-  const od = (r.followups || {}).overdue || [];
-  h += od.length ? tbl([T.company, T.stageCol, T.nextStep, T.due, T.daysOver], od.slice(0, 10).map(x => [x.company, T.stage[x.stage] || x.stage, x.next_step, x.due, Math.round((D(today) - D(x.due)) / 864e5)]), [4]) : empty();
-  const nx = (r.followups || {}).next_7_days || [];
-  h += '<h3>' + esc(T.next7) + '</h3>' + (nx.length ? tbl([T.company, T.stageCol, T.nextStep, T.due], nx.slice(0, 10).map(x => [x.company, T.stage[x.stage] || x.stage, x.next_step, x.due])) : empty());
-  const um = r.upcoming_meetings_14d || [];
-  if (um.length) h += '<h3>' + esc(T.upcoming) + '</h3>' + tbl([T.company, T.due], um.map(x => [x.company, x.at]));
-  const st = r.stale_no_next_step || [];
-  h += '<h3>' + esc(T.noNext) + ' (' + st.length + ')</h3>' + (st.length ? tbl([T.company, T.country, T.stageCol, T.daysIn], st.slice(0, 10).map(x => [x.company, x.country, T.stage[x.stage] || x.stage, x.days_in_stage]), [3]) : empty());
-  if (r.leads_ready_to_contact !== null && r.leads_ready_to_contact !== undefined) h += '<h3>' + esc(T.ready) + '</h3><p><b>' + r.leads_ready_to_contact + '</b></p>';
-
-  const seg = rows => rows.map(x => [x.key, x.emails_sent, x.companies_contacted, x.replied, x.meetings]);
-  h += '<h2>' + esc(T.s7) + '</h2>';
-  h += (r.by_brand_channel || []).length ? tbl([T.segBC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_brand_channel), [1, 2, 3, 4]) : empty();
-  h += (r.by_country_top5 || []).length ? tbl([T.segC, T.emails, T.companies, T.replied, T.meetings], seg(r.by_country_top5), [1, 2, 3, 4]) : '';
-
-  const ow = r.by_owner || [];
-  h += '<h2>' + esc(T.s8) + '</h2>';
-  if (!ow.length) h += empty();
-  else {
-    if (ow.every(o => o.key === 'Unassigned')) h += '<p class="note">' + esc(T.unassignedNote) + '</p>';
-    else h += '<p class="note">' + esc(T.ownerNote) + '</p>';
-    h += tbl([T.person, T.emails, T.companies, T.replied, T.meetings, T.overdueCol], ow.map(o => [own(o.key), o.emails_sent, o.companies_contacted, o.replied, o.meetings, o.follow_ups_overdue]), [1, 2, 3, 4, 5]);
-  }
-
-  h += '<h2>' + esc(T.s9) + '</h2>';
-  let any = false;
-  if ((n.hypotheses || []).length) { any = true; h += '<h3>' + esc(T.hy) + '</h3>' + n.hypotheses.map(x => '<div class="hyp" title="' + tip(n, x.facts) + '">' + esc(x.text) + '<div class="note">' + esc(T.verify) + ': ' + esc(x.how_to_verify) + '</div></div>').join(''); }
-  if ((n.recommendations || []).length) { any = true; h += '<h3>' + esc(T.rec) + '</h3><ol>' + n.recommendations.map(x => '<li title="' + tip(n, x.facts) + '"><b>' + esc(x.action) + '</b>' + (x.reason ? '<div class="note">' + esc(T.why) + ': ' + esc(x.reason) + '</div>' : '') + '</li>').join('') + '</ol>'; }
-  if ((n.cannot_conclude || []).length) { any = true; h += '<h3>' + esc(T.cannot) + '</h3><ul>' + n.cannot_conclude.map(x => '<li title="' + tip(n, x.facts) + '">' + esc(x.text) + '</li>').join('') + '</ul>'; }
-  if (!any) h += '<p class="note">' + esc(T.noAI) + '</p>';
-
+  const n = r.narrative || {}, w = r.window;
+  let h = '<div class="brand">' + esc(T.brand) + '</div><h1>' + esc(T.title[r.period]) + ' ' + pill(r.status === 'Final' ? 'final' : 'draft', r.status === 'Final' ? T.final : T.draft) + '</h1>';
+  h += '<div class="meta">' + esc(T.tagline[r.period]) + '</div>';
+  h += '<div class="meta">' + esc(T.range) + ': ' + esc(w.start) + (w.end !== w.start ? ' ~ ' + esc(w.end) : '') + ' · ' + esc(T.scope) + ': ' + esc(r.owner_filter || T.all) + ' · ' + esc(T.generated) + ': ' + esc(r.generated_at) + '</div>';
+  h += '<div class="note">' + esc(w.partial_period ? f(T.draftNote, { d: w.effective_end }) : T.finalNote) + '</div>';
+  h += '<div class="headline">' + esc(n.headline || T.noAI) + '</div>';
+  h += r.period === 'daily' ? renderDaily(r, n) : r.period === 'monthly' ? renderMonthly(r, n) : renderWeekly(r, n);
   h += '<p class="note" style="margin-top:22px">' + esc(T.foot) + '</p>';
-  $('report').innerHTML = h;
-  $('report').style.display = 'block';
+  $('report').innerHTML = h; $('report').style.display = 'block';
+  const checks = (r.data_checks || []).slice();
+  if (n.meta && n.meta.ai_status && n.meta.ai_status !== 'ok') checks.push('AI: ' + n.meta.ai_status);
+  ((n.meta && n.meta.dropped) || []).forEach(x => checks.push('Guard: ' + x));
+  $('internal').style.display = checks.length ? 'block' : 'none';
+  $('internal').querySelector('summary').textContent = T.internal + ' (' + checks.length + ')';
+  $('internalList').innerHTML = checks.map(x => '<li>' + esc(x) + '</li>').join('');
+  $('owners').innerHTML = (r.by_owner || []).filter(o => o.key !== 'Unassigned' && o.key !== 'Imported (manual)').map(o => '<option value="' + esc(o.key) + '">').join('');
 }
 
 function say(kind, text) { const m = $('msg'); m.className = kind || ''; m.textContent = text || ''; if (!kind) m.style.display = 'none'; }
-
+function targetDate() {
+  if ($('date').value) return $('date').value;
+  if ($('which').value !== 'previous') return '';
+  const d = new Date(Date.now() + 8 * 3600e3), p = $('period').value, y = d.getUTCFullYear(), m = d.getUTCMonth(), dd = d.getUTCDate();
+  const out = p === 'daily' ? new Date(Date.UTC(y, m, dd - 1)) : p === 'weekly' ? new Date(Date.UTC(y, m, dd - 7)) : new Date(Date.UTC(y, m, 0));
+  return out.toISOString().slice(0, 10);
+}
 async function generate() {
-  const date = pickedDate();
-  if (!date) { say('err', 'Please pick a ' + ({ daily: 'date', weekly: 'start date', monthly: 'month' })[$('period').value] + ' first.'); return; }
-  const body = { period: $('period').value, lang: $('lang').value, date: date };
-  if ($('owner').value) body.owner = $('owner').value;
+  T = L[$('lang').value] || L.en;
+  const body = { period: $('period').value, lang: $('lang').value }, dt = targetDate();
+  if (dt) body.date = dt;
+  if ($('owner').value.trim()) body.owner = $('owner').value.trim();
   $('go').disabled = true; say('info', UI.loading);
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 150000);
   try {
@@ -258,14 +373,12 @@ async function generate() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     let d = await res.json(); if (Array.isArray(d)) d = d[0];
     if (!d || d.ok === false || !d.window) throw new Error((d && d.error) || 'Empty response');
-    T = L[$('lang').value] || EN; lastReport = d; render(d); say('');
+    lastReport = d; render(d); say('');
     $('copy').disabled = false; $('pdf').disabled = false;
-    try { localStorage.setItem('rp_prefs', JSON.stringify({ period: $('period').value, lang: $('lang').value })); } catch (e) {}
-  } catch (e) {
-    say('err', UI.fail + ': ' + (e.name === 'AbortError' ? 'timeout' : e.message) + '. ' + UI.failHint);
-  } finally { clearTimeout(to); $('go').disabled = false; }
+    try { localStorage.setItem('rp_prefs', JSON.stringify({ lang: $('lang').value, period: $('period').value })); } catch (e) {}
+  } catch (e) { say('err', UI.fail + ': ' + (e.name === 'AbortError' ? 'timeout' : e.message) + '. ' + UI.failHint); }
+  finally { clearTimeout(to); $('go').disabled = false; }
 }
-
 function copyReport() {
   const el = $('report'), sel = getSelection(), rg = document.createRange();
   rg.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(rg);
@@ -280,17 +393,8 @@ function savePdf() {
   say('info', UI.pdfHint);
   setTimeout(() => { window.print(); document.title = old; setTimeout(() => say(''), 1500); }, 150);
 }
-
-/* ---------- start ---------- */
-const t0 = todayTW();
-$('d1').value = t0; setWeek(t0); $('m1').value = t0.slice(0, 7);
-try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.period) $('period').value = p.period; if (p.lang && L[p.lang]) $('lang').value = p.lang; } catch (e) {}
-showMode();
-$('period').addEventListener('change', showMode);
-$('w1').addEventListener('change', () => { if ($('w1').value) setWeek($('w1').value); });
-$('go').addEventListener('click', generate);
-$('copy').addEventListener('click', copyReport);
-$('pdf').addEventListener('click', savePdf);
+try { const p = JSON.parse(localStorage.getItem('rp_prefs') || '{}'); if (p.lang && L[p.lang]) $('lang').value = p.lang; if (p.period) $('period').value = p.period; } catch (e) {}
+$('go').addEventListener('click', generate); $('copy').addEventListener('click', copyReport); $('pdf').addEventListener('click', savePdf);
 </script>
 </body>
 </html>
