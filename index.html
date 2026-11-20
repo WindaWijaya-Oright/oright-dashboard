@@ -2910,8 +2910,10 @@ async function sendCurrentDraft(){
 // NOTE: there is no real authentication backend (n8n has no login system) --
 // this is a lightweight "who am I sending as" identity switch, stored locally,
 // used only to tag Assigned_To / sender_name when sending Personal emails.
-const ROSTER_USERS = ['Winda', 'Karen'];   // tambah nama di sini (dan baris SENDER.<NAMA>.* di Hub_Config) kalau ada orang baru
-const SENDER_LABEL = { Winda: "Winda (O'right)", Karen: "Karen (O'right PRO)" };
+const ROSTER_USERS = ['Winda', 'Jo', 'Karen', 'SharonLai', 'SharonHsu'];   // harus sama dengan kolom Sender_ID di tab Senders (Email Log), huruf besar kecil bebas; tanpa spasi atau garis bawah
+const SENDER_LABEL = { Winda: "Winda (O'right)", Jo: "Jo (O'right)", Karen: "Karen (O'right PRO)", SharonLai: "Sharon Lai (O'right PRO)", SharonHsu: "Sharon Hsu (O'right PRO)" };
+const SENDER_SHORT = { SharonLai: 'Sharon Lai', SharonHsu: 'Sharon Hsu' };   // nama tampilan; nilai yang dikirim ke n8n tetap ID di atas
+function senderShow(s){ return SENDER_SHORT[s] || s; }
 
 function getCurrentUser(){
   return localStorage.getItem('oright_current_user') || 'Winda';
@@ -2924,13 +2926,14 @@ function setCurrentUser(name){
   if(sel){ if(!sel.options.length) ROSTER_USERS.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = SENDER_LABEL[u] || u; sel.appendChild(o); }); sel.value = name; }
   try { if(changed && HUB && HUB.draft) showToast('Sending as ' + name + '. Click Regenerate so the draft and signature match.'); } catch(e){}
   try { if(HUB && HUB.qItem && document.getElementById('xDraft').classList.contains('on')){ dMoveRender(HUB.qItem); dGuardSync(HUB.qItem); } } catch(e){}   // HUB belum ada saat halaman pertama dimuat
-  document.getElementById('userNameLabel').textContent = name;
+  document.getElementById('userNameLabel').textContent = senderShow(name);
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
 }
 function switchUser(){
-  const choice = prompt('Switch to which user?\n' + ROSTER_USERS.join(', '), getCurrentUser());
-  if(choice && ROSTER_USERS.includes(choice)) setCurrentUser(choice);
-  else if(choice) alert('Not a recognized user. Choose one of: ' + ROSTER_USERS.join(', '));
+  const choice = prompt('Switch to which user?\n' + ROSTER_USERS.map(senderShow).join(', '), senderShow(getCurrentUser()));
+  const hit = choice ? ROSTER_USERS.find(u => [u, senderShow(u)].some(x => x.replace(/\s+/g, '').toLowerCase() === choice.replace(/\s+/g, '').toLowerCase())) : '';
+  if(hit) setCurrentUser(hit);
+  else if(choice) alert('Not a recognized user. Choose one of: ' + ROSTER_USERS.map(senderShow).join(', '));
 }
 function doLogout(){
   if(!confirm('Log out? (This just clears the local identity — there is no real login system yet.)')) return;
@@ -3977,7 +3980,7 @@ function hubDrawSent(){
   const today = new Date().toLocaleDateString('en-CA');
   const nToday = all.filter(r => r.sent_at && sfDay(r.sent_at) === today && (!F.sender || (F.sender === '__none' ? !r.sent_by : r.sent_by === F.sender))).length;
   let h = '<div class="x-panel" style="padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">' +
-    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Sent by<select ' + inp + ' onchange="sfSet(\'sender\', this.value)"><option value="">Everyone</option>' + senders.map(s => '<option value="' + escH(s) + '"' + (F.sender === s ? ' selected' : '') + '>' + escH(s) + '</option>').join('') + (hasNone ? '<option value="__none"' + (F.sender === '__none' ? ' selected' : '') + '>(not recorded)</option>' : '') + '</select></label>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Sent by<select ' + inp + ' onchange="sfSet(\'sender\', this.value)"><option value="">Everyone</option>' + senders.map(s => '<option value="' + escH(s) + '"' + (F.sender === s ? ' selected' : '') + '>' + escH(senderShow(s)) + '</option>').join('') + (hasNone ? '<option value="__none"' + (F.sender === '__none' ? ' selected' : '') + '>(not recorded)</option>' : '') + '</select></label>' +
     '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">From<input type="date" ' + inp + ' value="' + escH(F.from) + '" onchange="sfSet(\'from\', this.value)"></label>' +
     '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">To<input type="date" ' + inp + ' value="' + escH(F.to) + '" onchange="sfSet(\'to\', this.value)"></label>' +
     '<div style="display:flex;gap:6px"><button class="x-btn" onclick="sfRange(1)">Today</button><button class="x-btn" onclick="sfRange(7)">7 days</button><button class="x-btn" onclick="sfRange(30)">30 days</button><button class="x-btn" onclick="sfRange(0)">All time</button></div>' +
@@ -3985,7 +3988,7 @@ function hubDrawSent(){
     '<div style="margin-left:auto;font-size:12.5px;color:var(--ink-faint)">Showing <b>' + rows.length + '</b> of ' + all.length + ' emails' + (F.from || F.to ? ' · ' + escH(F.from || '…') + ' to ' + escH(F.to || '…') : '') + ' · sent today: <b>' + nToday + '</b></div></div>';
   const by = {}; rows.forEach(r => { if(!isSentRow(r)) return; const s = r.sent_by || '(not recorded)'; (by[s] = by[s] || { n:0, cos:new Set(), rep:0, bnc:0 }); by[s].n++; by[s].cos.add(r.match_key); if(r.replied_at) by[s].rep++; if(r.bounced_at) by[s].bnc++; });
   const keys = Object.keys(by).sort((a, b) => by[b].n - by[a].n);
-  if(keys.length) h += '<div class="x-panel" style="padding:10px 14px;margin-bottom:12px"><table class="x-tbl"><thead><tr><th>Sender</th><th class="r">Emails sent</th><th class="r">Companies</th><th class="r">Replied</th><th class="r">Bounced</th></tr></thead><tbody>' + keys.map(s => '<tr><td><b>' + escH(s) + '</b></td><td class="r">' + by[s].n + '</td><td class="r">' + by[s].cos.size + '</td><td class="r">' + by[s].rep + '</td><td class="r">' + by[s].bnc + '</td></tr>').join('') + '</tbody></table></div>';
+  if(keys.length) h += '<div class="x-panel" style="padding:10px 14px;margin-bottom:12px"><table class="x-tbl"><thead><tr><th>Sender</th><th class="r">Emails sent</th><th class="r">Companies</th><th class="r">Replied</th><th class="r">Bounced</th></tr></thead><tbody>' + keys.map(s => '<tr><td><b>' + escH(senderShow(s)) + '</b></td><td class="r">' + by[s].n + '</td><td class="r">' + by[s].cos.size + '</td><td class="r">' + by[s].rep + '</td><td class="r">' + by[s].bnc + '</td></tr>').join('') + '</tbody></table></div>';
   h += '<div class="x-grid x-g6">' + k('Sent', T.sent, 'delivered to the server') + k('Scheduled', T.scheduled, 'waiting to go out') + k('Bounced', T.bounced, sent ? xPct(T.bounced || 0, sent) + '% of sent' : '') + k('Replied', T.replied, sent ? xPct(T.replied || 0, sent) + '% of sent' : '') + k('Clicked', T.clicked, 'a link in the signature') + k('Failed', T.failed, 'could not be sent') + '</div>';
   const late = rows.filter(r => r.status === 'Scheduled' && r.scheduled_at && Date.now() - new Date(r.scheduled_at).getTime() > 10 * 60000);
   if(late.length) h += '<div class="x-note amber"><b>' + late.length + ' email' + (late.length > 1 ? 's are' : ' is') + ' overdue.</b> They were due more than 10 minutes ago but have not gone out. Either the n8n workflow <code>Email_Send_Due</code> is not Active, or the computer running n8n was asleep or offline.</div>';
@@ -4139,7 +4142,7 @@ async function dDmLoad(mk){
 }
 
 /* ---------- MOVE a lead between O'right and O'right PRO, straight from the Outreach Hub ---------- */
-const SENDER_BRAND = { Winda:'ORIGHT', Karen:'PRO' };   // sama dengan bawaan guard di n8n; tambah baris SENDER.<NAMA>.BRAND di Hub_Config untuk orang baru
+const SENDER_BRAND = { Winda:'ORIGHT', Jo:'ORIGHT', Karen:'PRO', SharonLai:'PRO', SharonHsu:'PRO' };   // sama dengan bawaan guard di n8n; tambah baris SENDER.<NAMA>.BRAND di Hub_Config untuk orang baru
 function senderBrandOf(name){ return SENDER_BRAND[name] || ''; }
 function dGuardMismatch(q){ const me = senderBrandOf(getCurrentUser()), lb = String((q && q.brand) || '').toUpperCase() === 'PRO' ? 'PRO' : 'ORIGHT'; return !!me && me !== lb; }
 function dGuardSync(q){ const bad = dGuardMismatch(q), w = $x('dWrite'); if(w){ w.disabled = bad; w.title = bad ? 'This lead belongs to the other brand. Switch the sender or move the lead first.' : ''; } }
