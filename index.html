@@ -4237,7 +4237,7 @@ async function dGenerate(body, label){
     $x('dAckWrap').style.display = (d.flags || []).length ? '' : 'none'; $x('dAck').checked = false;
     dTypeIn(d.subject || '', d.body || '', () => { dCount(); $x('dRegen').disabled = false; });
     return;
-  } catch(e){ dTypeStop(); $x('dMode').innerHTML = '<div class="x-err"><b>Could not write the draft.</b> ' + escH(e.message) + '<br>The n8n workflow <code>hub-generate</code> may not be built yet or is not Active.</div>'; }
+  } catch(e){ dTypeStop(); $x('dMode').innerHTML = '<div class="x-err"><b>Could not write the draft.</b> ' + escH(e.message) + (/^[A-Z][A-Z_]{3,}:/.test(String(e.message)) ? '' : '<br>The n8n workflow <code>hub-generate</code> may not be built yet or is not Active.') + '</div>'; }
   $x('dRegen').disabled = false;
 }
 function dCount(){
