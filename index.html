@@ -1073,11 +1073,13 @@
       <div id="hubMode"></div>
       <div class="x-tabs" id="hubTabs">
         <div class="x-tab on" data-t="queue" onclick="hubTab('queue')">To contact <span id="hubCntQueue" style="opacity:.6"></span></div>
+        <div class="x-tab" data-t="auto" onclick="hubTab('auto')">Auto-send <span id="hubCntAuto" style="opacity:.6"></span></div>
         <div class="x-tab" data-t="sent" onclick="hubTab('sent')">Sent &amp; tracking <span id="hubCntSent" style="opacity:.6"></span></div>
         <div class="x-tab" data-t="hist" onclick="hubTab('hist')">History by lead <span id="hubCntHist" style="opacity:.6"></span></div>
         <div class="x-tab" data-t="li" onclick="hubTab('li')">LinkedIn <span id="hubCntLi" style="opacity:.6"></span></div>
       </div>
       <div id="hubQueue"></div>
+      <div id="hubAuto" style="display:none"></div>
       <div id="hubSent" style="display:none"></div>
       <div id="hubHist" style="display:none"></div>
       <div id="hubLi" style="display:none"></div>
@@ -3711,7 +3713,108 @@ function hubTab(t){
   document.querySelectorAll('#hubTabs .x-tab').forEach(e => e.classList.toggle('on', e.getAttribute('data-t') === t));
   $x('hubQueue').style.display = t === 'queue' ? '' : 'none'; $x('hubSent').style.display = t === 'sent' ? '' : 'none'; $x('hubHist').style.display = t === 'hist' ? '' : 'none';
   $x('hubLi').style.display = t === 'li' ? '' : 'none'; if(t === 'li' && !LI.data) liLoad();
+  $x('hubAuto').style.display = t === 'auto' ? '' : 'none'; if(t === 'auto') auLoad();
 }
+
+/* ---------- AUTO-SEND tab ----------
+   GET /hub-queue?auto=1 (leads below the Fit threshold) + GET /hub-settings (admin token) + GET /hub-sent (rows[].send_mode, held[])
+   POST /hub-settings-save {action:'set', changes:{AUTO_SEND_ENABLED, AUTO_DAILY_PER_PERSON, AUTO_FIT_MIN, AUTO_FIT_MAX}} */
+const AU = { q:null, cfg:null, authed:false, err:null, busy:false, filter:'send', loaded:false };
+const AU_PEOPLE = [['Winda', "O'right"], ['Jo', "O'right"], ['Karen', "O'right PRO"], ['SharonLai', "O'right PRO"], ['SharonHsu', "O'right PRO"]];
+const auOn = v => /^(true|yes|1)$/i.test(String(v == null ? '' : v).trim());
+async function auLoad(){
+  const box = $x('hubAuto'); if(!box) return;
+  if(!AU.loaded) box.innerHTML = '<div style="color:var(--ink-faint);font-size:13px;padding:8px 2px">Loading…</div>';
+  const t = setTok();
+  try {
+    const r = await Promise.all([n8nGet('/hub-queue?auto=1'), n8nGet('/hub-settings' + (t ? '?token=' + encodeURIComponent(t) : '')), n8nGet('/hub-sent')]);
+    if(!r[0] || !Array.isArray(r[0].items)) throw new Error('Unexpected answer from the server (no list). Press Refresh.');
+    AU.q = r[0]; AU.authed = !!(r[1] && r[1].authed); AU.cfg = AU.authed ? (r[1].values || {}) : null;
+    if(r[2] && Array.isArray(r[2].rows)){ HUB.sent = r[2]; HUB.errs.sent = null; }
+    AU.err = null; AU.loaded = true;
+  } catch(e){ AU.err = e; }
+  auRender();
+}
+function auCalc(){
+  const c = AU.cfg || {}, num = (v, d) => (String(v == null ? '' : v).trim() !== '' && isFinite(Number(v))) ? Number(v) : d;
+  const lo = num(c.AUTO_FIT_MIN, 1), hi = num(c.AUTO_FIT_MAX, 30), quota = num(c.AUTO_DAILY_PER_PERSON, 5);
+  const held = {}; ((HUB.sent && HUB.sent.held) || []).forEach(h => { held[h.match_key] = h; });
+  const list = [];
+  ((AU.q && AU.q.items) || []).forEach(it => {
+    if(!(it.email_no <= 1)) return;                         // follow-ups are never sent automatically
+    const ct = it.contact || {}; let st = 'send', why = '';
+    if(held[it.match_key]){ st = 'held'; why = 'Held: ' + (held[it.match_key].reason || 'needs a look'); }
+    else if(it.fit == null){ st = 'blocked'; why = 'No score yet'; }
+    else if(it.fit > hi){ st = 'parked'; why = 'Above the sending range (Fit ' + lo + '–' + hi + ')'; }
+    else if(it.fit < lo){ st = 'parked'; why = 'Below the sending range (Fit ' + lo + '–' + hi + ')'; }
+    else if(!ct.email){ st = 'blocked'; why = 'No email address'; }
+    else if(ct.email_status === 'Unapproved'){ st = 'blocked'; why = 'Email not approved'; }
+    else if(ct.dom === 'mismatch'){ st = 'blocked'; why = 'Email domain differs from the website'; }
+    else if(ct.role){ st = 'blocked'; why = 'Not a buying mailbox'; }
+    list.push({ it, st, why });
+  });
+  const n = { send:0, parked:0, blocked:0, held:0 }; list.forEach(x => { n[x.st]++; });
+  const today = new Date().toLocaleDateString('en-CA'), rows = (HUB.sent && HUB.sent.rows) || [], hasMode = rows.some(r => r.send_mode);
+  const people = AU_PEOPLE.map(p => {
+    const mine = rows.filter(r => r.send_mode === 'Auto' && senderNorm(r.sent_by) === p[0]);
+    return { id:p[0], brand:p[1],
+      sent: mine.filter(r => r.sent_at && sfDay(r.sent_at) === today).length,
+      sched: mine.filter(r => r.status === 'Scheduled' || r.status === 'Sending').length,
+      failed: mine.filter(r => r.status === 'Failed' && sfDay(r.scheduled_at || r.sent_at) === today).length,
+      held: ((HUB.sent && HUB.sent.held) || []).filter(h => senderNorm(h.sent_by) === p[0]).length };
+  });
+  return { c, lo, hi, quota, list, n, people, hasMode, perDay: quota * AU_PEOPLE.length };
+}
+function auRender(){
+  const box = $x('hubAuto'); if(!box) return;
+  if(AU.err && !AU.loaded){ box.innerHTML = xErrBox('the auto-send data', '/hub-queue?auto=1', AU.err) + '<button class="btn-secondary" style="flex:none;margin-top:8px" onclick="auLoad()">Try again</button>'; return; }
+  const K = auCalc(), c = K.c, ok = AU.authed, patched = ok && c.AUTO_SEND_ENABLED !== undefined && c.AUTO_DAILY_PER_PERSON !== undefined;
+  const on = auOn(c.AUTO_SEND_ENABLED), test = auOn(c.TEST_MODE), lim = Number(c.DAILY_SEND_LIMIT);
+  const cnt = $x('hubCntAuto'); if(cnt) cnt.textContent = '· ' + K.n.send;
+  const inp = 'style="padding:7px 9px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:13px;background:#fff;width:84px"';
+  let h = '';
+  if(!ok) h += '<div class="x-note amber"><b>Locked.</b> Enter your admin token once in <b>Settings</b> to start, pause or change the numbers here. You can still look at everything below.</div>';
+  else if(!patched) h += '<div class="x-note amber"><b>Setup needed.</b> The settings <code>AUTO_SEND_ENABLED</code> and <code>AUTO_DAILY_PER_PERSON</code> are not in the Hub_Settings registry yet (n8n patch 1). Starting and pausing will not work until then.</div>';
+  if(test) h += '<div class="x-note blue"><b>Test mode is ON.</b> Auto-send only writes to the test addresses, never to real leads.</div>';
+  // ---- control panel ----
+  h += '<div class="x-panel" style="padding:16px 18px;margin-bottom:12px"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between">' +
+    '<div><div style="font-size:12px;color:var(--ink-faint)">Auto-send</div><div style="font-size:22px;font-weight:700;margin-top:2px"><span class="x-pill ' + (on ? 'green' : 'amber') + '" style="font-size:13px">' + (on ? 'Running' : 'Paused') + '</span></div>' +
+    '<button class="x-btn p" style="margin-top:10px" ' + (patched ? '' : 'disabled ') + 'onclick="auToggle()">' + (on ? '⏸ Pause' : '▶ Start') + '</button></div>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Emails per person per day<span style="display:flex;gap:6px"><input id="auQ" type="number" min="0" max="50" ' + inp + ' value="' + escH(K.quota) + '"><button class="x-btn" ' + (patched ? '' : 'disabled ') + 'onclick="auSaveQuota()">Save</button></span></label>' +
+    '<label style="display:flex;flex-direction:column;font-size:11px;color:var(--ink-faint);gap:3px">Send leads with Fit from – to<span style="display:flex;gap:6px;align-items:center"><input id="auLo" type="number" min="0" max="100" ' + inp + ' value="' + escH(K.lo) + '"> – <input id="auHi" type="number" min="0" max="100" ' + inp + ' value="' + escH(K.hi) + '"><button class="x-btn" ' + (patched ? '' : 'disabled ') + 'onclick="auSaveRange()">Save</button></span></label>' +
+    '<div style="font-size:13px;max-width:330px;line-height:1.5"><b>' + K.perDay + ' emails per day</b> (5 people × ' + K.quota + '), Monday to Friday, each inside the recipient’s working hours.' +
+    (K.quota > 0 && K.n.send ? '<br><span style="color:var(--ink-faint)">' + K.n.send + ' leads ready ≈ ' + Math.ceil(K.n.send / Math.max(1, K.perDay)) + ' working days.</span>' : '') + '</div></div>' +
+    (isFinite(lim) && lim > 0 && K.perDay > lim ? '<div class="x-note amber" style="margin:12px 0 0"><b>Daily send limit is ' + lim + '.</b> The auto plan (' + K.perDay + ') is higher, so the rest waits until the next day. Manual sends count against the same limit.</div>' : '') + '</div>';
+  // ---- per person ----
+  h += '<div class="x-panel" style="padding:10px 14px;margin-bottom:12px"><table class="x-tbl"><thead><tr><th>Person</th><th>Brand</th><th class="r">Daily quota</th><th class="r">Sent today</th><th class="r">Waiting to go out</th><th class="r">Held</th></tr></thead><tbody>' +
+    K.people.map(p => '<tr><td><b>' + escH(senderShow(p.id)) + '</b></td><td>' + brChip(p.brand === "O'right PRO" ? 'PRO' : 'ORIGHT') + '</td><td class="r">' + K.quota + '</td><td class="r">' + p.sent + '</td><td class="r">' + p.sched + '</td><td class="r">' + (p.held ? '<span class="x-pill amber">' + p.held + '</span>' : 0) + '</td></tr>').join('') + '</tbody></table>' +
+    (K.hasMode ? '' : '<div style="font-size:12px;color:var(--ink-faint);padding:6px 2px">Counts stay at 0 until n8n patch 2 (Build_Sent) is applied, because the log does not say yet which emails were automatic.</div>') + '</div>';
+  // ---- lead pool ----
+  const F = AU.filter, tabs = [['send', 'Will be sent', K.n.send], ['parked', 'Parked', K.n.parked], ['blocked', 'Cannot auto-send', K.n.blocked], ['held', 'Held', K.n.held], ['all', 'All', K.list.length]];
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px">' + tabs.map(t => '<button class="x-btn' + (F === t[0] ? ' p' : '') + '" onclick="auFilter(\'' + t[0] + '\')">' + t[1] + ' · ' + t[2] + '</button>').join('') + '</div>';
+  const view = K.list.filter(x => F === 'all' || x.st === F).slice(0, 150);
+  const stPill = x => x.st === 'send' ? '<span class="x-pill green">Will be sent</span>' : x.st === 'parked' ? '<span class="x-pill grey">Parked</span>' : x.st === 'held' ? '<span class="x-pill amber">Held</span>' : '<span class="x-pill red">Cannot auto-send</span>';
+  if(!view.length) h += '<div class="x-panel"><div class="x-empty">Nothing here.</div></div>';
+  else h += '<div class="x-panel"><table class="x-tbl"><thead><tr><th>Company</th><th>Brand</th><th>Contact</th><th class="r">Fit</th><th>Status</th></tr></thead><tbody>' +
+    view.map(x => { const q = x.it, ct = q.contact || {}; return '<tr class="row" data-m="' + escH(q.match_key) + '" onclick="lOpen(this.getAttribute(\'data-m\'))"><td><b>' + escH(q.name) + '</b><div style="color:var(--ink-faint);font-size:12px">' + escH(q.country || '') + (q.channel ? ' · ' + escH(q.channel) : '') + '</div></td><td>' + brChip(HB(q)) + '</td><td>' + escH(ct.email || '') + '</td><td class="r">' + (q.fit == null ? '–' : Math.round(q.fit)) + '</td><td>' + stPill(x) + (x.why ? '<div style="color:var(--ink-faint);font-size:11.5px">' + escH(x.why) + '</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table>' +
+    (K.list.filter(x => F === 'all' || x.st === F).length > 150 ? '<div style="font-size:12px;color:var(--ink-faint);padding:8px 4px">Showing the first 150.</div>' : '') + '</div>';
+  if(F === 'held') h += '<div class="x-note blue">A held lead was written but did not pass a safety check (for example a number mismatch or an AI-sounding phrase). Auto-send skips it until you open it and handle it by hand.</div>';
+  box.innerHTML = h;
+}
+function auFilter(f){ AU.filter = f; auRender(); }
+async function auSave(changes, msg){
+  if(AU.busy) return; AU.busy = true;
+  try { const r = await setPost({ action:'set', changes, note:'Auto-send tab' }); showToast(msg || 'Saved'); if((r.warnings || []).length) alert(r.warnings.join('\n\n')); }
+  catch(e){ const er = e.errors || {}; showToast('Not saved: ' + (Object.keys(er).length ? Object.keys(er).map(k => k + ' ' + er[k]).join('; ') : e.message)); }
+  AU.busy = false; await auLoad();
+}
+function auToggle(){
+  const on = auOn((AU.cfg || {}).AUTO_SEND_ENABLED);
+  if(!on && !confirm('Start auto-sending?\n\nEmails will be written and scheduled by the system for ' + (auCalc().perDay) + ' per day, Monday to Friday.')) return;
+  auSave({ AUTO_SEND_ENABLED: on ? 'FALSE' : 'TRUE' }, on ? 'Auto-send paused' : 'Auto-send started');
+}
+function auSaveQuota(){ const v = ($x('auQ').value || '').trim(); auSave({ AUTO_DAILY_PER_PERSON: v }, 'Daily number saved'); }
+function auSaveRange(){ auSave({ AUTO_FIT_MIN: ($x('auLo').value || '').trim(), AUTO_FIT_MAX: ($x('auHi').value || '').trim() }, 'Fit range saved'); }
 
 /* ---------- LinkedIn tab ---------- */
 /* GET /linkedin-people  -> {total, counts, items:[{match_key,person,title,url,lead,country,linkedin_title,confidence,status,email,email_status,email_at}]}
