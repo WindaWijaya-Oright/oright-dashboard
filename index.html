@@ -1200,6 +1200,7 @@
       <div class="mi-tabs">
         <div class="mi-tab active" data-set="v11" onclick="showSetTab('v11')">🎛️ Controls</div>
         <div class="mi-tab" data-set="prompts" onclick="showSetTab('prompts')">✍️ Email Prompts</div>
+        <div class="mi-tab" data-set="facts" onclick="showSetTab('facts')">📌 Facts &amp; Offer</div>
       </div>
 
       <!-- CONTROLS (v11) -->
@@ -1207,6 +1208,9 @@
 
       <!-- EMAIL PROMPTS (Prompt_API) -->
       <div class="set-page" id="set-prompts" style="display:none;"><div id="prRoot"></div></div>
+
+      <!-- FACTS & OFFER (Facts_API) -->
+      <div class="set-page" id="set-facts" style="display:none;"><div id="faRoot"></div></div>
 
       <!-- SEARCH KEYWORDS -->
       <div class="set-page" id="set-keywords" style="display:none;">
@@ -2999,6 +3003,7 @@ function showSetTab(name){
   document.getElementById('set-'+name).style.display='block';
   if(name==='v11') setLoad();
   if(name==='prompts') prInit();
+  if(name==='facts') faInit();
 }
 
 let currentPromptType='personal', currentFu=1, currentChannel='distributor', currentTier='oright', currentEsg='high';
@@ -3726,15 +3731,31 @@ const AU_PEOPLE = [['Winda', "O'right"], ['Jo', "O'right"], ['Karen', "O'right P
 const auOn = v => /^(true|yes|1)$/i.test(String(v == null ? '' : v).trim());
 async function auLoad(){
   const box = $x('hubAuto'); if(!box) return;
-  if(!AU.loaded) box.innerHTML = '<div style="color:var(--ink-faint);font-size:13px;padding:8px 2px">Loading…</div>';
+  if(!AU.loaded) box.innerHTML = '<div style="color:var(--ink-faint);font-size:13px;padding:8px 2px">Loading… the lead list is large, this can take up to a minute.</div>';
   const t = setTok();
+  // one request at a time (three heavy reads at once overload n8n and Google Sheets), each retried once
+  const get = async path => {
+    let last = null;
+    for(let a = 0; a < 2; a++){
+      try { return await n8nGet(path); } catch(e){ last = e; if(a === 0) await new Promise(r => setTimeout(r, 3000)); }
+    }
+    last.path = path; throw last;
+  };
+  AU.warn = [];
   try {
-    const r = await Promise.all([n8nGet('/hub-queue?auto=1'), n8nGet('/hub-settings' + (t ? '?token=' + encodeURIComponent(t) : '')), n8nGet('/hub-sent')]);
-    if(!r[0] || !Array.isArray(r[0].items)) throw new Error('Unexpected answer from the server (no list). Press Refresh.');
-    AU.q = r[0]; AU.authed = !!(r[1] && r[1].authed); AU.cfg = AU.authed ? (r[1].values || {}) : null;
-    if(r[2] && Array.isArray(r[2].rows)){ HUB.sent = r[2]; HUB.errs.sent = null; }
-    AU.err = null; AU.loaded = true;
-  } catch(e){ AU.err = e; }
+    const q = await get('/hub-queue?auto=1');
+    if(!q || !Array.isArray(q.items)) throw new Error('Unexpected answer from the server (no list). Press Refresh.');
+    AU.q = q; AU.err = null; AU.errPath = null; AU.loaded = true;
+    auRender();                                              // show the lead list right away, the rest fills in below
+  } catch(e){ AU.err = e; AU.errPath = e.path || '/hub-queue?auto=1'; auRender(); return; }
+  try {
+    const st = await get('/hub-settings' + (t ? '?token=' + encodeURIComponent(t) : ''));
+    AU.authed = !!(st && st.authed); AU.cfg = AU.authed ? (st.values || {}) : null;
+  } catch(e){ AU.authed = false; AU.cfg = null; AU.warn.push('Settings could not be loaded (' + (e.message || 'failed') + '). Start/Pause and the numbers stay locked. Press Refresh to try again.'); }
+  try {
+    const sn = await get('/hub-sent');
+    if(sn && Array.isArray(sn.rows)){ HUB.sent = sn; HUB.errs.sent = null; }
+  } catch(e){ AU.warn.push('Sent emails could not be loaded (' + (e.message || 'failed') + '). Per-person counts may be missing. Press Refresh to try again.'); }
   auRender();
 }
 function auCalc(){
@@ -3769,7 +3790,7 @@ function auCalc(){
 }
 function auRender(){
   const box = $x('hubAuto'); if(!box) return;
-  if(AU.err && !AU.loaded){ box.innerHTML = xErrBox('the auto-send data', '/hub-queue?auto=1', AU.err) + '<button class="btn-secondary" style="flex:none;margin-top:8px" onclick="auLoad()">Try again</button>'; return; }
+  if(AU.err && !AU.loaded){ box.innerHTML = xErrBox('the auto-send data', AU.errPath || '/hub-queue?auto=1', AU.err) + '<button class="btn-secondary" style="flex:none;margin-top:8px" onclick="auLoad()">Try again</button>'; return; }
   const K = auCalc(), c = K.c, ok = AU.authed, patched = ok && c.AUTO_SEND_ENABLED !== undefined && c.AUTO_DAILY_PER_PERSON !== undefined;
   const on = auOn(c.AUTO_SEND_ENABLED), test = auOn(c.TEST_MODE), lim = Number(c.DAILY_SEND_LIMIT);
   const cnt = $x('hubCntAuto'); if(cnt) cnt.textContent = '· ' + K.n.send;
@@ -3777,6 +3798,7 @@ function auRender(){
   let h = '';
   if(!ok) h += '<div class="x-note amber"><b>Locked.</b> Enter your admin token once in <b>Settings</b> to start, pause or change the numbers here. You can still look at everything below.</div>';
   else if(!patched) h += '<div class="x-note amber"><b>Setup needed.</b> The settings <code>AUTO_SEND_ENABLED</code> and <code>AUTO_DAILY_PER_PERSON</code> are not in the Hub_Settings registry yet (n8n patch 1). Starting and pausing will not work until then.</div>';
+  (AU.warn || []).forEach(w => { h += '<div class="x-note amber">' + escH(w) + '</div>'; });
   if(test) h += '<div class="x-note blue"><b>Test mode is ON.</b> Auto-send only writes to the test addresses, never to real leads.</div>';
   // ---- control panel ----
   h += '<div class="x-panel" style="padding:16px 18px;margin-bottom:12px"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between">' +
@@ -4751,6 +4773,112 @@ function prRender(){
   prCount();
 }
 function prInit(){ if(!PR.data && !PR.busy){ prLoad(false); } else prRender(); }
+
+/* ===== Facts & Offer screen (Settings > Facts & Offer). Talks to n8n Facts_API: GET /hub-facts, POST /hub-facts-save ===== */
+const FA = { data: null, brand: 'ORIGHT', facts: [], offer: '', hist: {}, histOpen: {}, msg: null, busy: false };
+const FA_BRAND = { ORIGHT: "O'right", PRO: "O'right PRO" };
+function faTok(){ return lsGet('oright_prompt_token') || ''; }
+function faMe(){ return String(getCurrentUser() || ''); }
+function faBox(){ return document.getElementById('faRoot'); }
+function faFmt(t){ if(!t) return ''; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString('en-GB', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}); }
+function faLines(t){ return String(t || '').replace(/\r\n/g, '\n').split('\n').map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean); }
+async function faCall(path, opt){
+  const r = await fetch(N8N_BASE + path, opt); const t = await r.text(); let j;
+  try { j = JSON.parse(t); } catch(e){ throw new Error('The Facts_API workflow did not answer correctly (HTTP ' + r.status + '). Check that it is Active in n8n.'); }
+  return j;
+}
+function faEntry(key){ return ((FA.data && FA.data.entries) || []).find(e => e.key === key); }
+function faKeys(){ return FA.brand === 'PRO' ? { f: 'VERIFIED_FACTS_PRO', o: 'OFFER_PRO' } : { f: 'VERIFIED_FACTS', o: 'OFFER' }; }
+function faFill(){ const k = faKeys(), f = faEntry(k.f), o = faEntry(k.o); FA.facts = faLines(f ? f.text : ''); FA.offer = o ? String(o.text || '') : ''; }
+async function faLoad(){
+  const tok = faTok(); if(!tok){ FA.data = null; faRender(); return; }
+  FA.busy = true; faRender();
+  try {
+    const j = await faCall('/hub-facts?token=' + encodeURIComponent(tok) + '&who=' + encodeURIComponent(faMe()));
+    FA.data = j; FA.hist = {}; FA.histOpen = {};
+    if(j.authed === false) FA.msg = {c:'red', t: j.setup_needed ? 'Setup not finished: add ADMIN_TOKEN and PROMPT_TOKEN rows in the Hub_Config tab.' : 'That key was not accepted. Check it and try again.'};
+    else { FA.msg = null; faFill(); }
+  } catch(e){ FA.data = null; FA.msg = {c:'red', t: 'Could not reach n8n: ' + e.message}; }
+  FA.busy = false; faRender();
+}
+async function faLoadHist(key){
+  FA.histOpen[key] = !FA.histOpen[key];
+  if(FA.histOpen[key] && !FA.hist[key]){
+    try { const j = await faCall('/hub-facts?token=' + encodeURIComponent(faTok()) + '&who=' + encodeURIComponent(faMe()) + '&key=' + key); FA.hist[key] = j.history_key === key ? j.history : []; } catch(e){ FA.hist[key] = []; }
+  }
+  faRender();
+}
+function faFactsDirty(){ const e = faEntry(faKeys().f); return JSON.stringify(FA.facts.map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean)) !== JSON.stringify(faLines(e ? e.text : '')); }
+function faOfferDirty(){ const e = faEntry(faKeys().o); return String(FA.offer).replace(/\r\n/g, '\n').trim() !== String(e ? e.text : '').replace(/\r\n/g, '\n').trim(); }
+function faAnyDirty(){ return faFactsDirty() || faOfferDirty(); }
+function faSetBrand(b){ if(b === FA.brand) return; if(faAnyDirty() && !confirm('You have unsaved changes. Switch anyway?')) return; FA.brand = b; FA.msg = null; faFill(); faRender(); }
+function faEdit(i, el){ FA.facts[i] = el.value; faGrow(el); faMarks(); }
+function faEditOffer(el){ FA.offer = el.value; faGrow(el); faMarks(); }
+function faGrow(el){ if(!el) return; el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+function faMarks(){ const a = document.getElementById('faDirtyF'), b = document.getElementById('faDirtyO'); if(a) a.textContent = faFactsDirty() ? 'Unsaved changes' : ''; if(b) b.textContent = faOfferDirty() ? 'Unsaved changes' : ''; const c = document.getElementById('faCnt'); if(c) c.textContent = FA.facts.filter(x => x.trim()).length + ' facts'; }
+function faAdd(){ FA.facts.push(''); faRender(); const t = document.querySelectorAll('.fa-f'); if(t.length) t[t.length - 1].focus(); }
+function faRemove(i){ if(!confirm('Remove this fact? It stays in the version history after you save.')) return; FA.facts.splice(i, 1); faRender(); }
+async function faPost(body){
+  FA.busy = true; FA.msg = {c:'blue', t:'Saving…'}; faRender();
+  try {
+    const j = await faCall('/hub-facts-save', { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(Object.assign({ token: faTok(), who: faMe() }, body)) });
+    if(!j.ok){ FA.busy = false; FA.msg = {c:'red', t: String(j.error || 'Save failed').replace(/^[A-Z0-9_]+:\s*/, '')}; faRender(); return; }
+    await faLoad();
+    FA.msg = body.action === 'seed' ? {c:'green', t:'Copied. Next step: point Hub_AI to the new tab (see the setup steps).'} : (j.changed === false ? {c:'blue', t: (j.warnings || []).join(' ') || 'Nothing changed.'} : {c:'green', t:'Saved as v' + j.version + (j.summary ? ' (' + j.summary + ')' : '') + '. It is used the next time an email is generated.'});
+    faRender();
+  } catch(e){ FA.busy = false; FA.msg = {c:'red', t:'Could not save: ' + e.message}; faRender(); }
+}
+function faSaveFacts(){
+  if(FA.busy) return; if(!faFactsDirty()){ showToast('Nothing to save yet: change a fact first.'); return; }
+  const n = document.getElementById('faNoteF'); faPost({ action:'save', key: faKeys().f, text: FA.facts.map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n'), note: n ? n.value : '' });
+}
+function faSaveOffer(){
+  if(FA.busy) return; if(!faOfferDirty()){ showToast('Nothing to save yet: change the offer first.'); return; }
+  const n = document.getElementById('faNoteO'); faPost({ action:'save', key: faKeys().o, text: FA.offer, note: n ? n.value : '' });
+}
+function faRestore(key, v){ if(faAnyDirty() && !confirm('You have unsaved changes. Restoring will replace the saved text. Continue?')) return; if(!confirm('Make version ' + v + ' the live text?')) return; faPost({ action:'restore', key, version: v }); }
+function faSeed(){ if(!confirm('Copy the current facts and offers from the old VERIFIED_FACTS tab into the new Brand_Facts tab? The old tab is not changed.')) return; faPost({ action:'seed' }); }
+function faSaveKey(){ const v = (document.getElementById('faKey').value || '').trim(); if(!v) return; lsSet('oright_prompt_token', v); document.getElementById('faKey').value = ''; faLoad(); }
+function faForget(){ if(faAnyDirty() && !confirm('You have unsaved changes. Lock anyway?')) return; try { localStorage.removeItem('oright_prompt_token'); } catch(e){} FA.data = null; FA.msg = null; faRender(); }
+function faHistHtml(key){
+  if(!FA.histOpen[key]) return '';
+  const h = (FA.hist[key] || []).map(x => '<div class="hs-r"><div class="hs-h"><b>v' + x.version + '</b><span class="x-pill">' + escH(x.action || 'save') + '</span><span>' + escH(x.by) + '</span><span class="hs-t">' + escH(faFmt(x.at)) + '</span></div>' + (x.note ? '<div class="hs-d">' + escH(x.note) + '</div>' : '') + '<div style="font-size:12px;color:var(--ink-faint)">' + (x.chars || 0).toLocaleString() + ' characters</div>' + (FA.data.can_edit ? '<button class="x-btn" onclick="faRestore(\'' + key + '\',' + x.version + ')">Restore</button>' : '') + '</div>').join('');
+  return '<div style="margin-top:6px">' + (h || '<div class="x-empty">No saved versions yet. The first save keeps a copy of the current text as version 1.</div>') + '</div>';
+}
+function faRender(){
+  const box = faBox(); if(!box) return;
+  if(!faTok()){
+    box.innerHTML = '<div class="x-panel"><div class="x-sub" style="font-weight:700">Facts &amp; Offer</div><p style="font-size:13px;margin:8px 0">Enter your key. The team key lets you read; only the admin key can change facts and offers.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="faKey" type="password" placeholder="Team key or admin key" style="min-width:240px;padding:8px 10px;border:1px solid var(--border);border-radius:9px" onkeydown="if(event.key===\'Enter\')faSaveKey()"><button class="x-btn p" onclick="faSaveKey()">Unlock</button></div>' + (FA.msg ? '<div class="x-note ' + FA.msg.c + '">' + escH(FA.msg.t) + '</div>' : '') + '</div>'; return;
+  }
+  const d = FA.data;
+  if(!d){ box.innerHTML = '<div class="x-panel">' + (FA.busy ? '<div class="x-empty">Loading…</div>' : '<div class="x-note red"><b>Could not load.</b> ' + escH(FA.msg ? FA.msg.t : 'No answer from n8n.') + '</div><div style="font-size:12.5px;margin:6px 0">Most common causes: the Facts_API workflow is not Active in n8n, it was not imported yet, or the key is wrong.</div><button class="x-btn p" onclick="faLoad()">Try again</button> <button class="x-btn" onclick="faForget()">Enter a different key</button>') + '</div>'; return; }
+  if(d.authed === false){ box.innerHTML = '<div class="x-panel"><div class="x-note red">' + escH(FA.msg ? FA.msg.t : 'Key not accepted.') + '</div><button class="x-btn" onclick="faForget()">Enter a different key</button></div>'; return; }
+  const ed = !!d.can_edit, k = faKeys(), fe = faEntry(k.f) || {}, oe = faEntry(k.o) || {}, ro = ed ? '' : ' readonly';
+  const pill = b => '<span style="cursor:pointer;display:inline-block;padding:6px 12px;border:1px solid ' + (b === FA.brand ? 'var(--brand)' : 'var(--border)') + ';border-radius:999px;font-size:12.5px;font-weight:600;margin:0 6px 6px 0;' + (b === FA.brand ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="faSetBrand(\'' + b + '\')">' + FA_BRAND[b] + '</span>';
+  const taStyle = 'width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px;line-height:1.5;overflow:hidden;resize:none;';
+  const rows = FA.facts.map((f, i) => '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px"><span style="min-width:22px;padding-top:9px;font-size:12px;color:var(--ink-faint);text-align:right">' + (i + 1) + '</span><textarea class="fa-f" rows="1"' + ro + ' oninput="faEdit(' + i + ',this)" style="' + taStyle + '">' + escH(f) + '</textarea>' + (ed ? '<button class="x-btn" title="Remove" onclick="faRemove(' + i + ')">✕</button>' : '') + '</div>').join('');
+  box.innerHTML =
+    '<div class="x-panel"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between"><div><div class="x-sub" style="font-weight:700">Facts &amp; Offer</div><div style="font-size:12.5px;color:var(--ink-faint)">' + (ed ? 'Admin key: you can edit.' : 'Team key: read only. Ask Winda to change anything.') + '</div></div><button class="x-btn" onclick="faForget()">Lock</button></div>' +
+    '<div class="x-note amber" style="margin-top:10px">The email writer may only state the facts listed here and offer only what the Offer says. A wrong fact here ends up in real emails, so check each one against the catalogue or the brand book. Changes apply to the next email generated.</div>' +
+    (d.needs_seed && ed ? '<div class="x-note blue"><b>One-time step:</b> the facts still live in the old VERIFIED_FACTS tab. <button class="x-btn p" style="margin-left:8px" onclick="faSeed()">Copy to the new tab</button></div>' : '') +
+    (d.needs_seed && !ed ? '<div class="x-note blue">The facts are still in the old tab. Ask Winda to finish the one-time copy.</div>' : '') +
+    '<div style="margin:12px 0 4px;font-size:12.5px;font-weight:600">Brand</div><div>' + pill('ORIGHT') + pill('PRO') + '</div>' +
+    (FA.msg ? '<div class="x-note ' + FA.msg.c + '">' + escH(FA.msg.t) + '</div>' : '') +
+    '<div style="margin-top:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b>Verified facts: ' + FA_BRAND[FA.brand] + '</b><span style="font-size:12px;color:var(--ink-faint)">' + (fe.updated_at ? 'Last saved ' + escH(faFmt(fe.updated_at)) : 'Not saved here yet') + (fe.last_by ? ' by ' + escH(fe.last_by) : '') + '</span></div>' +
+      '<div style="font-size:12.5px;color:var(--ink-faint);margin:2px 0 8px">One fact per box. State it exactly as it should appear, with numbers and years.</div>' + rows +
+      (ed ? '<button class="x-btn" onclick="faAdd()">+ Add a fact</button>' : '') +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin:8px 0 4px"><span id="faCnt">' + FA.facts.filter(x => x.trim()).length + ' facts</span><span id="faDirtyF" style="color:#b7791f;font-weight:600"></span></div>' +
+      (ed ? '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="faNoteF" maxlength="200" placeholder="What did you change? (optional)" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--border);border-radius:9px"><button class="x-btn p" onclick="faSaveFacts()"' + (FA.busy ? ' disabled' : '') + '>Save facts</button></div>' : '') +
+      '<button class="x-btn" style="margin-top:8px" onclick="faLoadHist(\'' + k.f + '\')">' + (FA.histOpen[k.f] ? 'Hide' : 'Show') + ' version history (' + (fe.versions || 0) + ')</button>' + faHistHtml(k.f) + '</div>' +
+    '<div style="margin-top:22px;border-top:1px solid var(--border);padding-top:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b>Offer: ' + FA_BRAND[FA.brand] + '</b><span style="font-size:12px;color:var(--ink-faint)">' + (oe.updated_at ? 'Last saved ' + escH(faFmt(oe.updated_at)) : 'Not saved here yet') + (oe.last_by ? ' by ' + escH(oe.last_by) : '') + '</span></div>' +
+      '<div style="font-size:12.5px;color:var(--ink-faint);margin:2px 0 8px">What O\'right may offer a first-time partner. The writer will not offer anything else.</div>' +
+      '<textarea id="faOffer" rows="2"' + ro + ' oninput="faEditOffer(this)" style="' + taStyle + '">' + escH(FA.offer) + '</textarea>' +
+      '<div style="display:flex;justify-content:flex-end;font-size:12px;margin:4px 0"><span id="faDirtyO" style="color:#b7791f;font-weight:600"></span></div>' +
+      (ed ? '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="faNoteO" maxlength="200" placeholder="What did you change? (optional)" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--border);border-radius:9px"><button class="x-btn p" onclick="faSaveOffer()"' + (FA.busy ? ' disabled' : '') + '>Save offer</button></div>' : '') +
+      '<button class="x-btn" style="margin-top:8px" onclick="faLoadHist(\'' + k.o + '\')">' + (FA.histOpen[k.o] ? 'Hide' : 'Show') + ' version history (' + (oe.versions || 0) + ')</button>' + faHistHtml(k.o) + '</div></div>';
+  document.querySelectorAll('.fa-f, #faOffer').forEach(faGrow);
+}
+function faInit(){ if(!FA.data && !FA.busy){ faLoad(); } else faRender(); }
 
 const SET_TABS = [['send','Sending & safety'],['score','Scoring'],['status','Connections'],['hist','Change history']];
 function setTok(){ return lsGet('oright_admin_token') || ''; }
