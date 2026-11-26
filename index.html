@@ -1198,11 +1198,8 @@
       </div>
 
       <div class="mi-tabs">
-        <div class="mi-tab active" data-set="v11" onclick="showSetTab('v11')">🎛️ Controls &amp; Prompts</div>
+        <div class="mi-tab active" data-set="v11" onclick="showSetTab('v11')">🎛️ Controls</div>
         <div class="mi-tab" data-set="prompts" onclick="showSetTab('prompts')">✍️ Email Prompts</div>
-        <div class="mi-tab" data-set="keywords" onclick="showSetTab('keywords')">🔑 Search Keywords</div>
-        <div class="mi-tab" data-set="countries" onclick="showSetTab('countries')">🌍 Countries &amp; Cities</div>
-        <div class="mi-tab" data-set="tools" onclick="showSetTab('tools')">🧰 Tools</div>
       </div>
 
       <!-- CONTROLS (v11) -->
@@ -4616,10 +4613,12 @@ function bCopy(){ const b = HUB.brief; if(!b) return; const txt = b.sections.map
 
 /* ---------- SETTINGS v11 (talks to /hub-settings, /hub-settings-save) ---------- */
 const SET = { data:null, err:null, tok:null, tab:'send', draft:{}, busy:false, pk:'EMAIL_PROMPT', pv:null, rk:'', ch:'' };
-/* ===== Prompts screen (Settings > Prompts). Talks to n8n Prompt_API: GET /hub-prompts, POST /hub-prompt-save ===== */
-const PR = { tok: '', data: null, who: '', sel: '', hist: null, dirty: false, busy: false, msg: null };
+/* ===== Prompts screen (Settings > Email Prompts). Talks to n8n Prompt_API: GET /hub-prompts, POST /hub-prompt-save ===== */
+const PR = { data: null, brand: '', person: '', sel: '', hist: null, dirty: false, busy: false, msg: null };
+const PR_HIDE_CH = { ECOMMERCE: 1, DEFAULT: 1 };   // not shown: online stores are handled under Retail; no fallback prompt in the UI
+const PR_BRAND_LABEL = { ORIGHT: "O'right", PRO: "O'right PRO" };
 function prTok(){ return lsGet('oright_prompt_token') || ''; }
-function prWho(){ return PR.who || String(getCurrentUser() || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function prMe(){ return String(getCurrentUser() || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }   // who is using the dashboard (for the audit trail and the team-key rule)
 function prBox(){ return document.getElementById('prRoot'); }
 function prFmt(t){ if(!t) return ''; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString('en-GB', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}); }
 async function prCall(path, opt){
@@ -4627,55 +4626,65 @@ async function prCall(path, opt){
   const t = await r.text(); let j; try { j = JSON.parse(t); } catch(e){ throw new Error('The Prompt_API workflow did not answer correctly (HTTP ' + r.status + '). Check that it is Active in n8n.'); }
   return j;
 }
-async function prLoad(keepSel){
+function prPeople(brand){ return ((PR.data && PR.data.people) || []).filter(p => p.brand === brand); }
+function prPrompts(person){ return ((PR.data && PR.data.prompts) || []).filter(p => p.sender === person && !PR_HIDE_CH[p.channel]); }
+function prCur(){ return PR.data && PR.data.prompts ? PR.data.prompts.find(p => p.key === PR.sel) : null; }
+function prChoose(brand, person, key){
+  const people = (PR.data && PR.data.people) || [];
+  if(!brand){ const me = people.find(p => p.id === prMe()) || people[0]; brand = me ? me.brand : 'ORIGHT'; }
+  if(!prPeople(brand).length){ brand = brand === 'ORIGHT' ? 'PRO' : 'ORIGHT'; }
+  const inBrand = prPeople(brand);
+  const per = inBrand.find(p => p.id === person) || inBrand.find(p => p.id === prMe()) || inBrand[0];
+  PR.brand = brand; PR.person = per ? per.id : '';
+  const list = per ? prPrompts(per.id) : [];
+  const k = list.find(p => p.key === key) || list.find(p => p.exists) || list[0];
+  PR.sel = k ? k.key : '';
+}
+async function prLoad(keep){
   const tok = prTok(); if(!tok){ PR.data = null; prRender(); return; }
   PR.busy = true; prRender();
   try {
-    const q = '?token=' + encodeURIComponent(tok) + '&who=' + encodeURIComponent(prWho()) + (PR.sel ? '&key=' + encodeURIComponent(PR.sel) : '');
-    const j = await prCall('/hub-prompts' + q);
-    PR.data = j; PR.msg = null;
+    const j = await prCall('/hub-prompts?token=' + encodeURIComponent(tok) + '&who=' + encodeURIComponent(prMe()) + (keep && PR.sel ? '&key=' + encodeURIComponent(PR.sel) : ''));
+    PR.data = j; PR.msg = null; PR.hist = null; PR.dirty = false;
     if(j.authed === false){ PR.msg = {c:'red', t: j.setup_needed ? 'Setup not finished: add PROMPT_TOKEN (and ADMIN_TOKEN) rows in the Hub_Config tab.' : 'That key was not accepted. Check it and try again.'}; }
     else if(j.error && !j.ok){ PR.msg = {c:'red', t: j.error}; }
     if(j.authed && j.prompts){
-      if(!keepSel || !j.prompts.some(p => p.key === PR.sel)){ const first = j.prompts.find(p => p.exists) || j.prompts[0]; PR.sel = first ? first.key : ''; }
-      PR.hist = (j.history_key === PR.sel) ? j.history : null; PR.dirty = false;
-      if(PR.sel && !PR.hist) { await prLoadHist(); return; }
+      prChoose(keep ? PR.brand : '', keep ? PR.person : '', keep ? PR.sel : '');
+      if(keep && j.history_key === PR.sel) PR.hist = j.history;
+      if(PR.sel && !PR.hist){ await prLoadHist(); return; }
     }
   } catch(e){ PR.msg = {c:'red', t: 'Could not reach n8n: ' + e.message}; }
   PR.busy = false; prRender();
 }
 async function prLoadHist(){
   try {
-    const j = await prCall('/hub-prompts?token=' + encodeURIComponent(prTok()) + '&who=' + encodeURIComponent(prWho()) + '&key=' + encodeURIComponent(PR.sel));
+    const j = await prCall('/hub-prompts?token=' + encodeURIComponent(prTok()) + '&who=' + encodeURIComponent(prMe()) + '&key=' + encodeURIComponent(PR.sel));
     PR.hist = j.history_key === PR.sel ? j.history : [];
   } catch(e){ PR.hist = []; }
   PR.busy = false; prRender();
 }
-function prCur(){ return PR.data && PR.data.prompts ? PR.data.prompts.find(p => p.key === PR.sel) : null; }
-function prPick(key){
-  if(PR.dirty && !confirm('You have unsaved changes in this prompt. Switch anyway?')) return;
-  PR.sel = key; PR.hist = null; PR.dirty = false; PR.msg = null; PR.busy = true; prRender(); prLoadHist();
-}
-function prPerson(id){
-  if(PR.dirty && !confirm('You have unsaved changes in this prompt. Switch anyway?')) { prRender(); return; }
-  PR.who = id; PR.sel = ''; PR.hist = null; PR.dirty = false; prLoad(false);
-}
+function prAskLeave(){ return !PR.dirty || confirm('You have unsaved changes in this prompt. Switch anyway?'); }
+function prSetBrand(b){ if(b === PR.brand || !prAskLeave()) return; prChoose(b, '', ''); PR.hist = null; PR.dirty = false; PR.msg = null; PR.busy = true; prRender(); prLoadHist(); }
+function prSetPerson(id){ if(id === PR.person || !prAskLeave()) return; prChoose(PR.brand, id, ''); PR.hist = null; PR.dirty = false; PR.msg = null; PR.busy = true; prRender(); prLoadHist(); }
+function prPick(key){ if(key === PR.sel || !prAskLeave()) return; PR.sel = key; PR.hist = null; PR.dirty = false; PR.msg = null; PR.busy = true; prRender(); prLoadHist(); }
 function prSaveKey(){
   const v = (document.getElementById('prKey').value || '').trim(); if(!v) return;
   lsSet('oright_prompt_token', v); document.getElementById('prKey').value = ''; PR.sel = ''; prLoad(false);
 }
-function prForget(){ if(PR.dirty && !confirm('You have unsaved changes. Forget the key anyway?')) return; try { localStorage.removeItem('oright_prompt_token'); } catch(e){} PR.data = null; PR.hist = null; PR.sel = ''; prRender(); }
+function prForget(){ if(PR.dirty && !confirm('You have unsaved changes. Lock anyway?')) return; try { localStorage.removeItem('oright_prompt_token'); } catch(e){} PR.data = null; PR.hist = null; PR.sel = ''; PR.msg = null; prRender(); }
+function prGrow(){ const ta = document.getElementById('prText'); if(!ta) return; ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 4) + 'px'; }
 function prCount(){
   const ta = document.getElementById('prText'), c = document.getElementById('prCnt'); if(!ta || !c) return;
+  prGrow();
   const n = ta.value.length, L = (PR.data && PR.data.limits) || {min_chars:200, max_chars:15000};
   c.textContent = n.toLocaleString() + ' characters (allowed ' + L.min_chars + '–' + L.max_chars.toLocaleString() + ')'; c.style.color = (n < L.min_chars || n > L.max_chars) ? 'var(--red)' : 'var(--ink-faint)';
   const cur = prCur(); PR.dirty = !!cur && ta.value.replace(/\r\n/g,'\n').trim() !== String(cur.text || '').replace(/\r\n/g,'\n').trim();
-  const b = document.getElementById('prSave'); if(b) b.disabled = !PR.dirty || PR.busy;
+  const st = document.getElementById('prDirty'); if(st) st.textContent = PR.dirty ? 'Unsaved changes' : '';
 }
 async function prPost(body){
   PR.busy = true; PR.msg = {c:'blue', t:'Saving…'}; prRender();
   try {
-    const j = await prCall('/hub-prompt-save', { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(Object.assign({ token: prTok(), who: prWho() }, body)) });
+    const j = await prCall('/hub-prompt-save', { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(Object.assign({ token: prTok(), who: prMe() }, body)) });
     if(!j.ok){ PR.busy = false; PR.msg = {c:'red', t: String(j.error || 'Save failed').replace(/^[A-Z_]+:\s*/, '')}; prRender(); return; }
     PR.dirty = false; PR.hist = null;
     const warn = (j.warnings || []).join(' ');
@@ -4686,7 +4695,9 @@ async function prPost(body){
 }
 function prSave(){
   const ta = document.getElementById('prText'), note = document.getElementById('prNote');
-  if(!ta) return; prPost({ action:'save', key: PR.sel, text: ta.value, note: note ? note.value : '' });
+  if(!ta || PR.busy) return;
+  if(!PR.dirty){ showToast('Nothing to save yet: change the text first.'); return; }
+  prPost({ action:'save', key: PR.sel, text: ta.value, note: note ? note.value : '' });
 }
 function prRestore(v){
   if(PR.dirty && !confirm('You have unsaved changes. Restoring will replace them. Continue?')) return;
@@ -4696,47 +4707,46 @@ function prRestore(v){
 function prView(v){
   const h = (PR.hist || []).find(x => x.version === v); if(!h) return;
   const el = document.getElementById('prViewBox'); if(!el) return;
-  el.innerHTML = '<div class="x-note blue"><b>Version ' + v + '</b> · ' + escH(prFmt(h.at)) + ' · ' + escH(h.by) + '<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;max-height:260px;overflow:auto;margin:8px 0 0;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px">' + escH(h.text) + '</pre><button class="x-btn" style="margin-top:6px" onclick="prUse(' + v + ')">Load this text into the editor (no save yet)</button></div>';
+  el.innerHTML = '<div class="x-note blue"><b>Version ' + v + '</b> · ' + escH(prFmt(h.at)) + ' · ' + escH(h.by) + '<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;margin:8px 0 0;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px">' + escH(h.text) + '</pre><button class="x-btn" style="margin-top:6px" onclick="prUse(' + v + ')">Load this text into the editor (no save yet)</button></div>';
 }
 function prUse(v){ const h = (PR.hist || []).find(x => x.version === v), ta = document.getElementById('prText'); if(h && ta){ ta.value = h.text; prCount(); showToast('Loaded into the editor. Click Save to make it live.'); } }
-function prCopyFrom(){
-  const sel = document.getElementById('prCopy'); if(!sel || !sel.value) return;
-  const src = PR.data.prompts.find(p => p.key === sel.value); if(!src) return;
-  if(!confirm('Replace the text in the editor with the prompt from ' + src.key.replace('EMAIL_PROMPT.', '') + '? Nothing is saved until you click Save.')) { sel.value = ''; return; }
-  document.getElementById('prText').value = src.text; sel.value = ''; prCount();
-}
+function prPill(label, on, js, extra){ return '<span style="cursor:pointer;display:inline-block;padding:6px 12px;border:1px solid ' + (on ? 'var(--brand)' : 'var(--border)') + ';border-radius:999px;font-size:12.5px;font-weight:600;margin:0 6px 6px 0;' + (on ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="' + js + '">' + label + (extra || '') + '</span>'; }
 function prRender(){
   const box = prBox(); if(!box) return;
   if(!prTok()){
-    box.innerHTML = '<div class="x-panel"><div class="x-sub" style="font-weight:700">Email prompts</div><p style="font-size:13px;margin:8px 0">Enter your team key to edit the email prompts. Everyone on the team uses the same key; Winda has a separate admin key that can edit everyone.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="prKey" type="password" class="x-in" placeholder="Team key or admin key" style="min-width:240px;padding:8px 10px;border:1px solid var(--border);border-radius:9px" onkeydown="if(event.key===\'Enter\')prSaveKey()"><button class="x-btn p" onclick="prSaveKey()">Unlock</button></div>' + (PR.msg ? '<div class="x-note ' + PR.msg.c + '">' + escH(PR.msg.t) + '</div>' : '') + '</div>';
+    box.innerHTML = '<div class="x-panel"><div class="x-sub" style="font-weight:700">Email prompts</div><p style="font-size:13px;margin:8px 0">Enter your team key to edit the email prompts. Everyone on the team uses the same key; Winda has a separate admin key that can edit everyone.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="prKey" type="password" placeholder="Team key or admin key" style="min-width:240px;padding:8px 10px;border:1px solid var(--border);border-radius:9px" onkeydown="if(event.key===\'Enter\')prSaveKey()"><button class="x-btn p" onclick="prSaveKey()">Unlock</button></div>' + (PR.msg ? '<div class="x-note ' + PR.msg.c + '">' + escH(PR.msg.t) + '</div>' : '') + '</div>';
     return;
   }
   const d = PR.data;
-  if(!d){ box.innerHTML = '<div class="x-panel x-empty">' + (PR.busy ? 'Loading…' : 'Not loaded.') + '</div>'; return; }
+  if(!d){
+    box.innerHTML = '<div class="x-panel">' + (PR.busy ? '<div class="x-empty">Loading…</div>' :
+      '<div class="x-note red"><b>Could not load your prompts.</b> ' + escH(PR.msg ? PR.msg.t : 'No answer from n8n.') + '</div>' +
+      '<div style="font-size:12.5px;margin:6px 0">Most common causes: the Prompt_API workflow is not Active in n8n, it was not imported yet, or the key is wrong.</div>' +
+      '<button class="x-btn p" onclick="prLoad(false)">Try again</button> <button class="x-btn" onclick="prForget()">Enter a different key</button>') + '</div>'; return; }
   if(d.authed === false){
     box.innerHTML = '<div class="x-panel"><div class="x-note red">' + escH(PR.msg ? PR.msg.t : 'Key not accepted.') + '</div><button class="x-btn" onclick="prForget()">Enter a different key</button></div>'; return;
   }
-  const admin = d.role === 'admin', cur = prCur();
-  const people = d.people || [], persons = people.map(p => '<option value="' + p.id + '"' + (p.id === (PR.who || prWho()) ? ' selected' : '') + '>' + escH(p.name) + ' (' + p.brand + ')</option>').join('');
-  const curPerson = people.find(p => p.id === (cur ? cur.sender : prWho())) || people[0];
-  const mine = (d.prompts || []).filter(p => curPerson && p.sender === curPerson.id);
-  const chips = mine.map(p => '<span class="x-pill' + (p.key === PR.sel ? ' on' : '') + '" style="cursor:pointer;margin:0 6px 6px 0;display:inline-block;padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-size:12.5px;font-weight:600;' + (p.key === PR.sel ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="prPick(\'' + p.key + '\')">' + (p.exists ? '● ' : '○ ') + escH(p.label) + '</span>').join('');
-  const defChip = admin ? (d.prompts || []).filter(p => p.key === 'EMAIL_PROMPT.DEFAULT').map(p => '<span style="cursor:pointer;display:inline-block;padding:5px 10px;border:1px dashed var(--border);border-radius:999px;font-size:12.5px;font-weight:600;' + (p.key === PR.sel ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="prPick(\'' + p.key + '\')">Fallback (everyone)</span>').join('') : '';
-  const others = (d.prompts || []).filter(p => p.exists && p.key !== PR.sel);
-  const copyOpts = '<option value="">Copy text from…</option>' + others.map(p => '<option value="' + p.key + '">' + escH(p.key.replace('EMAIL_PROMPT.', '').replace('.', ' · ')) + '</option>').join('');
-  const L = d.limits || {};
+  const admin = d.role === 'admin', cur = prCur(), people = d.people || [];
+  const brands = ['ORIGHT', 'PRO'].filter(b => prPeople(b).length);
+  const brandRow = admin ? '<div style="margin:12px 0 4px;font-size:12.5px;font-weight:600">Brand</div><div>' + brands.map(b => prPill(PR_BRAND_LABEL[b], b === PR.brand, "prSetBrand('" + b + "')", ' <span style="opacity:.7;font-weight:500">· ' + prPeople(b).length + '</span>')).join('') + '</div>' : '';
+  const shown = admin ? prPeople(PR.brand) : people;
+  const personRow = (admin ? '<div style="margin:8px 0 4px;font-size:12.5px;font-weight:600">Person</div>' : '<div style="margin:12px 0 4px;font-size:12.5px;font-weight:600">Your prompts</div>') +
+    '<div>' + shown.map(p => prPill(escH(p.name), p.id === PR.person, "prSetPerson('" + p.id + "')", admin ? '' : ' <span style="opacity:.7;font-weight:500">· ' + PR_BRAND_LABEL[p.brand] + '</span>')).join('') + '</div>';
+  const mine = prPrompts(PR.person);
+  const chips = mine.map(p => prPill((p.exists ? '● ' : '○ ') + escH(p.label), p.key === PR.sel, "prPick('" + p.key + "')")).join('');
   const hist = (PR.hist || []).map(h => '<div class="hs-r"><div class="hs-h"><b>v' + h.version + '</b><span class="x-pill">' + escH(h.action || 'save') + '</span><span>' + escH(h.by) + '</span><span class="hs-t">' + escH(prFmt(h.at)) + '</span></div>' + (h.note ? '<div class="hs-d">' + escH(h.note) + '</div>' : '') + '<div style="font-size:12px;color:var(--ink-faint)">' + (h.chars || 0).toLocaleString() + ' characters</div><button class="x-btn" onclick="prView(' + h.version + ')">View</button> <button class="x-btn" onclick="prRestore(' + h.version + ')">Restore</button></div>').join('') || '<div class="x-empty">No saved versions yet. The first save keeps a copy of the current prompt as version 1.</div>';
+  const per = people.find(p => p.id === PR.person);
   box.innerHTML =
     '<div class="x-panel"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between"><div><div class="x-sub" style="font-weight:700">Email prompts</div><div style="font-size:12.5px;color:var(--ink-faint)">' + (admin ? 'Admin key: you can edit every person.' : 'Team key: you edit your own prompts only.') + '</div></div><button class="x-btn" onclick="prForget()">Lock</button></div>' +
     '<div class="x-note amber" style="margin-top:10px">Changes go live at the next email generated, including the next Auto-send run. Test with one lead before a big batch. Each save keeps the previous version, so you can restore it.</div>' +
-    (admin ? '<div style="margin:8px 0"><label style="font-size:12.5px;font-weight:600">Person </label><select onchange="prPerson(this.value)" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px">' + persons + '</select></div>' : '<div style="margin:8px 0;font-size:13px"><b>' + escH(curPerson ? curPerson.name : prWho()) + '</b> <span style="color:var(--ink-faint)">(change with “Switch user”, bottom left)</span></div>') +
-    '<div style="margin:6px 0 4px;font-size:12.5px;font-weight:600">Channel <span style="font-weight:400;color:var(--ink-faint)">● has its own prompt · ○ uses the fallback</span></div><div>' + chips + defChip + '</div>' +
+    brandRow + personRow +
+    '<div style="margin:8px 0 4px;font-size:12.5px;font-weight:600">Channel <span style="font-weight:400;color:var(--ink-faint)">● has a prompt · ○ empty</span></div><div>' + chips + '</div>' +
     (PR.msg ? '<div class="x-note ' + PR.msg.c + '">' + escH(PR.msg.t) + '</div>' : '') +
-    (cur ? '<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;margin-bottom:4px"><b>' + escH(cur.key.replace('EMAIL_PROMPT.', '')) + '</b><span style="color:var(--ink-faint)">' + (cur.updated_at ? 'Last saved ' + escH(prFmt(cur.updated_at)) : 'Not saved yet') + (cur.last_by ? ' by ' + escH(cur.last_by) : '') + '</span></div>' +
-      '<textarea id="prText" oninput="prCount()" spellcheck="false" style="width:100%;min-height:380px;box-sizing:border-box;padding:10px;border:1px solid var(--border);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5">' + escH(cur.text) + '</textarea>' +
-      '<div id="prCnt" style="font-size:12px;margin:4px 0"></div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="prNote" maxlength="200" placeholder="What did you change? (optional)" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--border);border-radius:9px"><select id="prCopy" onchange="prCopyFrom()" style="padding:7px 8px;border:1px solid var(--border);border-radius:8px">' + copyOpts + '</select><button id="prSave" class="x-btn p" onclick="prSave()" disabled>Save</button></div>' +
-      '<div class="x-sub" style="font-weight:700;margin-top:16px">Version history</div><div id="prViewBox"></div>' + hist + '</div>' : '<div class="x-empty">No prompt selected.</div>') +
+    (cur ? '<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:6px"><b>' + escH((per ? per.name : '') + ' · ' + cur.label) + '</b><span style="color:var(--ink-faint);font-size:12px">' + (cur.updated_at ? 'Last saved ' + escH(prFmt(cur.updated_at)) : 'Not saved yet') + (cur.last_by ? ' by ' + escH(cur.last_by) : '') + '</span></div>' +
+      '<textarea id="prText" oninput="prCount()" onchange="prCount()" onkeyup="prCount()" spellcheck="false" style="width:100%;min-height:260px;overflow:hidden;resize:none;box-sizing:border-box;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55">' + escH(cur.text) + '</textarea>' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin:4px 0"><span id="prCnt"></span><span id="prDirty" style="color:var(--amber,#b7791f);font-weight:600"></span></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="prNote" maxlength="200" placeholder="What did you change? (optional)" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--border);border-radius:9px"><button id="prSave" class="x-btn p" onclick="prSave()"' + (PR.busy ? ' disabled' : '') + '>Save</button></div>' +
+      '<div class="x-sub" style="font-weight:700;margin-top:16px">Version history</div><div id="prViewBox"></div>' + hist + '</div>' : '<div class="x-empty" style="margin-top:10px">No prompt for this channel.</div>') +
     '</div>';
   prCount();
 }
