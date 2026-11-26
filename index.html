@@ -1199,6 +1199,7 @@
 
       <div class="mi-tabs">
         <div class="mi-tab active" data-set="v11" onclick="showSetTab('v11')">🎛️ Controls &amp; Prompts</div>
+        <div class="mi-tab" data-set="prompts" onclick="showSetTab('prompts')">✍️ Email Prompts</div>
         <div class="mi-tab" data-set="keywords" onclick="showSetTab('keywords')">🔑 Search Keywords</div>
         <div class="mi-tab" data-set="countries" onclick="showSetTab('countries')">🌍 Countries &amp; Cities</div>
         <div class="mi-tab" data-set="tools" onclick="showSetTab('tools')">🧰 Tools</div>
@@ -1206,6 +1207,9 @@
 
       <!-- CONTROLS (v11) -->
       <div class="set-page active" id="set-v11"><div id="setV11"></div></div>
+
+      <!-- EMAIL PROMPTS (Prompt_API) -->
+      <div class="set-page" id="set-prompts" style="display:none;"><div id="prRoot"></div></div>
 
       <!-- SEARCH KEYWORDS -->
       <div class="set-page" id="set-keywords" style="display:none;">
@@ -2997,6 +3001,7 @@ function showSetTab(name){
   document.querySelectorAll('.set-page').forEach(p=>p.style.display='none');
   document.getElementById('set-'+name).style.display='block';
   if(name==='v11') setLoad();
+  if(name==='prompts') prInit();
 }
 
 let currentPromptType='personal', currentFu=1, currentChannel='distributor', currentTier='oright', currentEsg='high';
@@ -4611,7 +4616,133 @@ function bCopy(){ const b = HUB.brief; if(!b) return; const txt = b.sections.map
 
 /* ---------- SETTINGS v11 (talks to /hub-settings, /hub-settings-save) ---------- */
 const SET = { data:null, err:null, tok:null, tab:'send', draft:{}, busy:false, pk:'EMAIL_PROMPT', pv:null, rk:'', ch:'' };
-const SET_TABS = [['send','Sending & safety'],['score','Scoring'],['prompts','Prompts'],['status','System status'],['hist','Change history']];
+/* ===== Prompts screen (Settings > Prompts). Talks to n8n Prompt_API: GET /hub-prompts, POST /hub-prompt-save ===== */
+const PR = { tok: '', data: null, who: '', sel: '', hist: null, dirty: false, busy: false, msg: null };
+function prTok(){ return lsGet('oright_prompt_token') || ''; }
+function prWho(){ return PR.who || String(getCurrentUser() || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function prBox(){ return document.getElementById('prRoot'); }
+function prFmt(t){ if(!t) return ''; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString('en-GB', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}); }
+async function prCall(path, opt){
+  const r = await fetch(N8N_BASE + path, opt);
+  const t = await r.text(); let j; try { j = JSON.parse(t); } catch(e){ throw new Error('The Prompt_API workflow did not answer correctly (HTTP ' + r.status + '). Check that it is Active in n8n.'); }
+  return j;
+}
+async function prLoad(keepSel){
+  const tok = prTok(); if(!tok){ PR.data = null; prRender(); return; }
+  PR.busy = true; prRender();
+  try {
+    const q = '?token=' + encodeURIComponent(tok) + '&who=' + encodeURIComponent(prWho()) + (PR.sel ? '&key=' + encodeURIComponent(PR.sel) : '');
+    const j = await prCall('/hub-prompts' + q);
+    PR.data = j; PR.msg = null;
+    if(j.authed === false){ PR.msg = {c:'red', t: j.setup_needed ? 'Setup not finished: add PROMPT_TOKEN (and ADMIN_TOKEN) rows in the Hub_Config tab.' : 'That key was not accepted. Check it and try again.'}; }
+    else if(j.error && !j.ok){ PR.msg = {c:'red', t: j.error}; }
+    if(j.authed && j.prompts){
+      if(!keepSel || !j.prompts.some(p => p.key === PR.sel)){ const first = j.prompts.find(p => p.exists) || j.prompts[0]; PR.sel = first ? first.key : ''; }
+      PR.hist = (j.history_key === PR.sel) ? j.history : null; PR.dirty = false;
+      if(PR.sel && !PR.hist) { await prLoadHist(); return; }
+    }
+  } catch(e){ PR.msg = {c:'red', t: 'Could not reach n8n: ' + e.message}; }
+  PR.busy = false; prRender();
+}
+async function prLoadHist(){
+  try {
+    const j = await prCall('/hub-prompts?token=' + encodeURIComponent(prTok()) + '&who=' + encodeURIComponent(prWho()) + '&key=' + encodeURIComponent(PR.sel));
+    PR.hist = j.history_key === PR.sel ? j.history : [];
+  } catch(e){ PR.hist = []; }
+  PR.busy = false; prRender();
+}
+function prCur(){ return PR.data && PR.data.prompts ? PR.data.prompts.find(p => p.key === PR.sel) : null; }
+function prPick(key){
+  if(PR.dirty && !confirm('You have unsaved changes in this prompt. Switch anyway?')) return;
+  PR.sel = key; PR.hist = null; PR.dirty = false; PR.msg = null; PR.busy = true; prRender(); prLoadHist();
+}
+function prPerson(id){
+  if(PR.dirty && !confirm('You have unsaved changes in this prompt. Switch anyway?')) { prRender(); return; }
+  PR.who = id; PR.sel = ''; PR.hist = null; PR.dirty = false; prLoad(false);
+}
+function prSaveKey(){
+  const v = (document.getElementById('prKey').value || '').trim(); if(!v) return;
+  lsSet('oright_prompt_token', v); document.getElementById('prKey').value = ''; PR.sel = ''; prLoad(false);
+}
+function prForget(){ if(PR.dirty && !confirm('You have unsaved changes. Forget the key anyway?')) return; try { localStorage.removeItem('oright_prompt_token'); } catch(e){} PR.data = null; PR.hist = null; PR.sel = ''; prRender(); }
+function prCount(){
+  const ta = document.getElementById('prText'), c = document.getElementById('prCnt'); if(!ta || !c) return;
+  const n = ta.value.length, L = (PR.data && PR.data.limits) || {min_chars:200, max_chars:15000};
+  c.textContent = n.toLocaleString() + ' characters (allowed ' + L.min_chars + '–' + L.max_chars.toLocaleString() + ')'; c.style.color = (n < L.min_chars || n > L.max_chars) ? 'var(--red)' : 'var(--ink-faint)';
+  const cur = prCur(); PR.dirty = !!cur && ta.value.replace(/\r\n/g,'\n').trim() !== String(cur.text || '').replace(/\r\n/g,'\n').trim();
+  const b = document.getElementById('prSave'); if(b) b.disabled = !PR.dirty || PR.busy;
+}
+async function prPost(body){
+  PR.busy = true; PR.msg = {c:'blue', t:'Saving…'}; prRender();
+  try {
+    const j = await prCall('/hub-prompt-save', { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(Object.assign({ token: prTok(), who: prWho() }, body)) });
+    if(!j.ok){ PR.busy = false; PR.msg = {c:'red', t: String(j.error || 'Save failed').replace(/^[A-Z_]+:\s*/, '')}; prRender(); return; }
+    PR.dirty = false; PR.hist = null;
+    const warn = (j.warnings || []).join(' ');
+    await prLoad(true);
+    PR.msg = j.changed === false ? {c:'blue', t: warn || 'Nothing changed.'} : {c: warn ? 'amber' : 'green', t: 'Saved as v' + j.version + '. It is used the next time an email is generated (and by the next Auto-send run).' + (warn ? ' Heads-up: ' + warn : '')};
+    prRender();
+  } catch(e){ PR.busy = false; PR.msg = {c:'red', t: 'Could not save: ' + e.message}; prRender(); }
+}
+function prSave(){
+  const ta = document.getElementById('prText'), note = document.getElementById('prNote');
+  if(!ta) return; prPost({ action:'save', key: PR.sel, text: ta.value, note: note ? note.value : '' });
+}
+function prRestore(v){
+  if(PR.dirty && !confirm('You have unsaved changes. Restoring will replace them. Continue?')) return;
+  if(!confirm('Make version ' + v + ' the live prompt?')) return;
+  prPost({ action:'restore', key: PR.sel, version: v });
+}
+function prView(v){
+  const h = (PR.hist || []).find(x => x.version === v); if(!h) return;
+  const el = document.getElementById('prViewBox'); if(!el) return;
+  el.innerHTML = '<div class="x-note blue"><b>Version ' + v + '</b> · ' + escH(prFmt(h.at)) + ' · ' + escH(h.by) + '<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;max-height:260px;overflow:auto;margin:8px 0 0;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px">' + escH(h.text) + '</pre><button class="x-btn" style="margin-top:6px" onclick="prUse(' + v + ')">Load this text into the editor (no save yet)</button></div>';
+}
+function prUse(v){ const h = (PR.hist || []).find(x => x.version === v), ta = document.getElementById('prText'); if(h && ta){ ta.value = h.text; prCount(); showToast('Loaded into the editor. Click Save to make it live.'); } }
+function prCopyFrom(){
+  const sel = document.getElementById('prCopy'); if(!sel || !sel.value) return;
+  const src = PR.data.prompts.find(p => p.key === sel.value); if(!src) return;
+  if(!confirm('Replace the text in the editor with the prompt from ' + src.key.replace('EMAIL_PROMPT.', '') + '? Nothing is saved until you click Save.')) { sel.value = ''; return; }
+  document.getElementById('prText').value = src.text; sel.value = ''; prCount();
+}
+function prRender(){
+  const box = prBox(); if(!box) return;
+  if(!prTok()){
+    box.innerHTML = '<div class="x-panel"><div class="x-sub" style="font-weight:700">Email prompts</div><p style="font-size:13px;margin:8px 0">Enter your team key to edit the email prompts. Everyone on the team uses the same key; Winda has a separate admin key that can edit everyone.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="prKey" type="password" class="x-in" placeholder="Team key or admin key" style="min-width:240px;padding:8px 10px;border:1px solid var(--border);border-radius:9px" onkeydown="if(event.key===\'Enter\')prSaveKey()"><button class="x-btn p" onclick="prSaveKey()">Unlock</button></div>' + (PR.msg ? '<div class="x-note ' + PR.msg.c + '">' + escH(PR.msg.t) + '</div>' : '') + '</div>';
+    return;
+  }
+  const d = PR.data;
+  if(!d){ box.innerHTML = '<div class="x-panel x-empty">' + (PR.busy ? 'Loading…' : 'Not loaded.') + '</div>'; return; }
+  if(d.authed === false){
+    box.innerHTML = '<div class="x-panel"><div class="x-note red">' + escH(PR.msg ? PR.msg.t : 'Key not accepted.') + '</div><button class="x-btn" onclick="prForget()">Enter a different key</button></div>'; return;
+  }
+  const admin = d.role === 'admin', cur = prCur();
+  const people = d.people || [], persons = people.map(p => '<option value="' + p.id + '"' + (p.id === (PR.who || prWho()) ? ' selected' : '') + '>' + escH(p.name) + ' (' + p.brand + ')</option>').join('');
+  const curPerson = people.find(p => p.id === (cur ? cur.sender : prWho())) || people[0];
+  const mine = (d.prompts || []).filter(p => curPerson && p.sender === curPerson.id);
+  const chips = mine.map(p => '<span class="x-pill' + (p.key === PR.sel ? ' on' : '') + '" style="cursor:pointer;margin:0 6px 6px 0;display:inline-block;padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-size:12.5px;font-weight:600;' + (p.key === PR.sel ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="prPick(\'' + p.key + '\')">' + (p.exists ? '● ' : '○ ') + escH(p.label) + '</span>').join('');
+  const defChip = admin ? (d.prompts || []).filter(p => p.key === 'EMAIL_PROMPT.DEFAULT').map(p => '<span style="cursor:pointer;display:inline-block;padding:5px 10px;border:1px dashed var(--border);border-radius:999px;font-size:12.5px;font-weight:600;' + (p.key === PR.sel ? 'background:var(--brand);color:#fff;' : 'background:#fff;') + '" onclick="prPick(\'' + p.key + '\')">Fallback (everyone)</span>').join('') : '';
+  const others = (d.prompts || []).filter(p => p.exists && p.key !== PR.sel);
+  const copyOpts = '<option value="">Copy text from…</option>' + others.map(p => '<option value="' + p.key + '">' + escH(p.key.replace('EMAIL_PROMPT.', '').replace('.', ' · ')) + '</option>').join('');
+  const L = d.limits || {};
+  const hist = (PR.hist || []).map(h => '<div class="hs-r"><div class="hs-h"><b>v' + h.version + '</b><span class="x-pill">' + escH(h.action || 'save') + '</span><span>' + escH(h.by) + '</span><span class="hs-t">' + escH(prFmt(h.at)) + '</span></div>' + (h.note ? '<div class="hs-d">' + escH(h.note) + '</div>' : '') + '<div style="font-size:12px;color:var(--ink-faint)">' + (h.chars || 0).toLocaleString() + ' characters</div><button class="x-btn" onclick="prView(' + h.version + ')">View</button> <button class="x-btn" onclick="prRestore(' + h.version + ')">Restore</button></div>').join('') || '<div class="x-empty">No saved versions yet. The first save keeps a copy of the current prompt as version 1.</div>';
+  box.innerHTML =
+    '<div class="x-panel"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between"><div><div class="x-sub" style="font-weight:700">Email prompts</div><div style="font-size:12.5px;color:var(--ink-faint)">' + (admin ? 'Admin key: you can edit every person.' : 'Team key: you edit your own prompts only.') + '</div></div><button class="x-btn" onclick="prForget()">Lock</button></div>' +
+    '<div class="x-note amber" style="margin-top:10px">Changes go live at the next email generated, including the next Auto-send run. Test with one lead before a big batch. Each save keeps the previous version, so you can restore it.</div>' +
+    (admin ? '<div style="margin:8px 0"><label style="font-size:12.5px;font-weight:600">Person </label><select onchange="prPerson(this.value)" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px">' + persons + '</select></div>' : '<div style="margin:8px 0;font-size:13px"><b>' + escH(curPerson ? curPerson.name : prWho()) + '</b> <span style="color:var(--ink-faint)">(change with “Switch user”, bottom left)</span></div>') +
+    '<div style="margin:6px 0 4px;font-size:12.5px;font-weight:600">Channel <span style="font-weight:400;color:var(--ink-faint)">● has its own prompt · ○ uses the fallback</span></div><div>' + chips + defChip + '</div>' +
+    (PR.msg ? '<div class="x-note ' + PR.msg.c + '">' + escH(PR.msg.t) + '</div>' : '') +
+    (cur ? '<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px;margin-bottom:4px"><b>' + escH(cur.key.replace('EMAIL_PROMPT.', '')) + '</b><span style="color:var(--ink-faint)">' + (cur.updated_at ? 'Last saved ' + escH(prFmt(cur.updated_at)) : 'Not saved yet') + (cur.last_by ? ' by ' + escH(cur.last_by) : '') + '</span></div>' +
+      '<textarea id="prText" oninput="prCount()" spellcheck="false" style="width:100%;min-height:380px;box-sizing:border-box;padding:10px;border:1px solid var(--border);border-radius:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5">' + escH(cur.text) + '</textarea>' +
+      '<div id="prCnt" style="font-size:12px;margin:4px 0"></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="prNote" maxlength="200" placeholder="What did you change? (optional)" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--border);border-radius:9px"><select id="prCopy" onchange="prCopyFrom()" style="padding:7px 8px;border:1px solid var(--border);border-radius:8px">' + copyOpts + '</select><button id="prSave" class="x-btn p" onclick="prSave()" disabled>Save</button></div>' +
+      '<div class="x-sub" style="font-weight:700;margin-top:16px">Version history</div><div id="prViewBox"></div>' + hist + '</div>' : '<div class="x-empty">No prompt selected.</div>') +
+    '</div>';
+  prCount();
+}
+function prInit(){ if(!PR.data && !PR.busy){ prLoad(false); } else prRender(); }
+
+const SET_TABS = [['send','Sending & safety'],['score','Scoring'],['status','Connections'],['hist','Change history']];
 function setTok(){ return lsGet('oright_admin_token') || ''; }
 async function setLoad(){
   const t = setTok(); const box = $x('setV11'); if(!box) return;
@@ -4677,9 +4808,9 @@ function setSaveBar(){
 }
 function setWarnHtml(){ return ((SET.data.warnings) || []).map(w => '<div class="x-note amber">' + escH(w) + '</div>').join(''); }
 /* ----- tab: sending & safety / scoring ----- */
-function setTabSend(){ return setWarnHtml() + setGroupHtml(['send','sig','draft','dash']) + setSaveBar(); }
+function setTabSend(){ return setWarnHtml() + setGroupHtml(['send','draft','dash']) + setSaveBar(); }   // 'sig' removed: signatures are set per person in the Senders tab
 function setTabScore(){
-  let h = setWarnHtml() + setGroupHtml(['fit','enrich','apify','adv']) + setSaveBar();
+  let h = setWarnHtml() + setGroupHtml(['fit','enrich','adv'])   /* 'apify' removed: Apify is no longer used */ + setSaveBar();
   h += '<div class="x-panel"><h3>Channel profiles</h3><div class="x-sub">What the scorer is told each channel is. Saved as a new log entry. Applies to leads scored from now on.</div>' + setChannelsHtml() + '</div>';
   h += '<div class="x-panel" style="margin-top:14px"><h3>Scoring rubrics</h3><div class="x-sub">Each save creates a new version. The highest active version is used. Old scores stay.</div>' + setRubricHtml() + '</div>';
   return h;
@@ -4762,12 +4893,13 @@ function setTabPrompts(){
 }
 /* ----- tab: system status ----- */
 function setTabStatus(){
-  const S = SET.data.status || {}, T = S.tavily || [];
-  let h = '<div class="x-grid x-g2e"><div class="x-panel"><h3>Tavily search credit</h3><div class="x-sub">Each lead check uses about 3 credits (counted from the workflow code).</div>' +
-    '<div class="st-big">' + (S.tavily_remaining != null ? S.tavily_remaining.toLocaleString() : '—') + '<small> credits left</small></div><div class="x-sub">Enough for about <b>' + (S.tavily_leads_left != null ? S.tavily_leads_left.toLocaleString() : '—') + '</b> more leads.</div>' +
-    (T.length ? '<table class="st-t"><tr><th>Key</th><th>Left</th><th></th></tr>' + T.map(t => '<tr><td>' + escH(t.label) + '</td><td>' + (t.remaining != null ? t.remaining : '—') + (t.limit ? ' / ' + t.limit : '') + '</td><td>' + (t.exhausted ? '<span class="x-pill red">used up</span>' : t.active ? '<span class="x-pill green">in use</span>' : '<span class="x-pill grey">off</span>') + '</td></tr>').join('') + '</table>' : '<div class="x-empty">No Tavily keys found.</div>') + '</div>';
-  const lst = (title, rows, note) => '<div class="x-panel"><h3>' + title + '</h3><div class="x-sub">' + note + '</div>' + ((rows || []).length ? '<table class="st-t">' + rows.map(t => '<tr><td>' + escH(t.label) + '</td><td>' + (t.active ? '<span class="x-pill green">active</span>' : '<span class="x-pill grey">off</span>') + '</td><td class="sf-h">' + escH(t.notes || '') + '</td></tr>').join('') + '</table>' : '<div class="x-empty">None found.</div>') + '</div>';
-  h += '<div>' + lst('Apify keys', S.apify, 'Apify credit is not stored in a sheet, so only the label and on/off state show here. Check the balance in the Apify console.') + '<div style="height:14px"></div>' + lst('Groq keys', S.groq, 'Used for drafting and scoring. Key values are never shown.') + '</div></div>';
+  const S = SET.data.status || {};
+  let h = '<div class="x-grid x-g2e">' +
+    '<div class="x-panel"><h3>OpenAI</h3><div class="x-sub">Writes the emails and scores the leads.</div>' +
+    '<div class="x-note green">Connected through n8n (credential "OpenAI Oright"). Nothing to enter in this dashboard.</div>' +
+    '<div class="x-sub">To change the key: n8n, Credentials, OpenAI Oright. To check the balance: platform.openai.com, Usage.</div></div>' +
+    '<div class="x-panel"><h3>TinyFish</h3><div class="x-sub">Reads company websites for enrichment.</div>' +
+    '<div class="x-note blue">The keys live in the sheet "API KEY Pool", tab TinyFish (Key_Label, Stage, API_Key, Active). Set Active to FALSE to switch a key off. Key values are never shown here.</div></div></div>';
   h += '<div class="x-panel" style="margin-top:14px"><h3>Switches</h3><div class="x-sub">These are normal settings, change them on the Sending & safety or Scoring tabs.</div><table class="st-t">' +
     [['Test mode', S.test_mode ? 'On: only test addresses can receive email' : 'Off: real emails can go out'], ['Switch channel automatically', (SET.data.values.AUTO_SWITCH === 'TRUE') ? 'On' : 'Off'], ['Hold unclear channels for review', (SET.data.values.HOLD_UNCLEAR === 'TRUE') ? 'On' : 'Off']].map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') + '</table></div>';
   return h;
